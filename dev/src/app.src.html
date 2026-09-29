@@ -38,6 +38,10 @@ html,body{height:100%;overflow:hidden;background:var(--space);color:var(--ink);f
 #tzoom button{width:60px;height:60px;border-radius:50%;border:3px solid #fff0c2;background:var(--gold);color:#2b1d00;font:800 34px/1 var(--body);box-shadow:0 4px 12px rgba(0,0,0,.35);cursor:pointer}
 #tzoom button:active{transform:scale(.92)}
 #tstrip .th .em{font-size:32px;line-height:44px;height:44px}
+#flyhud{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);padding:6px 12px;border-radius:999px;background:rgba(13,11,46,.75);border:2px solid rgba(255,209,102,.8);font:800 17px/1 var(--body);color:var(--ink);transition:transform .15s}
+#flyhud.bump{transform:scale(1.25)}
+#flyhint{position:fixed;left:50%;top:44%;transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:rgba(13,11,46,.7);font:800 20px/1 var(--body);color:#fff;pointer-events:none;animation:flyhint 1.6s ease-in-out infinite}
+@keyframes flyhint{0%,100%{margin-left:-40px}50%{margin-left:40px}}
 #tstars{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 76px);padding:6px 12px;border-radius:999px;background:rgba(13,11,46,.75);border:2px solid rgba(255,209,102,.8);font:800 16px/1 var(--body);color:var(--ink)}
 #wstrip .th .em{font-size:32px;line-height:44px;height:44px}
 .th{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px;width:62px;padding:6px 0 5px;border-radius:16px;border:2px solid transparent;background:none;color:var(--muted);font:800 11px/1 var(--body);scroll-snap-align:center;cursor:pointer}
@@ -173,6 +177,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
   </section>
   <nav id="bottom"><div id="strip"></div><div id="wstrip" hidden></div><div id="tstrip" hidden></div><div id="actions"></div></nav>
   <div id="tstars" hidden>⭐ 0 / 10</div>
+  <div id="flyhud" hidden></div><div id="flyhint" hidden>👆 Drag to steer</div>
   <div id="tzoom" hidden><button id="tzin" aria-label="Zoom in">＋</button><button id="tzout" aria-label="Zoom out">－</button></div>
   <div id="drive" hidden>
     <div id="rockct">💎 0 / 10</div>
@@ -302,6 +307,12 @@ const HOME_FACTS = [
 const SAY = {
   toyIn: "Welcome to Explorer Earth! It's a play map of our planet. Spin it, zoom in close, and tap anything to learn about it.",
   toyCar: "Beep beep! We're riding in a car along the road!",
+  flyIn: "You're the pilot! Drag your finger to steer. Fly through the gold rings!",
+  flyCombo: "Wow! Five rings in a row! You're a super pilot!",
+  flyNear: "Look, a famous place down there! Tap Land to visit it.",
+  flyLand: "We landed! You got a passport stamp!",
+  flyAll: "You've landed at every famous place! You're a world explorer!",
+  missionDone: "Mission complete! Great job, pilot!",
   toyPlane: "Wheee! We're flying in an airplane, high up in the sky!",
   toyBoat: "Ahoy! We're sailing a boat across the ocean!",
   toyHome: "That's Amelia's house! Hi, Amelia!",
@@ -2420,7 +2431,7 @@ function goBack(){
   if (mode === 'eclipse') { closeEclipse(); return true; }
   if (mode === 'quiz') { endQuiz(); return true; }
   if (mode === 'parade') { endParade(); return true; }
-  if (mode === 'toy') { const T = toy; if (T.quiz) toyQuizEnd(); else if (T.follow) toyStop(); else if (T.menu) { T.menu = null; nav(); } else if (T.home) { T.home = false; nav(); } else if (T.lmTour) { T.lmTour = false; T.picked = null; $('#pill').textContent = 'Explorer Earth'; nav(); } else toyToSpace(); return true; }
+  if (mode === 'toy') { const T = toy; if (T.fly) toyFlyStop(); else if (T.quiz) toyQuizEnd(); else if (T.follow) toyStop(); else if (T.menu) { T.menu = null; nav(); } else if (T.home) { T.home = false; nav(); } else if (T.lmTour) { T.lmTour = false; T.picked = null; $('#pill').textContent = 'Explorer Earth'; nav(); } else toyToSpace(); return true; }
   if (mode === 'site') { leaveSite(wIdx); return true; }
   if (mode === 'mars') { leaveMars(); return true; }
   if (mode === 'sky' && skyTilt.on) { skyPoint(false, true); return true; }
@@ -2433,7 +2444,9 @@ function goBack(){
 let backArmed = false;
 function armBack(){ if (!backArmed && mode !== 'space' && mode !== 'intro') { try { history.pushState({ ast: 1 }, ''); backArmed = true; } catch {} } }
 addEventListener('popstate', () => { backArmed = false; if (goBack()) setTimeout(armBack, 400); else history.back(); });
-addEventListener('keydown', e => { if ((e.key === 'Escape' || e.key === 'Backspace') && !/INPUT|TEXTAREA/.test(document.activeElement?.tagName || '') && goBack()) e.preventDefault(); });
+addEventListener('keyup', e => { if (mode === 'toy' && toy && toy.fly && /Arrow/.test(e.key)) { if (/Left|Right/.test(e.key)) toy.fly.sx = 0; else toy.fly.sy = 0; } });
+addEventListener('keydown', e => {
+  if (mode === 'toy' && toy && toy.fly && /Arrow/.test(e.key)) { const F = toy.fly; if (e.key === 'ArrowLeft') F.sx = -1; if (e.key === 'ArrowRight') F.sx = 1; if (e.key === 'ArrowUp') F.sy = 1; if (e.key === 'ArrowDown') F.sy = -1; $('#flyhint').hidden = true; e.preventDefault(); return; } if ((e.key === 'Escape' || e.key === 'Backspace') && !/INPUT|TEXTAREA/.test(document.activeElement?.tagName || '') && goBack()) e.preventDefault(); });
 function btn(em, label, fn, cls = ''){
   const b = document.createElement('button'); b.className = 'act ' + cls; b.innerHTML = `<span class="em" aria-hidden="true">${em}</span>${label}`;
   b.onclick = () => { audio()?.resume?.(); fn(); }; return b;
@@ -2441,8 +2454,8 @@ function btn(em, label, fn, cls = ''){
 function nav(){
   const strip = $('#strip'), acts = $('#actions');
   const showStrip = mode === 'space' || mode === 'focus';
-  $('#style').hidden = !(mode === 'space' || mode === 'focus' || mode === 'world' || (mode === 'toy' && !(toy && (toy.follow || toy.quiz))));
-  strip.hidden = !showStrip; $('#wstrip').hidden = mode !== 'world' && mode !== 'site'; $('#tstrip').hidden = mode !== 'toy' || !!(toy && (toy.follow || toy.menu)); $('#tzoom').hidden = mode !== 'toy' || !!(toy && toy.follow); $('#bottom').hidden = mode === 'flying' || mode === 'intro' || mode === 'launch' || mode === 'landing';
+  $('#style').hidden = !(mode === 'space' || mode === 'focus' || mode === 'world' || (mode === 'toy' && !(toy && (toy.follow || toy.quiz || toy.fly))));
+  strip.hidden = !showStrip; $('#wstrip').hidden = mode !== 'world' && mode !== 'site'; $('#tstrip').hidden = mode !== 'toy' || !!(toy && (toy.follow || toy.menu || toy.fly)); $('#tzoom').hidden = mode !== 'toy' || !!(toy && (toy.follow || toy.fly)); $('#flyhud').hidden = mode !== 'toy' || !(toy && toy.fly); if ($('#flyhud').hidden) $('#flyhint').hidden = true; $('#bottom').hidden = mode === 'flying' || mode === 'intro' || mode === 'launch' || mode === 'landing';
   strip.querySelectorAll('.th').forEach(t => t.setAttribute('aria-pressed', String(current && t.dataset.id === current.id)));
   acts.innerHTML = '';
   $('#backbtn').hidden = mode === 'space' || mode === 'intro' || mode === 'flying' || mode === 'launch' || mode === 'landing'; armBack();
@@ -2460,7 +2473,11 @@ function nav(){
   if (mode === 'mars') acts.append(btn('🪐', 'Back to space', leaveMars, 'hero'));
   if (mode === 'toy') {
     const T = toy;
-    if (T.quiz) acts.append(btn('🔊', 'Again', () => T.quiz.target && speak(findLine(T.quiz.target))), btn('⏭️', 'Skip', toyQuizNext, 'gold'), btn('✅', 'Done', toyQuizEnd, 'hero'));
+    if (T.fly) { const F = T.fly;
+      if (F.landed) acts.append(btn('🛫', 'Take off', toyTakeOff, 'hero'), btn(F.landed.em, 'Visit', () => { T.picked = F.landed; toyFlyStop(true); toyVisit(); }, 'gold'), btn('✋', 'Stop', () => toyFlyStop()));
+      else { if (F.near) acts.append(btn('🛬', 'Land', toyLand, 'hero')); acts.append(btn('✋', 'Stop flying', () => toyFlyStop())); }
+    }
+    else if (T.quiz) acts.append(btn('🔊', 'Again', () => T.quiz.target && speak(findLine(T.quiz.target))), btn('⏭️', 'Skip', toyQuizNext, 'gold'), btn('✅', 'Done', toyQuizEnd, 'hero'));
     else if (T.home) acts.append(btn('🏡', 'Go inside', toyGoHome, 'hero'), btn('✅', 'Done', () => { T.home = false; $('#pill').textContent = 'Explorer Earth'; nav(); }));
     else if (T.lmTour) acts.append(btn('◀️', 'Back', () => toyLmTour(T.lmI - 1)), btn(LM[T.lmI].em, 'Visit', toyVisit, 'hero'), btn('▶️', 'Next', () => toyLmTour(T.lmI + 1), 'gold'), btn('✅', 'Done', () => { T.lmTour = false; T.picked = null; $('#pill').textContent = 'Explorer Earth'; nav(); }));
     else if (T.menu === 'games') acts.append(btn('⭐', 'Star hunt', () => { T.menu = null; toyStars(); }, 'gold'), btn('🗺️', 'States', () => { T.menu = null; toyStatesGame(); }, 'gold'), btn('↩️', 'Back', () => { T.menu = null; nav(); }));
@@ -2470,6 +2487,7 @@ function nav(){
       for (const [k, em] of Object.entries(BUILDS)) acts.append(btn(em, { tree: 'Tree', house: 'House', flowers: 'Flowers' }[k], () => { T.buildKind = k; nav(); }, T.buildKind === k ? 'hero' : ''));
       acts.append(btn('↩️', 'Undo', () => { T.buildList.pop(); toyRebuild(); }), btn('✅', 'Done', () => { T.menu = null; nav(); }, 'gold'));
     } else {
+      acts.append(btn('✈️', 'Fly!', toyFly, 'hero'));
       acts.append(T.hunt ? btn('💡', 'Hint', toyHint, 'gold') : btn('🎮', 'Games', () => { T.menu = 'games'; nav(); }, 'gold'), btn('🏛️', 'Places', () => toyLmTour(T.lmI || 0), 'gold'));
       acts.append(btn('🎢', 'Rides', () => { T.menu = 'ride'; nav(); }, 'gold'), btn('🧱', 'Build', () => { T.menu = 'build'; if (goal.dist > TOY_LEVELS[2] + .1) goal.dist = TOY_LEVELS[2]; speak(SAY.toyBuildIn); nav(); }, 'gold'));
       acts.append(btn('📷', 'Real Earth', async () => { await setStyle('real'); if (mode === 'toy') leaveToy(); }));
@@ -2523,6 +2541,7 @@ canvas.addEventListener('pointermove', e => {
     }
     return;
   }
+  if (mode === 'toy' && toy && toy.fly) { if (ptrs.size >= 1) { moved = true; toy.fly.sx = clamp((e.clientX - down.x) / 70, -1, 1); toy.fly.sy = clamp((down.y - e.clientY) / 70, -1, 1); $('#flyhint').hidden = true; } return; }
   if (ptrs.size === 1) {
     if (Math.hypot(e.clientX - down.x, e.clientY - down.y) > 9) moved = true;
     if (!moved) return;
@@ -2535,6 +2554,7 @@ canvas.addEventListener('pointermove', e => {
 });
 function up(e){
   const had = ptrs.has(e.pointerId); ptrs.delete(e.pointerId);
+  if (mode === 'toy' && toy && toy.fly && ptrs.size === 0) { toy.fly.sx = toy.fly.sy = 0; }
   if (ptrs.size < 2) pinch = null;
   if (had && !moved && ptrs.size === 0 && e.type === 'pointerup') tap(e.clientX, e.clientY);
 }
@@ -3686,6 +3706,7 @@ function updateToy(dt, t){
   });
   T.clouds3.forEach(m => { m.instanceMatrix.needsUpdate = true; }); T.shadows.instanceMatrix.needsUpdate = true;
   animAmelia(T.hAm, dt, t); if (T.hAm.userData.anim.waveT <= 0 && Math.sin(t * .5) > .995) waveAmelia(T.hAm, 2);
+  if (T.fly) { updateFly(dt, t); return; }
   // camera: orbit far away; near the ground, tilt up to look along the surface
   if (fpos) {   // ride along: sit just behind and above the vehicle, looking where it's going
     const [p, up, fwd] = fpos, pl = T.follow.kind === 'plane', want = p.clone().addScaledVector(fwd, pl ? -.7 : -.5).addScaledVector(up, pl ? .42 : .26);
@@ -3704,7 +3725,7 @@ function updateToy(dt, t){
   camera.position.copy(spot).addScaledVector(dir, alt * Math.cos(th)).addScaledVector(north, -alt * Math.sin(th));
   camera.up.copy(north).multiplyScalar(Math.cos(th)).addScaledVector(dir, Math.sin(th)).normalize(); camera.lookAt(spot);
   T.skyC.copy(T.nightC).lerp(T.dayC, sst(.35, .85, tl)); T.s.background = T.skyC; T.s.fog.color.copy(T.skyC); T.s.fog.near = 2 + alt * 3; T.s.fog.far = tl > .3 ? 6 + alt * 9 : 1e4;
-  T.stars.visible = tl < .6; T.trees.forEach(m => { m.visible = rig.dist < R * 2.6; });
+  T.stars.visible = tl < .6; T.trees.forEach(m => { m.visible = rig.dist < R * 2.6; if (m.userData.ink) m.userData.ink.visible = m.visible; });
   if (T.roll) { camera.rotateZ(T.roll); T.roll *= Math.exp(-dt * 1.6); if (Math.abs(T.roll) < .002) T.roll = 0; }
   // the sun lamp rides with the camera so the side you look at is always lit
   T.light.position.copy(camera.position).add(new THREE.Vector3(-.4, .7, .2).applyQuaternion(camera.quaternion).multiplyScalar(R * 2)); T.light.target.position.set(0, 0, 0);
@@ -3758,6 +3779,7 @@ function toyLmTour(i){   // fly from landmark to landmark; Visit opens the 3D sc
   toyFlyTo(L.lat, L.lon, 2); T.lmTour = true; T.lmI = LM.indexOf(L); T.picked = L; $('#pill').textContent = L.name; speak(L.say); pop(); nav();
 }
 function leaveToy(){
+  if (toy && toy.fly) toyFlyStop(true);
   const T = toy, dirv = new THREE.Vector3(Math.cos(rig.el) * Math.sin(rig.az), Math.sin(rig.el), Math.cos(rig.el) * Math.cos(rig.az)), [lat, lon] = llOfDir(dirv), ratio = rig.dist / TOY_R, my = ++seq;
   T.follow = null; T.picked = null; T.menu = null; if (T.quiz) { T.quiz = null; toyHighlight(null); } $('#tstars').hidden = true; $('#tzoom').hidden = true;
   melt().then(() => {
@@ -3782,6 +3804,7 @@ function openPlanet(p){   // in Cartoon mode, Earth opens as Explorer Earth: fly
   if (p === current) moreFact(); else focus(p);
 }
 function toyToSpace(){
+  if (toy && toy.fly) toyFlyStop(true);
   const T = toy, my = ++seq; T.follow = null; T.menu = null; T.lmTour = false; T.home = false; if (T.quiz) { T.quiz = null; toyHighlight(null); } $('#tstars').hidden = true; $('#tzoom').hidden = true;
   whoosh(true).then(() => { if (my !== seq) return; manualCam = false; sceneMode = 'space'; camera.up.set(0, 1, 0); overview(); sleep(150).then(() => whoosh(false)); });
 }
@@ -3794,6 +3817,138 @@ function toyRide(kind){
   const n = kind === 'car' ? toy.NC : kind === 'plane' ? toy.planeS.length : toy.boatS.length;
   toy.follow = { kind, i: Math.floor(Math.random() * n) }; toy.picked = null; toy.menu = null; toy.lmTour = false; award('toy');
   speak(SAY[kind === 'car' ? 'toyCar' : kind === 'plane' ? 'toyPlane' : 'toyBoat']); nav();
+}
+/* ---------- ✈️ Fly it yourself: Amelia's own plane, gold rings, stars to grab, and famous places to land at ---------- */
+const ANIMAL_NAME = { polarBear: 'polar bear' };
+const missionLine = m => m.lm ? `Mission: fly to the ${m.lm.name}! Follow the green arrow!` : `Mission: find the ${ANIMAL_NAME[m.an] || m.an}! Follow the green arrow!`;
+function flyMission(){   // pick somewhere new, not too close, and point the way
+  const T = toy, F = T.fly, opts = [...LM.map(l => ({ lm: l, lat: l.lat, lon: l.lon })), ...Object.entries(ANIMALS).map(([an, a]) => ({ an, lat: a[0], lon: a[1] }))]
+    .filter(o => featDir(o.lat, o.lon).angleTo(F.p) > .35 && (!F.mission || o !== F.mission));
+  const m = opts[Math.floor(Math.random() * opts.length)]; F.mission = m; m.t = 0; speak(missionLine(m)); flyHud(true);
+}
+const FLY_STAMPS = new Set((() => { try { return JSON.parse(localStorage.getItem('ast-flystamps') || '[]'); } catch { return []; } })());
+const inkChild = (m, w) => { const o = new THREE.Mesh(m.geometry, inkMat(w)); o.raycast = () => {}; m.add(o); return m; };   // outline that moves with its mesh
+function buildFlyer(){
+  const T = toy, g = new THREE.Group(), part = (geo, c, x, y, z) => { const m = new THREE.Mesh(geo, toyToon(c)); m.position.set(x, y, z); g.add(m); return m; };
+  part(new THREE.CapsuleGeometry(.05, .2, 4, 12).rotateX(Math.PI / 2), '#ff4d6d', 0, 0, 0);                  // body
+  part(new THREE.BoxGeometry(.44, .016, .09), '#ffd166', 0, -.005, .02);                                    // wings
+  part(new THREE.BoxGeometry(.16, .012, .05), '#ffd166', 0, .01, -.14); part(new THREE.BoxGeometry(.012, .08, .06), '#ff4d6d', 0, .045, -.14);
+  part(new THREE.SphereGeometry(.042, 16, 10), '#9fe6ff', 0, .045, .03).scale.set(1, .8, 1.3);               // bubble canopy
+  part(new THREE.SphereGeometry(.024, 12, 8), '#f1c9a5', 0, .05, .035);                                     // the pilot
+  const prop = part(new THREE.BoxGeometry(.16, .018, .008), '#5b4630', 0, 0, .16); g.userData.prop = prop;
+  [...g.children].forEach(o => inkChild(o, .012));
+  const trail = []; for (let i = 0; i < 14; i++) { const p = new THREE.Mesh(new THREE.SphereGeometry(.02, 8, 6), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: .8 })); T.s.add(p); trail.push(p); }
+  g.userData.trail = trail; T.s.add(g); return g;
+}
+function flyRingSet(){   // five gold rings ahead of the plane on a gentle curve
+  const T = toy, F = T.fly, R = TOY_R, turn = (Math.random() - .5) * .7, dalt = (Math.random() - .5) * .5;
+  let p = F.p.clone(), f = F.f.clone(), alt = F.alt;
+  const step = (d) => { const ax = p.clone().cross(f).normalize(), a = d / (R + alt); p.applyAxisAngle(ax, a); f.applyAxisAngle(ax, a); };
+  step(2.2);
+  F.rings.forEach(r => { r.m.visible = false; });
+  F.rings = [];
+  for (let i = 0; i < 5; i++) {
+    if (i) { f.applyAxisAngle(p, turn * .35); alt = clamp(alt + dalt * .3, .4, 1.25); }
+    const m = F.ringPool[i]; m.visible = true; m.scale.setScalar(1); m.position.copy(p).multiplyScalar(R + Math.max(alt, T.h(...T.ll(p)) + .3));
+    orientTo(m.quaternion, p, f); F.rings.push({ m, pos: m.position.clone(), f: f.clone(), got: false, pop: 0 });
+    step(1.05);
+  }
+}
+function flyStarsAround(){
+  const T = toy, F = T.fly, R = TOY_R;
+  F.stars.forEach(st => { if (!st.got && st.pos.clone().normalize().angleTo(F.p) < .5) return; const p = F.p.clone(), f = F.f.clone().applyAxisAngle(F.p, (Math.random() - .5) * 2.4), ax = p.clone().cross(f).normalize();
+    p.applyAxisAngle(ax, .12 + Math.random() * .35); const alt = .45 + Math.random() * .7; st.pos = p.multiplyScalar(R + Math.max(alt, T.h(...T.ll(p)) + .3)); st.got = false; });
+}
+function toyFly(){
+  const T = toy; if (T.quiz) toyQuizEnd(); T.menu = null; T.lmTour = false; T.home = false; T.follow = null; T.picked = null; ++seq;
+  if (!T.flyer) T.flyer = buildFlyer();
+  const p = camera.position.clone().normalize(), north = new THREE.Vector3(0, 1, 0), f = north.addScaledVector(p, -north.dot(p)); if (f.lengthSq() < 1e-4) f.set(1, 0, 0).addScaledVector(p, -p.x); f.normalize();
+  const ringPool = T.flyRings || (T.flyRings = [...Array(5)].map(() => { const m = new THREE.Mesh(new THREE.TorusGeometry(.17, .028, 10, 32), toyToon('#ffd166', { emissive: '#ff9f1c', emissiveIntensity: .5 })); inkChild(m, .012); T.s.add(m); return m; }));
+  const starPool = T.flyStars || (T.flyStars = (() => { const m = new THREE.InstancedMesh(T.starMesh.geometry, T.starMesh.material, 16); m.frustumCulled = false; T.s.add(m); return m; })());
+  T.fly = { p, f, alt: 1, v: 1.25, sx: 0, sy: 0, bank: 0, score: 0, combo: 0, best: 0, rings: [], ringPool, starPool, stars: [...Array(16)].map(() => ({ pos: new THREE.Vector3(), got: true, pop: 0 })), near: null, landed: null, landT: 0, saidNear: new Set(), hist: [], snap: true };
+  T.flyer.visible = true; T.flyer.userData.trail.forEach(m => { m.visible = true; });
+  flyRingSet(); flyStarsAround(); flyHud(); $('#flyhint').hidden = false; setTimeout(() => { $('#flyhint').hidden = true; }, 6000);
+  $('#pill').textContent = 'Fly!'; speak(SAY.flyIn); award('pilot'); whooshSfx(); nav();
+}
+function flyHud(bump){ const F = toy.fly, h = $('#flyhud'); h.textContent = `⭐ ${F.score}${F.combo > 1 ? '  🔥×' + F.combo : ''}  🛂 ${FLY_STAMPS.size}/${LM.length}${F.mission ? '  🎯 ' + (F.mission.lm ? F.mission.lm.name : (ANIMAL_NAME[F.mission.an] || F.mission.an)) : ''}`; if (bump) { h.classList.add('bump'); setTimeout(() => h.classList.remove('bump'), 160); } }
+function toyFlyStop(keepCam){
+  const T = toy, F = T.fly; if (!F) return; T.fly = null;
+  T.flyer.visible = false; if (T.flyArrow) T.flyArrow.visible = false; T.flyer.userData.trail.forEach(m => { m.visible = false; }); F.ringPool.forEach(m => { m.visible = false; }); F.starPool.count = 0;
+  if (!keepCam) { const d = F.p; goal.az = Math.atan2(d.x, d.z); goal.el = Math.asin(clamp(d.y, -1, 1)); goal.dist = TOY_LEVELS[1]; rig.dist = Math.max(rig.dist, TOY_R + 2); }
+  $('#pill').textContent = 'Explorer Earth'; $('#flyhint').hidden = true; nav();
+}
+function toyLand(){
+  const T = toy, F = T.fly, L = F && F.near; if (!L) return;
+  F.landed = L; F.landT = 0; F.near = null; whooshSfx();
+  const first = !FLY_STAMPS.has(L.id); FLY_STAMPS.add(L.id); try { localStorage.setItem('ast-flystamps', JSON.stringify([...FLY_STAMPS])); } catch {}
+  setTimeout(() => { if (toy.fly && toy.fly.landed === L) { chime(); speak(first ? [L.say, SAY.flyLand] : L.say); flyHud(true); if (FLY_STAMPS.size >= LM.length) { award('globetrotter'); setTimeout(() => speak(SAY.flyAll), 9000); } } }, 1600);
+  $('#pill').textContent = L.name; nav();
+}
+function toyTakeOff(){ const F = toy.fly; if (!F) return; F.landed = null; F.v = 1.25; F.landT = 0; F.alt = Math.max(F.alt, .5); whooshSfx(); flyRingSet(); flyStarsAround(); $('#pill').textContent = 'Fly!'; nav(); }
+function updateFly(dt, t){
+  const T = toy, F = T.fly, R = TOY_R, pl = T.flyer;
+  const [la, lo] = T.ll(F.p), ground = Math.max(.03, T.h(la, lo));
+  if (F.landed) {   // glide down to the landmark and roll to a stop
+    const d = featDir(F.landed.lat, F.landed.lon); F.landT = Math.min(1, F.landT + dt * .6);
+    F.p.lerp(d, 1 - Math.exp(-dt * 3)).normalize(); F.f.addScaledVector(F.p, -F.f.dot(F.p)).normalize(); F.alt += (Math.max(ground + .12, .15) - F.alt) * (1 - Math.exp(-dt * 2.5));
+    F.v = 1.25 * (1 - F.landT);
+  } else {
+    F.f.applyAxisAngle(F.p, -F.sx * 1.5 * dt).normalize();
+    F.alt = clamp(F.alt + F.sy * .55 * dt, Math.max(.32, ground + .22), 1.4);
+    const ax = F.p.clone().cross(F.f).normalize(), a = F.v * dt / (R + F.alt); F.p.applyAxisAngle(ax, a).normalize(); F.f.applyAxisAngle(ax, a); F.f.addScaledVector(F.p, -F.f.dot(F.p)).normalize();
+  }
+  F.bank += (F.sx * .7 - F.bank) * (1 - Math.exp(-dt * 5));
+  const pos = F.p.clone().multiplyScalar(R + F.alt);
+  orientTo(pl.quaternion, F.p, F.f); pl.rotateZ(-F.bank); pl.rotateX(-F.sy * .25); pl.position.copy(pos); pl.scale.setScalar(1);
+  pl.userData.prop.rotation.z += dt * 40 * (F.v / 1.25 + .1);
+  F.hist.unshift(pos.clone().addScaledVector(F.f, -.2)); F.hist.length = Math.min(F.hist.length, 60);
+  pl.userData.trail.forEach((m, i) => { const q = F.hist[Math.min(F.hist.length - 1, 2 + i * 3)]; m.position.copy(q); const s = F.landed ? 0 : (1 - i / 14) * (1 + i * .15); m.scale.setScalar(s); m.material.opacity = .75 * (1 - i / 14); });
+  // rings: fly through the middle for a chime; each ring in a row makes the next note higher
+  let passed = 0;
+  F.rings.forEach((r, i) => {
+    r.m.rotateZ(dt * 1.2);   // hoops stand upright, facing the plane, and twirl
+    if (r.got) { r.pop += dt * 3; r.m.scale.setScalar(1 + r.pop); r.m.visible = r.pop < 1; passed++; return; }
+    const rel = pos.clone().sub(r.pos), along = rel.dot(r.f);
+    if (Math.abs(along) < .14 && rel.addScaledVector(r.f, -along).length() < .25) {
+      r.got = true; F.combo++; F.best = Math.max(F.best, F.combo); F.score += 10 * F.combo;
+      tone(523 * Math.pow(2, Math.min(F.combo - 1, 12) / 12 * 2), .25, 'triangle', .12); flyHud(true);
+      if (F.combo === 5) { speak(SAY.flyCombo); chime(); } if (F.combo >= 10) award('rings');
+    } else if (along > .6) { r.got = true; r.pop = 1; F.combo = 0; flyHud(); passed++; }
+  });
+  if (!F.landed && F.rings.length && F.rings.every(r => r.got && r.pop >= 1)) flyRingSet();
+  // stars scattered around: grab them by flying close
+  const M4 = new THREE.Matrix4(), Q = camera.quaternion.clone().multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.sin(t * 2) * .4)), S = new THREE.Vector3(); let n = 0;
+  F.stars.forEach(st => {
+    if (st.got) { if (st.pop > 0) { st.pop -= dt * 3; S.setScalar(.09 * (1 + (1 - st.pop) * 1.5)); F.starPool.setMatrixAt(n++, M4.compose(st.pos, Q, S)); } return; }
+    if (st.pos.distanceTo(pos) < .26) { st.got = true; st.pop = 1; F.score += 5; pop(); flyHud(true); }
+    S.setScalar(.09 + Math.sin(t * 4) * .01); F.starPool.setMatrixAt(n++, M4.compose(st.pos, Q, S));
+  });
+  F.starPool.count = n; F.starPool.instanceMatrix.needsUpdate = true;
+  if ((t * 2 | 0) % 3 === 0 && F.stars.some(st => st.got || st.pos.clone().normalize().angleTo(F.p) > .5)) flyStarsAround();
+  // famous places: close and low enough to land
+  if (!F.landed) {
+    let near = null, best = .075; for (const L of LM) { const a = featDir(L.lat, L.lon).angleTo(F.p); if (a < best) { best = a; near = L; } }
+    if (near !== F.near) { F.near = near; if (near) { $('#pill').textContent = near.name; if (!F.saidNear.has(near.id)) { F.saidNear.add(near.id); speak([near.name + '!', SAY.flyNear]); } } else $('#pill').textContent = 'Fly!'; nav(); }
+  }
+  // mission: a green arrow in front of the plane points toward the goal
+  if (!F.mission && !F.landed && (F.missionT = (F.missionT || 0) + dt) > 12) { F.missionT = 0; flyMission(); }
+  const ar = T.flyArrow || (T.flyArrow = (() => { const g = new THREE.Group(), m = toyToon('#4ade80', { emissive: '#16a34a', emissiveIntensity: .4 });
+    const head = new THREE.Mesh(new THREE.ConeGeometry(.07, .14, 16).rotateX(Math.PI / 2).translate(0, 0, .1), m), shaft = new THREE.Mesh(new THREE.CylinderGeometry(.025, .025, .14, 12).rotateX(Math.PI / 2).translate(0, 0, -.03), m);
+    g.add(inkChild(head, .01), inkChild(shaft, .01)); T.s.add(g); return g; })());
+  ar.visible = !!F.mission && !F.landed;
+  if (ar.visible) {
+    const goalDir = featDir(F.mission.lat, F.mission.lon), to = goalDir.clone().addScaledVector(F.p, -goalDir.dot(F.p)).normalize();
+    ar.position.copy(pos).addScaledVector(F.f, .45).addScaledVector(F.p, .2 + Math.sin(t * 5) * .015); orientTo(ar.quaternion, F.p, to);
+    if (goalDir.angleTo(F.p) < .07) { const m = F.mission; F.mission = null; F.missionT = 0; F.missions = (F.missions || 0) + 1; F.score += 50; chime(); flyHud(true);
+      if (m.an) { const k = m.an; (ANIMAL_SFX[k] || pop)(); speak([SAY.missionDone, ANIMALS[k][2]]); } else speak(SAY.missionDone);
+      if (F.missions % 3 === 0) award('missions'); }
+  }
+  // chase camera: behind and above, looking ahead
+  const back = F.landed ? 1.1 + F.landT * .6 : 1.35, want = pos.clone().addScaledVector(F.f, -back).addScaledVector(F.p, F.landed ? .6 + F.landT * .4 : .55);
+  if (F.snap || camera.position.distanceTo(want) > 2.5) { camera.position.copy(want); F.snap = false; } else camera.position.lerp(want, 1 - Math.exp(-dt * 4)); camera.up.copy(F.p); camera.lookAt(pos.clone().addScaledVector(F.f, .9).addScaledVector(F.p, -.05));
+  const d = camera.position.clone().normalize(); rig.az = goal.az = Math.atan2(d.x, d.z); rig.el = goal.el = Math.asin(clamp(d.y, -1, 1)); rig.dist = goal.dist = camera.position.length();
+  T.skyC.copy(T.dayC); T.s.background = T.skyC; T.s.fog.color.copy(T.skyC); T.s.fog.near = 3; T.s.fog.far = 14; T.stars.visible = false; T.trees.forEach(m => { m.visible = true; if (m.userData.ink) m.userData.ink.visible = true; });
+  T.light.position.copy(camera.position).add(new THREE.Vector3(-.4, .7, .2).applyQuaternion(camera.quaternion).multiplyScalar(R * 2));
 }
 function toyStop(){ toy.follow = null; goal.dist = Math.max(goal.dist, TOY_R + 2.5); nav(); }
 function toyVisit(){
@@ -3848,6 +4003,19 @@ const ANIMALS = {
   camel: [23, 12, "Look, camels! Camels can walk a long, long way across the hot desert."],
 };
 const BUILDS = { tree: '🌳', house: '🏠', flowers: '🌸' };
+// each animal's own (made-up, cartoon) sound, played when it's tapped
+const ANIMAL_SFX = {
+  kangaroo: () => { boing(1); setTimeout(() => boing(1.4), 260); },
+  elephant: () => { tone(240, .7, 'sawtooth', .07, 560); setTimeout(() => tone(520, .45, 'sawtooth', .06, 380), 450); },
+  giraffe: () => tone(95, .9, 'sine', .16, 110),
+  panda: () => [0, 170].forEach(d => setTimeout(() => tone(760, .14, 'square', .04, 980), d)),
+  polarBear: () => tone(120, .8, 'sawtooth', .08, 70),
+  whale: () => { tone(170, 1.1, 'sine', .15, 330); setTimeout(() => tone(330, 1, 'sine', .12, 140), 900); },
+  dolphin: () => { for (let i = 0; i < 6; i++) setTimeout(() => tone(1700, .03, 'square', .04), i * 60); setTimeout(() => tone(1200, .45, 'sine', .08, 2600), 420); },
+  llama: () => tone(230, .55, 'triangle', .09, 280),
+  eagle: () => tone(2100, .5, 'sawtooth', .04, 1300),
+  camel: () => tone(150, .6, 'sawtooth', .06, 95),
+};
 function toyExtras(){
   const s = toyScene, T = toy, R = TOY_R, UP = new THREE.Vector3(0, 1, 0);
   const Tn = c => toyToon(c), surfR = (lat, lon) => R + Math.max(.03, T.h(lat, lon));
@@ -3950,7 +4118,7 @@ function toyScreenPick(x, y){   // nearest tappable thing on screen within a fin
   cand.sort((a, b) => a.d - b.d); return cand[0];
 }
 function toyTap(x, y){
-  const T = toy; T.touchT = performance.now();
+  const T = toy; T.touchT = performance.now(); if (T.fly) return;
   const hitPlanet = ray.intersectObject(T.planet, false)[0];
   if (T.menu === 'build') {
     if (!hitPlanet) return; const [lat, lon] = T.ll(hitPlanet.point);
@@ -3962,7 +4130,7 @@ function toyTap(x, y){
   const p = toyScreenPick(x, y);
   if (p && p.kind === 'star') { const sp = T.starSpots[p.i]; T.hunt.found.add(p.i); pop(); updStars(); toyFlyTo(sp.lat, sp.lon, 2);
     if (T.hunt.found.size === T.starSpots.length) { speak([sp.line, SAY.toyStarsDone]); award('stars'); T.hunt = null; setTimeout(() => { if (!toy.hunt) $('#tstars').hidden = true; }, 6000); nav(); } else speak(sp.line); return; }
-  if (p && p.kind === 'animal') { const a = T.animals[p.i]; pop(); T.done.add(p.i); if (T.done.size >= 5) award('animals'); speak(ANIMALS[p.i][2]); $('#pill').textContent = { polarBear: 'Polar bear' }[p.i] || p.i[0].toUpperCase() + p.i.slice(1); if (goal.dist > TOY_LEVELS[2] + .1) toyFlyTo(a.userData.lat, a.userData.lon, 2); return; }
+  if (p && p.kind === 'animal') { const a = T.animals[p.i]; (ANIMAL_SFX[p.i] || pop)(); if (T.trick) { const o = T.animals[T.trick.k]; o.rotateY(Math.PI * 2 - T.trick.spun); o.scale.setScalar(T.trick.base); } T.trick = { k: p.i, t: 0, spun: 0, base: a.scale.x }; T.done.add(p.i); if (T.done.size >= 5) award('animals'); speak(ANIMALS[p.i][2]); $('#pill').textContent = { polarBear: 'Polar bear' }[p.i] || p.i[0].toUpperCase() + p.i.slice(1); if (goal.dist > TOY_LEVELS[2] + .1) toyFlyTo(a.userData.lat, a.userData.lon, 2); return; }
   if (p && (p.kind === 'car' || p.kind === 'plane' || p.kind === 'boat')) { T.follow = { kind: p.kind, i: p.i }; T.picked = null; T.menu = null; pop(); speak(SAY[p.kind === 'car' ? 'toyCar' : p.kind === 'plane' ? 'toyPlane' : 'toyBoat']); nav(); return; }
   const hit = ray.intersectObjects([T.planet, ...T.pick], false)[0];
   if (hit && hit.object.userData.home) { pop(); toyHomeSpot(); return; }
@@ -3994,6 +4162,9 @@ function updateToyExtras(dt, t){
   const dj = (t * .7) % 1; circ(A.dolphin, 28, -45, 2.5, .15, .02 + Math.sin(dj * Math.PI) * .35); A.dolphin.rotateX(-Math.cos(dj * Math.PI) * .9);
   circ(A.eagle, 46, -102, 4, .12, 2.0); A.eagle.children.forEach(c => { if (c.userData.wing) c.rotation.z = c.userData.wing * Math.sin(t * 6) * .35; });
   circ(A.camel, 23, 12, 1.2, .05, Math.max(.03, T.h(23, 12)) - .01);
+  // a tapped animal does a happy hop-and-spin
+  if (T.trick) { const k = T.trick, g = A[k.k]; k.t += dt; const u = Math.min(1, k.t / 1.1), want = Math.PI * 2 * (1 - Math.cos(u * Math.PI)) / 2;
+    g.rotateY(want - k.spun); k.spun = want; g.scale.setScalar(k.base * (1 + Math.sin(u * Math.PI) * .45)); if (u >= 1) { g.scale.setScalar(k.base); T.trick = null; } }
   // stars spin and bob
   if (T.hunt) { const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), UP = new THREE.Vector3(0, 1, 0);
     T.starSpots.forEach((sp, i) => { const d = featDir(sp.lat, sp.lon), found = T.hunt.found.has(i); sp.pos = d.clone().multiplyScalar(R + Math.max(.03, T.h(sp.lat, sp.lon)) + .75 + Math.sin(t * 2 + i) * .08);
@@ -4326,7 +4497,7 @@ const STAMPS = [
   ...P.map(p => ({ id: 'p:' + p.id, img: p.thumb, label: p.label })),
   { id: 'eclipse', em: '🌑', label: 'Eclipse' }, { id: 'home', em: '🏡', label: 'Home' }, { id: 'landing', em: '🪂', label: 'Landing' }, { id: 'launch', em: '🚀', label: 'Blast off' }, { id: 'sky', em: '🔭', label: "Tonight's sky" },
   { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
-  { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
+  { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
   ...LM.map(l => ({ id: 'l:' + l.id, em: l.em, label: l.name.replace('Pyramids of Giza', 'Pyramids').replace('Great Wall of China', 'Great Wall').replace('Sydney Opera House', 'Opera House').replace('Kennedy Space Center', 'Space Center').replace('Amazon Rainforest', 'Rainforest') })),
 ];
 let stamps = new Set();
@@ -4553,6 +4724,10 @@ window.__toyScr = (kind, k) => { const T = toy, v = kind === 'animal' ? T.animal
   const vis = v.clone().sub(camera.position).dot(v) < 0; v.project(camera); return [Math.round((v.x + 1) / 2 * W), Math.round((1 - v.y) / 2 * H), vis]; };
 window.__stateAt = (a, b) => stateAt(a, b)?.name ?? null; window.__nStates = () => TOY_STATES.length;
 window.__showState = n => toyShowState(n);
+window.__mission = () => { const F = toy.fly; if (!F.mission) flyMission(); return F.mission.lm ? F.mission.lm.id : F.mission.an; };
+window.__flyGoal = () => { const F = toy.fly, m = F.mission, d = featDir(m.lat, m.lon), ax = F.p.clone().cross(d).normalize(), a = F.p.angleTo(d) - .1; F.p.applyAxisAngle(ax, a).normalize(); F.f.applyAxisAngle(ax, a); F.f.addScaledVector(F.p, -F.f.dot(F.p)).normalize(); };
+window.__fly = () => { const F = toy && toy.fly; return F && { missions: F.missions || 0, alt: +F.alt.toFixed(2), score: F.score, combo: F.combo, best: F.best, near: F.near && F.near.id, landed: F.landed && F.landed.id, stamps: FLY_STAMPS.size }; };
+window.__flyTo = id => { const F = toy.fly, L = LM.find(l => l.id === id), d = featDir(L.lat, L.lon); const ax = F.p.clone().cross(d).normalize(), a = F.p.angleTo(d) - .05; F.p.applyAxisAngle(ax, a).normalize(); F.f.applyAxisAngle(ax, a); F.f.addScaledVector(F.p, -F.f.dot(F.p)).normalize(); };
 window.__stateC = n => TOY_STATES.find(s => s.name === n).c;
 window.__toyState = () => ({ tour: toy.lmTour ? LM[toy.lmI].id : null, mode, dist: +rig.dist.toFixed(2), follow: toy.follow && toy.follow.kind, hunt: toy.hunt ? toy.hunt.found.size : null, built: toy.buildList.length, pill: $('#pill').textContent });
 window.__proj = o => { const v = o.getWorldPosition(new THREE.Vector3()).project(camera); return [((v.x + 1) / 2 * W) | 0, ((1 - v.y) / 2 * H) | 0, v.z.toFixed(3), camera.position.toArray().map(a => a | 0)]; };
@@ -4564,6 +4739,7 @@ window.__allLines = () => {
   P.forEach(p => { p.facts.forEach(f => s.add(f)); if (p.g) s.add(jumpLine(p)); });
   [...HOME_FACTS, ...MARS_ROCKS, SAY.fast, SAY.fastYear, SAY.slow, ...STORY, SAY.iss1, ...RIDDLES.map(r => r[1]), ...Object.values(SAY), ...COUNT, ...Object.values(MOON_SAY), ...LM.map(l => l.say), ...Object.values(ANIMAL_SAY), ...Object.values(SITE_EXTRA), ...Object.values(FEATURES).flat().map(f => f[3]), ...Object.values(REGIONS).map(r => r[4]), ...Object.values(ANIMALS).map(a => a[2]), ...Object.keys(STATE_CAPITALS).map(stateLine), ...QUIZ_STATES.map(findLine)].forEach(x => s.add(x));
   ORDER.forEach((id, i) => { s.add(paradeYes(i)); s.add(paradeNo(id, false)); s.add(paradeNo(id, true)); });
+  LM.forEach(l => { s.add(l.name + '!'); s.add(missionLine({ lm: l })); }); Object.keys(ANIMALS).forEach(an => s.add(missionLine({ an })));   // said when your plane flies over it
   DIRS.forEach(d => { s.add(moonWhere(d)); SKY_PLANETS.forEach(id => s.add(planetWhere(id, d))); });
   return [...s];
 };

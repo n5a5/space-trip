@@ -2,6 +2,6 @@
   "name": "space-trip-dev",
   "private": true,
   "description": "Build tools and browser tests for Amelia's Space Trip (the site itself is the repo root).",
-  "scripts": { "test": "node tests/run.js start planets explorer places back states mars home chaos" },
+  "scripts": { "test": "node tests/run.js start planets explorer places fly back states mars home chaos" },
   "devDependencies": { "playwright": "1.56.0" }
 }
