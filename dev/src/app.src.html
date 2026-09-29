@@ -131,10 +131,33 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #toast.in{animation:tin .5s cubic-bezier(.3,1.6,.5,1)}
 @keyframes tin{from{transform:translateX(-50%) scale(.3);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
 #passport{position:absolute;inset:0;z-index:6;overflow:auto;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 20px);background:radial-gradient(ellipse at 50% 0%,#3a2f8f,#140f3d 70%)}
-#passport .phead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
-#passport h2{margin:0;font:700 26px/1.1 var(--display);color:var(--gold)}
-#passport p{margin:4px 0 0;font:700 14px/1 var(--body);color:var(--muted)}
-#pclose{flex:0 0 auto;width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:rgba(255,255,255,.1);color:var(--ink);font:700 22px/1 var(--body);cursor:pointer}
+#passport .phead,#grown .phead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
+#passport h2,#grown h2{margin:0;font:700 26px/1.1 var(--display);color:var(--gold)}
+#passport p,#grown .phead p{margin:4px 0 0;font:700 14px/1 var(--body);color:var(--muted)}
+#pclose,#gclose{flex:0 0 auto;width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:rgba(255,255,255,.1);color:var(--ink);font:700 22px/1 var(--body);cursor:pointer}
+#grown .phead{max-width:440px;margin:0 auto 14px}
+/* desktop and laptop: mouse and keyboard, wide screens */
+@media (hover:hover) and (pointer:fine){
+  .act:hover,.th:hover,.pl:hover{transform:translateY(-2px);filter:brightness(1.12)} .act,.th,.pl{transition:transform .12s,filter .12s}
+  #gl{cursor:grab} #gl:active{cursor:grabbing}
+  #strip,#wstrip,#tstrip{justify-content:safe center}
+  .phoneonly{display:none!important}
+}
+@media (pointer:fine) and (min-width:1100px){
+  #tstrip,#wstrip{flex-wrap:wrap;justify-content:center;overflow:visible;max-width:1200px;margin:0 auto}
+  #actions{max-width:1200px;margin:0 auto}
+  #passport>*,#grown>*{max-width:1000px;margin-left:auto;margin-right:auto}
+  #pgrid{grid-template-columns:repeat(auto-fill,minmax(96px,1fr))}
+  #slots{max-width:760px;margin:0 auto}
+  .card{max-width:34em}
+  #dgo{width:80px;height:80px}
+  #drive{left:auto;right:24px;align-items:flex-end}
+}
+@media (pointer:fine) and (min-width:1100px) and (min-height:700px){
+  #caption{font-size:16px;max-width:40em}
+  .th{width:76px;font-size:13px} .th img{width:56px;height:56px}
+  .act{min-width:88px;min-height:72px;font-size:14px} .act .em{font-size:34px}
+}
 #passport .credits{margin:18px 4px 0;font:600 11px/1.5 var(--body);color:var(--muted);opacity:.8}
 #grown{position:absolute;inset:0;z-index:7;overflow:auto;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 20px);background:radial-gradient(ellipse at 50% 0%,#3a2f8f,#140f3d 70%)}
 .gset{display:flex;flex-direction:column;gap:12px;max-width:440px;margin:6px auto 0;font:700 16px/1.3 var(--body);color:var(--ink)}
@@ -147,7 +170,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 .linkbtn{margin-top:10px;background:none;border:0;color:var(--muted);font:700 14px/1 var(--body);text-decoration:underline;cursor:pointer}
 #pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:10px}
 .stamp{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px 8px;border-radius:18px;border:2px dashed rgba(183,156,255,.35);background:rgba(255,255,255,.03)}
-.stamp .ico{filter:grayscale(1) brightness(.35);opacity:.6}
+.stamp .ico{filter:grayscale(.85);opacity:.45}
 .stamp .lb{font:800 11px/1.15 var(--body);color:var(--muted);text-align:center;min-height:2.3em}
 .stamp.has{border:2px solid var(--gold);background:rgba(255,209,102,.12);transform:rotate(-2deg)}
 .stamp.has:nth-child(2n){transform:rotate(2deg)}
@@ -188,7 +211,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
   <section id="eclipse" hidden aria-label="Eclipse machine"><canvas id="eclc"></canvas><input id="eslide" type="range" min="0" max="1000" value="80" aria-label="Move the Moon"><div id="ehint">Slide the Moon ➜</div></section>
   <div id="toast" hidden></div>
   <section id="grown" hidden aria-label="Settings for grown-ups">
-    <div class="phead"><div><h2>For grown-ups</h2><p>Settings are saved on this phone only.</p></div><button id="gclose" aria-label="Close settings">✕</button></div>
+    <div class="phead"><div><h2>For grown-ups</h2><p>Settings are saved on this device only.</p></div><button id="gclose" aria-label="Close settings">✕</button></div>
     <div class="gset">
       <label for="grate">Luna's voice speed <output id="grateo"></output></label><input id="grate" type="range" min="0.8" max="1.2" step="0.05">
       <label for="gvol">Luna's voice volume <output id="gvolo"></output></label><input id="gvol" type="range" min="0" max="1" step="0.1">
@@ -215,7 +238,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
       <p>Visit the planets, drive on Mars, fly around the world, and blast off from Amelia's own backyard. Collect stickers everywhere you go!</p>
       <button id="go">🚀 Blast off!</button>
       <button id="gotoy">🧭 Explorer Earth</button>
-      <small>Turn the sound up. Drag to spin, pinch to zoom.</small>
+      <small>Turn the sound up. <span class="phoneonly">Drag to spin, pinch to zoom.</span></small>
       <button id="gogrown" class="linkbtn">⚙️ For grown-ups</button>
       <div id="err" hidden></div>
     </div>
@@ -372,6 +395,8 @@ const SAY = {
   world: "Let's fly around the world and visit amazing places! Our first stop is right here in Florida.",
   belt: "Those are asteroids! They're space rocks that go around the Sun, between Mars and Jupiter.",
 };
+const LM_SHORT = { ksc: 'Rockets', liberty: 'Liberty', canyon: 'Canyon', amazon: 'Rainforest', penguins: 'Penguins', bigben: 'Big Ben', eiffel: 'Eiffel', colosseum: 'Colosseum', pyramids: 'Pyramids', taj: 'Taj Mahal', everest: 'Everest', wall: 'Great Wall', opera: 'Opera House', home: 'House' };
+const lmShort = L => LM_SHORT[L.id] || L.name;
 const LM = [
   { id: 'ksc', name: 'Kennedy Space Center', em: '🚀', lat: 28.57, lon: -80.65, say: "This is Kennedy Space Center in Florida, not far from Amelia's house! Astronauts blast off to space from right here." },
   { id: 'liberty', name: 'Statue of Liberty', em: '🗽', lat: 40.69, lon: -74.04, say: "This is the Statue of Liberty in New York. She's green because her copper skin turned green, like an old penny!" },
@@ -2103,7 +2128,7 @@ function skyCard(ev){
   const notUp = ['venus', 'mars', 'jupiter', 'saturn'].filter(id => !ev.planets.some(p => p.id === id)).map(id => byId[id].label);
   return `<b>Tonight · ${d.toLocaleDateString([], { weekday: 'short' })} ${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}</b> · best look around ${hm(d)}
     <ul><li>${pe} Moon: ${pn.toLowerCase()}, ${Math.round(ev.ph.illum * 100)}% lit · ${moonTxt}</li>${up}</ul>
-    <small>${notUp.length ? 'Not out this evening: ' + notUp.join(', ') + '. ' : ''}Worked out on this phone for Florida.</small>`;
+    <small>${notUp.length ? 'Not out this evening: ' + notUp.join(', ') + '. ' : ''}Worked out for Florida.</small>`;
 }
 function phaseCanvas(ph){
   const c = mkCanvas(256, 256), g = c.getContext('2d'), R = 104, k = ph.illum, waxing = ph.el < 180;
@@ -2508,7 +2533,7 @@ function nav(){
   }
   if (mode === 'story') acts.append(btn('🏡', 'House', () => { ++seq; manualCam = false; homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); }), btn('🔁', 'Read again', () => speak(STORY)));
   if (mode === 'home') acts.append(btn('🚀', 'Back to space', launch, 'hero'), btn('📖', 'Bedtime story', bedtime), btn(night ? '☀️' : '🌙', night ? 'Make day' : 'Make night', toggleNight, 'gold'), btn('🔭', "Tonight's sky", tonight), btn('🔊', 'Tell me more', moreFact), btn('🛂', 'Passport', openPassport));
-  if (mode === 'sky') acts.append(skyTilt.on ? btn('✋', 'Stop pointing', () => skyPoint(false), 'hero') : btn('📱', 'Point my phone', () => skyPoint(true), 'hero'), btn('🏡', 'House', () => { skyPoint(false, true); ++seq; homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); speak(HOME_FACTS[0]); }), btn('🔊', 'Tell me again', () => speak(skyLines(sky))), btn('🚀', 'Back to space', () => { skyPoint(false, true); homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); launch(); }, 'gold'));
+  if (mode === 'sky') acts.append(...(matchMedia('(pointer:fine)').matches ? [] : [skyTilt.on ? btn('✋', 'Stop pointing', () => skyPoint(false), 'hero') : btn('📱', 'Point my phone', () => skyPoint(true), 'hero')]), btn('🏡', 'House', () => { skyPoint(false, true); ++seq; homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); speak(HOME_FACTS[0]); }), btn('🔊', 'Tell me again', () => speak(skyLines(sky))), btn('🚀', 'Back to space', () => { skyPoint(false, true); homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); launch(); }, 'gold'));
   if (mode === 'quiz') acts.append(btn('🌌', 'All planets', endQuiz), btn('🔄', 'New game', startQuiz, 'gold'));
   if (mode === 'parade') acts.append(btn('🌌', 'All planets', endParade), btn('🔄', 'Play again', startParade, 'gold'));
 }
@@ -2522,7 +2547,7 @@ function nav(){
   }
   for (const L of LM) {
     const b = document.createElement('button'); b.className = 'th'; b.dataset.id = L.id;
-    b.innerHTML = `<span class="em" aria-hidden="true">${L.em}</span><span>${L.name.split(' ')[0] === 'Mount' ? 'Everest' : L.name.split(' ').slice(-1)[0]}</span>`;
+    b.innerHTML = `<span class="em" aria-hidden="true">${L.em}</span><span>${lmShort(L)}</span>`;
     b.onclick = () => { audio()?.resume?.(); if (mode === 'site') siteSwap(LM.indexOf(L)); else goLandmark(LM.indexOf(L)); };
     $('#wstrip').append(b);
   }
@@ -3438,6 +3463,7 @@ function toyQuizTap(st){
     speak([SAY.statesYes, stateLine(st.name)]); setTimeout(() => { if (toy.quiz === q && mode === 'toy') toyQuizNext(); }, 7000); q.target = null; return; }
   if (!q.target) return;
   q.miss++; if (st) { toyHighlight(st, 'rgba(255,126,182,.55)'); $('#pill').textContent = `That's ${st.name}`; }
+  if (q.miss === 2) { const t = TOY_STATES.find(s => s.name === q.target), tg = q.target; setTimeout(() => { if (toy.quiz === q && q.target === tg) { toyHighlight(t, 'rgba(255,209,102,.55)'); toyShowState(tg); } }, 1600); }   // a golden hint
   if (q.miss >= 3) { const t = TOY_STATES.find(s => s.name === q.target); toyHighlight(t); toyFlyTo(t.c[0], t.c[1], null); goal.dist = TOY_R * 2.2; speak(SAY.statesHere); q.target = null; setTimeout(() => { if (toy.quiz === q && mode === 'toy') toyQuizNext(); }, 6500); }
   else speak(SAY.statesTry);
 }
@@ -3924,10 +3950,11 @@ function dodge(pos, r, from, lmS = .42){   // clears a capsule from the camera (
     }
     if (dirty) d.m.instanceMatrix.needsUpdate = true; }
 }
-function flyConfetti(at){
+function flyConfetti(at, size = 1){
   const T = toy, n = 60, C = T.confetti || (T.confetti = (() => { const m = new THREE.InstancedMesh(new THREE.BoxGeometry(.03, .004, .018), new THREE.MeshBasicMaterial({ color: '#ffffff' }), n), c = new THREE.Color();
     for (let i = 0; i < n; i++) m.setColorAt(i, c.setHSL(i / n, .9, .6)); m.frustumCulled = false; T.s.add(m); return m; })()), up = at.clone().normalize();
-  C.userData = { t: 0, parts: [...Array(n)].map(() => ({ p: at.clone().addScaledVector(up, .15), v: new THREE.Vector3(Math.random() - .5, Math.random() - .5, Math.random() - .5).multiplyScalar(1.4).addScaledVector(up, .9), g: up.clone().multiplyScalar(-1.2), s: 3 + Math.random() * 8 })) };
+  C.userData = { t: 0, parts: [...Array(n)].map(() => ({ p: at.clone().addScaledVector(up, .15), v: new THREE.Vector3(Math.random() - .5, Math.random() - .5, Math.random() - .5).multiplyScalar(1.4).addScaledVector(up, .9), g: up.clone().multiplyScalar(-1.2 * size), s: 3 + Math.random() * 8, sz: size })) };
+  C.userData.parts.forEach(q => { q.v.multiplyScalar(size); });
   C.visible = true;
 }
 function toyLand(){
@@ -4020,10 +4047,6 @@ function updateFly(dt, t){
     const u = B.userData; if (!u.tex[bl.id]) { const c = mkCanvas(128, 128), g = c.getContext('2d'); g.fillStyle = '#fff'; g.beginPath(); g.arc(64, 64, 60, 0, 7); g.fill(); g.lineWidth = 8; g.strokeStyle = '#ffb703'; g.stroke(); g.font = '72px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(bl.em, 64, 70); u.tex[bl.id] = new THREE.CanvasTexture(c); }
     u.badge.material.map = u.tex[bl.id]; u.badge.material.needsUpdate = true; u.badge.position.set(0, (F.kind === 'car' ? .9 : 1.5) + Math.sin(t * 3) * .08, 0); u.col.material.opacity = .25 + Math.sin(t * 4) * .1;
     if (F.landed) dodge(base, .35, camera.position, F.kind === 'car' ? .42 : 1.1); }
-  // confetti when a mission is done
-  if (T.confetti && T.confetti.visible) { const C = T.confetti, M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(); C.userData.t += dt; const k = C.userData.t;
-    C.userData.parts.forEach((q, i) => { q.v.addScaledVector(q.g, dt); q.p.addScaledVector(q.v, dt); Q.setFromEuler(new THREE.Euler(k * q.s, k * q.s * .7, 0)); C.setMatrixAt(i, M4.compose(q.p, Q, new THREE.Vector3(1, 1, 1).multiplyScalar(k < 1.6 ? 1 : Math.max(0, 1 - (k - 1.6) * 2)))); });
-    C.instanceMatrix.needsUpdate = true; if (k > 2.2) C.visible = false; }
   // chase camera: behind and above, looking ahead
   const back = isCar ? (F.landed ? 1 : .95) : F.landed ? 1.1 + F.landT * .6 : 1.35, want = pos.clone().addScaledVector(F.f, -back).addScaledVector(F.p, isCar ? (F.landed ? .6 : .45) : F.landed ? .6 + F.landT * .4 : .55);
   let look = null; if (F.landed && F.landT > .5) { const up = featDir(F.landed.lat, F.landed.lon), lm = up.clone().multiplyScalar(R + Math.max(.03, T.h(F.landed.lat, F.landed.lon))), side = F.f.clone().cross(up).normalize();
@@ -4156,7 +4179,7 @@ function toyExtras(){
   const add = (em, label, fn) => { const b = document.createElement('button'); b.className = 'th'; b.innerHTML = `<span class="em" aria-hidden="true">${em}</span><span>${label}</span>`; b.onclick = () => { audio()?.resume?.(); fn(); }; bar.append(b); };
   add('🏡', 'Home', () => toyHomeSpot());
   for (const [k, r] of Object.entries(REGIONS)) if (!(k in { pacific: 1, atlantic: 1, indian: 1, arctic: 1, southern: 1 })) add(r[2], r[3], () => { T.home = false; T.lmTour = false; toyFlyTo(r[0], r[1], 1); speak(r[4]); $('#pill').textContent = REGION_NAME[k]; nav(); });
-  for (const L of LM) { add(L.em, L.name.split(' ')[0] === 'Mount' ? 'Everest' : L.name.split(' ').slice(-1)[0], () => toyLmTour(LM.indexOf(L))); bar.lastChild.dataset.lm = L.id; }
+  for (const L of LM) { add(L.em, lmShort(L), () => toyLmTour(LM.indexOf(L))); bar.lastChild.dataset.lm = L.id; }
   T.touchT = 0; T.done = new Set();
 }
 function toyRebuild(){
@@ -4208,7 +4231,7 @@ function toyTap(x, y){
   if (T.menu === 'build') {
     if (!hitPlanet) return; const [lat, lon] = T.ll(hitPlanet.point);
     if (T.sea(lat, lon)) { speak(SAY.toyWater); return; }
-    T.buildList.push([T.buildKind, +lat.toFixed(2), +lon.toFixed(2), +(Math.random() * 6.28).toFixed(2), +Math.random().toFixed(2)]); toyRebuild(); pop();
+    T.buildList.push([T.buildKind, +lat.toFixed(2), +lon.toFixed(2), +(Math.random() * 6.28).toFixed(2), +Math.random().toFixed(2)]); toyRebuild(); pop(); flyConfetti(hitPlanet.point.clone(), .35); setTimeout(() => tone(990, .15, 'triangle', .08, 1480), 90);
     if (T.buildList.length === 1 || T.buildList.length % 10 === 0) award('build'); return;
   }
   if (T.quiz) { if (hitPlanet) { const [lat, lon] = T.ll(hitPlanet.point); toyQuizTap(stateAt(lat, lon)); } return; }
@@ -4228,7 +4251,13 @@ function toyTap(x, y){
     $('#pill').textContent = REGION_NAME[k]; if (T.lastRegion !== k || goal.dist >= L[1]) speak(REGIONS[k][4]); T.lastRegion = k; T.picked = null; nav();
   }
 }
+function confettiStep(dt){
+  const T = toy; if (!T.confetti || !T.confetti.visible) return; const C = T.confetti, M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(); C.userData.t += dt; const k = C.userData.t;
+  C.userData.parts.forEach((q, i) => { q.v.addScaledVector(q.g, dt); q.p.addScaledVector(q.v, dt); Q.setFromEuler(new THREE.Euler(k * q.s, k * q.s * .7, 0)); C.setMatrixAt(i, M4.compose(q.p, Q, new THREE.Vector3(1, 1, 1).multiplyScalar(q.sz * (k < 1.6 ? 1 : Math.max(0, 1 - (k - 1.6) * 2))))); });
+  C.instanceMatrix.needsUpdate = true; if (k > 2.2) C.visible = false;
+}
 function updateToyExtras(dt, t){
+  confettiStep(dt);
   const T = toy, R = TOY_R, dist = rig.dist, far = T.quiz ? 0 : sst(R * 2.4, R * 3.1, dist);
   const cdir = camera.position.clone().normalize();
   T.labels.forEach(l => { const f = far * sst(.25, .55, l.position.clone().normalize().dot(cdir)); l.material.opacity = f; l.visible = f > .02; });
@@ -4253,7 +4282,7 @@ function updateToyExtras(dt, t){
   // stars spin and bob
   if (T.hunt) { const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), UP = new THREE.Vector3(0, 1, 0);
     T.starSpots.forEach((sp, i) => { const d = featDir(sp.lat, sp.lon), found = T.hunt.found.has(i); sp.pos = d.clone().multiplyScalar(R + Math.max(.03, T.h(sp.lat, sp.lon)) + .75 + Math.sin(t * 2 + i) * .08);
-      Q.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), t * 1.5 + i)); T.starMesh.setMatrixAt(i, M.compose(sp.pos, Q, new THREE.Vector3().setScalar(found ? 0 : .3 + .03 * Math.sin(t * 4 + i)))); });
+      Q.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), t * 1.5 + i)); T.starMesh.setMatrixAt(i, M.compose(sp.pos, Q, new THREE.Vector3().setScalar(found ? 0 : .5 + .05 * Math.sin(t * 4 + i)))); });
     T.starMesh.instanceMatrix.needsUpdate = true; }
 }
 
@@ -4602,7 +4631,7 @@ function openPassport(){
   const g = $('#pgrid'); g.innerHTML = '';
   for (const st of STAMPS) {
     const has = stamps.has(st.id), d = document.createElement('div'); d.className = 'stamp' + (has ? ' has' : '');
-    d.innerHTML = `<span class="lb">${has ? st.label : '?'}</span>`; d.prepend(stickerIcon(st));
+    d.innerHTML = `<span class="lb">${st.label}</span>`; d.prepend(stickerIcon(st));
     g.append(d);
   }
   $('#pcount').textContent = `${stamps.size} of ${STAMPS.length} stickers`;
@@ -4923,6 +4952,21 @@ function setMute(m){
   if (m) { try { vEl.pause(); } catch {} try { speechSynthesis.cancel(); } catch {} try { ac?.suspend(); } catch {} } else { try { ac?.resume(); } catch {} }
 }
 $('#mutebtn').onclick = () => setMute(!prefs.muted); setMute(!!prefs.muted);
+// computers: the mouse wheel scrolls the picture strips sideways, and the keyboard drives
+for (const id of ['#strip', '#wstrip', '#tstrip']) $(id).addEventListener('wheel', e => { const el = e.currentTarget; if (el.scrollWidth > el.clientWidth && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { el.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
+if (matchMedia('(pointer:fine)').matches) $('#flyhint').textContent = '⌨️ Arrow keys to steer';
+const typing = () => /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '');
+addEventListener('keydown', e => {
+  if (typing() || e.repeat && !/Arrow|^[wasd]$/i.test(e.key)) return;
+  if (mode === 'mars') { const k = e.key.toLowerCase();
+    if (k === 'arrowup' || k === 'w') { drive.gas = 1; e.preventDefault(); return; } if (k === 'arrowdown' || k === 's') { drive.gas = -.5; e.preventDefault(); return; }
+    if (k === 'arrowleft' || k === 'a') { drive.steer = -1; e.preventDefault(); return; } if (k === 'arrowright' || k === 'd') { drive.steer = 1; e.preventDefault(); return; } }
+  if (e.key === 'm' || e.key === 'M') { setMute(!prefs.muted); return; }
+  if ((e.key === 'p' || e.key === 'P') && !$('#start')?.offsetParent) { $('#passport').hidden ? openPassport() : ($('#passport').hidden = true); return; }
+  if (e.key === 'Enter' || e.key === ' ') { const b = document.activeElement?.closest?.('button') ? null : $('#actions .act.hero:not([hidden])'); if (b) { b.click(); e.preventDefault(); } }
+});
+addEventListener('keyup', e => { if (mode !== 'mars') return; const k = e.key.toLowerCase();
+  if (['arrowup', 'w', 'arrowdown', 's'].includes(k)) drive.gas = 0; if (['arrowleft', 'a', 'arrowright', 'd'].includes(k)) drive.steer = 0; });
 $('#style').onclick = async () => {   // on Earth, the switch also swaps between the photo globe and Explorer Earth (the cartoon Earth)
   audio()?.resume?.(); const to = style === 'real' ? 'cartoon' : 'real';
   if (mode === 'toy') { if (to === 'real') { await setStyle('real'); if (mode === 'toy') leaveToy(); } return; }
