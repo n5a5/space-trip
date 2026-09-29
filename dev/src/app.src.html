@@ -431,6 +431,8 @@ function tts(text, done){
   } catch {}
 }
 function speak(lines){
+  lines = [].concat(lines).filter(l => typeof l === 'string' && l);   // never let a missing line stop the app
+  if (!lines.length) return;
   lines = [].concat(lines); const my = ++vToken, all = lines.join(' ');
   const cap = $('#caption'); cap.textContent = prefs.captions || prefs.muted ? all : ''; clearTimeout(capTimer);
   capTimer = setTimeout(() => { cap.textContent = ''; }, 2500 + all.length * 70);
@@ -1837,7 +1839,7 @@ function focus(p, quiet){
 }
 function moreFact(){
   if (mode === 'home') { homeFact = (homeFact + 1) % HOME_FACTS.length; speak(HOME_FACTS[homeFact]); return; }
-  if (!current) return; const p = current; speak(p.facts[p.fact % p.facts.length]); p.fact++;
+  if (!current || !current.facts || !current.facts.length) return; const p = current; p.fact = (p.fact | 0) % p.facts.length; speak(p.facts[p.fact]); p.fact++;
 }
 
 /* ---------- Explore: turn a world so a real feature faces Amelia, pin it, and tell her about it ---------- */
@@ -3400,7 +3402,7 @@ function toyShowState(name){   // make sure the state being asked for is on scre
   const st = TOY_STATES.find(s => s.name === name); if (!st) return; const [lat, lon] = st.c;
   const v = featDir(lat, lon).multiplyScalar(TOY_R), facing = v.clone().sub(camera.position).dot(v) < 0; v.project(camera);
   const px = (v.x + 1) / 2 * W, py = (1 - v.y) / 2 * H, top = $('#top').getBoundingClientRect().bottom + 30, bot = $('#bottom').getBoundingClientRect().top - 30;
-  if (facing && px > 40 && px < W - 40 && py > top && py < bot) return;
+  if (facing && px > 50 && px < W - 80 && py > top && py < bot) return;   // clear of the edges and the zoom buttons
   toyFlyTo(lat + (lat > 50 ? -4 : 6), lon + (lon < -140 ? 10 : lon < -110 ? 8 : lon > -80 ? -8 : 0), 1);
 }
 function toyQuizTap(st){
