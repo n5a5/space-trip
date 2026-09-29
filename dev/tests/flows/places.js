@@ -1,0 +1,10 @@
+module.exports=async({pg,S,W})=>{const st=()=>pg.evaluate(()=>window.__toyState());
+await pg.click('#go');await W(2000);await pg.click('#style');await W(6000);await pg.click('.th[data-id="earth"]');await W(5000);
+await pg.click('#actions >> text=Around the world');await W(9000);await S('p_tour0');console.log('tour0',JSON.stringify(await st()));
+await pg.click('#actions >> text=Next');await W(6000);await S('p_tour1');console.log('tour1',JSON.stringify(await st()));
+await pg.click('#actions >> text=Visit');await W(14000);await S('p_site');console.log('site',JSON.stringify(await st()));
+await pg.click('#actions >> text=Next place');await W(14000);await S('p_site2');console.log('site2',JSON.stringify(await st()));
+await pg.click('#actions >> text=Map');await W(7000);await S('p_back');console.log('back',JSON.stringify(await st()));
+await pg.click('#actions >> text=Done');await W(2000);await pg.click('#actions >> text=Games');await W(800);await S('p_games');await pg.click('#actions >> text=Back');await W(800);
+await pg.click('#tstrip .th[data-lm="taj"]');await W(6000);await S('p_taj');console.log('taj',JSON.stringify(await st()));
+await pg.click('#actions >> text=Visit');await W(12000);await pg.click('#actions >> text=Planets');await W(5000);await S('p_planets');console.log('planets pill',await pg.evaluate(()=>document.querySelector('#pill').textContent));};
