@@ -3374,7 +3374,14 @@ function toyStatesGame(){
 }
 function toyQuizNext(){
   const T = toy, q = T.quiz; if (!q) return; const left = QUIZ_STATES.filter(n => !q.done.has(n)); q.target = left[Math.floor(Math.random() * left.length)]; q.miss = 0;
-  toyHighlight(null); $('#pill').textContent = 'Find ' + q.target; $('#tstars').textContent = `🗺️ ${q.n} found`; speak(findLine(q.target));
+  toyHighlight(null); toyShowState(q.target); $('#pill').textContent = 'Find ' + q.target; $('#tstars').textContent = `🗺️ ${q.n} found`; speak(findLine(q.target));
+}
+function toyShowState(name){   // make sure the state being asked for is on screen (Alaska, Hawaii, the far edges), without giving away exactly where
+  const st = TOY_STATES.find(s => s.name === name); if (!st) return; const [lat, lon] = st.c;
+  const v = featDir(lat, lon).multiplyScalar(TOY_R), facing = v.clone().sub(camera.position).dot(v) < 0; v.project(camera);
+  const px = (v.x + 1) / 2 * W, py = (1 - v.y) / 2 * H, top = $('#top').getBoundingClientRect().bottom + 30, bot = $('#bottom').getBoundingClientRect().top - 30;
+  if (facing && px > 40 && px < W - 40 && py > top && py < bot) return;
+  toyFlyTo(lat + (lat > 50 ? -4 : 6), lon + (lon < -140 ? 10 : lon < -110 ? 8 : lon > -80 ? -8 : 0), 1);
 }
 function toyQuizTap(st){
   const T = toy, q = T.quiz;
@@ -4523,6 +4530,7 @@ let last = performance.now(), T = 0;
 window.__toyScr = (kind, k) => { const T = toy, v = kind === 'animal' ? T.animals[k].getWorldPosition(new THREE.Vector3()) : kind === 'star' ? T.starSpots[k].pos.clone() : featDir(k[0], k[1]).multiplyScalar(TOY_R + Math.max(.03, T.h(k[0], k[1])));
   const vis = v.clone().sub(camera.position).dot(v) < 0; v.project(camera); return [Math.round((v.x + 1) / 2 * W), Math.round((1 - v.y) / 2 * H), vis]; };
 window.__stateAt = (a, b) => stateAt(a, b)?.name ?? null; window.__nStates = () => TOY_STATES.length;
+window.__showState = n => toyShowState(n);
 window.__stateC = n => TOY_STATES.find(s => s.name === n).c;
 window.__toyState = () => ({ tour: toy.lmTour ? LM[toy.lmI].id : null, mode, dist: +rig.dist.toFixed(2), follow: toy.follow && toy.follow.kind, hunt: toy.hunt ? toy.hunt.found.size : null, built: toy.buildList.length, pill: $('#pill').textContent });
 window.__proj = o => { const v = o.getWorldPosition(new THREE.Vector3()).project(camera); return [((v.x + 1) / 2 * W) | 0, ((1 - v.y) / 2 * H) | 0, v.z.toFixed(3), camera.position.toArray().map(a => a | 0)]; };

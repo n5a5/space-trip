@@ -5,6 +5,6 @@ await pg.click('#tzin');await W(5000);let p=await pg.evaluate(()=>window.__toySc
 await pg.click('#actions >> text=Games');await W(600);await pg.click('#actions >> text=States');await W(9000);await S('s_quiz');const pill=(await st()).pill;console.log('quiz',pill);
 const target=pill.replace('Find ','');const wrong=target==='Texas'?'Montana':'Texas';
 p=await pg.evaluate(n=>window.__toyScr('pt',window.__stateC(n)),wrong);await pg.mouse.click(p[0],p[1]);await W(3000);await S('s_wrong');console.log('wrong',JSON.stringify(await st()));
-p=await pg.evaluate(n=>window.__toyScr('pt',window.__stateC(n)),target);console.log('target at',p);await pg.mouse.click(p[0],p[1]);await W(3000);await S('s_right');console.log('right',JSON.stringify(await st()), await pg.evaluate(()=>document.querySelector('#tstars').textContent));
+p=await pg.evaluate(n=>window.__toyScr('pt',window.__stateC(n)),target);console.log('target at',p);await pg.mouse.click(p[0],p[1]);await W(3000);await S('s_right');if(!(await st()).pill.includes('✓'))throw new Error('tapping '+target+' was not accepted: '+(await st()).pill);console.log('right',JSON.stringify(await st()), await pg.evaluate(()=>document.querySelector('#tstars').textContent));
 await W(8000);console.log('next',JSON.stringify(await st()));await pg.click('#actions >> text=Done');await W(3000);
 await pg.click('#tzin');await W(4000);await pg.click('#tzin');await W(5000);await S('s_close');};

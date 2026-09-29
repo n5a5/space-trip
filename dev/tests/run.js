@@ -12,7 +12,7 @@ const flows = process.argv.slice(2);
     pg.on('console', m => { if (m.type() === 'error' && !/fonts\.g|ERR_FAILED|ERR_CERT/.test(m.text())) errs.push('console: ' + m.text().slice(0, 300)); });
     pg.on('response', r => { if (r.status() >= 400) errs.push('HTTP ' + r.status() + ' ' + r.url()); });
     await pg.route('https://fonts.**', r => r.abort());
-    const W = ms => pg.waitForTimeout(ms), S = n => pg.screenshot({ path: `dev/tests/out/${f}-${n}.png` });
+    const W = ms => pg.waitForTimeout(ms), S = n => pg.screenshot({ path: `dev/tests/out/${f}-${n}.png`, timeout: 120000 });   // CI renders in software: slow frames
     const visit = async id => { if (await pg.$('#tstrip:not([hidden])')) { await pg.click(`#tstrip .th[data-lm="${id}"]`); await W(2500); await pg.click('#actions >> text=Visit'); } else await pg.click(`#wstrip .th[data-id="${id}"]`); };
     const t0 = Date.now();
     try { await pg.goto(`http://localhost:${process.env.PORT || 8765}/index.html`); await W(2500); await require(`./flows/${f}.js`)({ pg, S, W, visit }); }
