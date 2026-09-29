@@ -22,7 +22,12 @@ No build step, no accounts, no tracking, no network calls to anything but this s
 - **U.S. state outlines:** U.S. Census Bureau (public domain) via us-atlas (ISC).
 - **Voice:** generated with Kokoro-82M (Apache 2.0), voice af_heart.
 - **Mount Everest and Grand Canyon terrain:** Terrain Tiles (Mapzen / AWS Open Data). United States 3DEP and global GMTED2010 and SRTM terrain data courtesy of the U.S. Geological Survey; ETOPO1 courtesy of NOAA. Full notice in `terrain/attribution.txt`.
-- **Statue of Liberty model, landmarks, Explorer Earth and everything else:** made procedurally for this project.
+- **3D scans and models, CC BY 4.0 via Sketchfab:**
+  - "Statue of liberty" by Dystopia — https://sketchfab.com/3d-models/statue-of-liberty-04a8e7b1ba9142ba8cebc6108cd5bb97
+  - "Taj Mahal 3D Model" by Dinendra Neyo — https://sketchfab.com/3d-models/taj-mahal-3d-model-1eb09052f6cd421caeaa6cb3204cb15d
+  - "The Great Sphinx of Giza - Egypt" by Chenzoss — https://sketchfab.com/3d-models/the-great-sphinx-of-giza-egypt-f169dbe7974648babe327179091e0ee3
+  (compressed and simplified for phones; tinted in the scenes)
+- **Other landmarks, Explorer Earth and everything else:** made procedurally for this project.
 
 ## Development
 

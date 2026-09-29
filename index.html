@@ -211,7 +211,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
     <div class="phead"><div><h2>Amelia's Space Passport</h2><p id="pcount"></p></div><button id="pclose" aria-label="Close passport">✕</button></div>
     <div id="pgrid"></div>
     <button id="pgrown" class="linkbtn">⚙️ For grown-ups</button>
-    <p class="credits">Pictures of planets, moons, stars, the Saturn V rocket and the Perseverance rover: NASA / JPL-Caltech (public domain), via NASA 3D Resources and three.js. Planet maps in Real mode: Solar System Scope (solarsystemscope.com/textures), CC BY 4.0, developed by INOVE, based on NASA data. Map outlines: Natural Earth. U.S. states: U.S. Census Bureau. Everest and Grand Canyon terrain: USGS (SRTM, 3DEP) via AWS Terrain Tiles. Voice: Kokoro-82M. Made for Amelia.</p>
+    <p class="credits">Pictures of planets, moons, stars, the Saturn V rocket and the Perseverance rover: NASA / JPL-Caltech (public domain), via NASA 3D Resources and three.js. Planet maps in Real mode: Solar System Scope (solarsystemscope.com/textures), CC BY 4.0, developed by INOVE, based on NASA data. Map outlines: Natural Earth. U.S. states: U.S. Census Bureau. Everest and Grand Canyon terrain: USGS (SRTM, 3DEP) via AWS Terrain Tiles. 3D scans and models (CC BY 4.0, via Sketchfab): "Statue of liberty" by Dystopia, "Taj Mahal 3D Model" by Dinendra Neyo, "The Great Sphinx of Giza - Egypt" by Chenzoss. Voice: Kokoro-82M. Made for Amelia.</p>
   </section>
   <div id="skycard" hidden></div>
   <div id="count" hidden></div>
@@ -2765,7 +2765,7 @@ SITES.eiffel = (s) => {
   s.add(spark);
   return { target: new THREE.Vector3(0, 120, 0), dist: 560, el: .14, az: .5, shadow: 420, lights: n => { spark.visible = n > .5; spark.material.opacity = .6 + .4 * Math.random(); } };
 };
-SITES.pyramids = (s) => {
+SITES.pyramids = (s, ctx) => {
   const blockT = stoneTex('#c9a36a', '#7d6443', 26, 60, ['#b08a55', '#dcc193'], 3.6);
   const LIME = std({ map: blockT, bumpMap: blockT, bumpScale: 3, roughness: .95 });
   const pyr = (x, z, base, h, step, capFrac = 0) => {
@@ -2782,6 +2782,10 @@ SITES.pyramids = (s) => {
   for (let i = 0; i < 40; i++) { const a = rnd() * 6.3, r = 2000 + rnd() * 400; buildingBlock(900 + Math.cos(a) * 200 * rnd(), 400 + Math.sin(a) * 900, 40 + rnd() * 40, 40, 15 + rnd() * 30, '#cdbb9c', '#a89274', s); }
   // the Great Sphinx: a lion's body with a king's head, facing east toward the sunrise (about 73 m long, 20 m tall)
   const SPH = std({ color: '#d9b27a', map: sandTex, bumpMap: sandTex, bumpScale: 1.5, roughness: .95 }), sx = new THREE.Group(); sx.position.set(175, 0, 70); sx.rotation.y = -.6; s.add(sx);
+  ctx.loadModel('models/sphinx.glb').then(g => {   // "The Great Sphinx of Giza - Egypt" by Chenzoss, CC BY 4.0: replaces the block-built stand-in
+    const m = fitModel(g.scene.clone(), 73, 'z'); m.rotation.y = Math.PI / 2; m.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; });
+    sx.children.forEach(c => { c.visible = false; }); sx.add(m);
+  }).catch(e => console.warn(e));
   ball(1, SPH, -6, 8, 0, sx, 30, 8, 8.5); ball(1, SPH, -30, 8, 0, sx, 11, 7.5, 9); ball(1, SPH, 12, 10, 0, sx, 8, 10, 8);
   for (const z of [-5, 5]) { box(24, 3.4, 4.2, SPH, 26, 1.7 + .5, z, sx); ball(1, SPH, 38, 2.2, z, sx, 2.4, 1.8, 2.3); ball(1, SPH, -32, 3, z * 1.4, sx, 9, 3, 2.5); }
   const hd = new THREE.Group(); hd.position.set(16, 19, 0); sx.add(hd);
@@ -2989,11 +2993,17 @@ SITES.liberty = (s, ctx) => {
   // the statue: sculpted copper (loaded as a model) and a gold-leaf flame
   const st = new THREE.Group(); st.position.y = 48.6; st.rotation.y = .42; s.add(st);
   const COPPER = std({ color: '#79b8a0', vertexColors: true, roughness: .5, metalness: .12, envMapIntensity: 1.1 });
-  ctx.loadModel('models/liberty.glb').then(g => { const m = g.scene.clone(); m.traverse(o => { if (o.isMesh) { o.material = COPPER; o.castShadow = o.receiveShadow = true; } }); st.add(m); }).catch(e => console.warn(e));
+  const torch = new THREE.Group(); st.add(torch);
+  ctx.loadModel('models/liberty_scan.glb').then(g => {   // scan: "Statue of liberty" by Dystopia, CC BY 4.0
+    const m = fitModel(g.scene.clone(), 46.5); m.traverse(o => { if (o.isMesh) { o.material = o.material.clone(); Object.assign(o.material, { metalness: .12, roughness: .55, envMapIntensity: 1.1 }); o.material.color.set('#a6e3c9'); o.castShadow = o.receiveShadow = true; } });
+    st.add(m); m.updateMatrixWorld(true);
+    let top = null; m.traverse(o => { if (!o.isMesh) return; const P = o.geometry.attributes.position, v = new THREE.Vector3(); for (let i = 0; i < P.count; i += 3) { v.fromBufferAttribute(P, i).applyMatrix4(o.matrixWorld); if (!top || v.y > top.y) top = v.clone(); } });
+    st.updateMatrixWorld(true); const tl = st.worldToLocal(top); torch.position.set(tl.x, tl.y - 2.2, tl.z); torch.scale.setScalar(.55); torch.visible = true;
+  }).catch(e => console.warn(e));
   const GOLD = std({ color: '#f2c14e', emissive: '#ff9f1c', emissiveIntensity: .25, metalness: .85, roughness: .22 });
-  const flame = lathe([[.05, 0], [1.25, .2], [1.35, 1.1], [1.05, 2.3], [.55, 3.4], [.05, 4.2]], GOLD, 24); flame.position.set(-5.3, 42.6, -.35); st.add(flame);
-  for (let i = 0; i < 5; i++) { const t = new THREE.Mesh(new THREE.ConeGeometry(.45, 2.2, 10), GOLD); const a = i / 5 * 6.28; t.position.set(-5.3 + Math.cos(a) * .7, 44.4, -.35 + Math.sin(a) * .7); t.rotation.set(Math.sin(a) * .35, 0, -Math.cos(a) * .35); st.add(t); }
-  const torchRail = new THREE.Mesh(new THREE.TorusGeometry(1.75, .09, 6, 32), std({ color: '#4d6b61', metalness: .5, roughness: .5 })); torchRail.rotation.x = Math.PI / 2; torchRail.position.set(-5.3, 42.2, -.35); st.add(torchRail);
+  const flame = lathe([[.05, 0], [1.25, .2], [1.35, 1.1], [1.05, 2.3], [.55, 3.4], [.05, 4.2]], GOLD, 24); flame.position.set(-5.3, 42.6, -.35); torch.add(flame);
+  for (let i = 0; i < 5; i++) { const t = new THREE.Mesh(new THREE.ConeGeometry(.45, 2.2, 10), GOLD); const a = i / 5 * 6.28; t.position.set(-5.3 + Math.cos(a) * .7, 44.4, -.35 + Math.sin(a) * .7); t.rotation.set(Math.sin(a) * .35, 0, -Math.cos(a) * .35); torch.add(t); }
+  const torchRail = new THREE.Mesh(new THREE.TorusGeometry(1.75, .09, 6, 32), std({ color: '#4d6b61', metalness: .5, roughness: .5 })); torchRail.rotation.x = Math.PI / 2; torchRail.position.set(-5.3, 42.2, -.35); torch.add(torchRail); torch.children.forEach(o => o.position.sub(new THREE.Vector3(-5.3, 42.2, -.35))); torch.visible = false;
   // Liberty Island: lawns, paths, trees, flagpole
   const isl = new THREE.Mesh(new THREE.CylinderGeometry(170, 180, 4, 64), std({ map: grassGroundTex, roughness: 1 })); isl.scale.z = .75; isl.position.set(0, -1.5, 20); isl.receiveShadow = true; s.add(isl);
   const walk = new THREE.Mesh(new THREE.RingGeometry(70, 84, 64), std({ color: '#b9b2a4', map: concreteTex, roughness: .95 })); walk.rotation.x = -Math.PI / 2; walk.position.y = .55; walk.receiveShadow = true; s.add(walk);
@@ -3067,7 +3077,7 @@ SITES.bigben = (s) => {
   return { target: new THREE.Vector3(0, 60, 0), dist: 200, el: .1, az: 2.2, shadow: 220, haze: '#bfc6cc', far: 3000, lights: n => dials.forEach(d => { d.material.emissiveIntensity = n > .5 ? 2 : 0; }),
     update: (dt, t) => { wheel.rotation.z = t * .02; pods.forEach(p => p.rotation.z = -wheel.rotation.z); buses.forEach(b => { b.position.z += b.userData.dir * dt * 6; if (b.position.z > 300) b.position.z = 5; if (b.position.z < 5) b.position.z = 300; b.rotation.y = b.userData.dir > 0 ? 0 : Math.PI; }); } };
 };
-SITES.taj = (s) => {
+SITES.taj = (s, ctx) => {
   const marbleT = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#f6f2ea'; g.fillRect(0, 0, w, h); speckle(g, w, h, 600, ['#ece6da', '#fbf9f4'], 1, 4);
     g.strokeStyle = 'rgba(170,165,160,.25)'; g.lineWidth = 1; for (let i = 0; i < 9; i++) { g.beginPath(); let x = rnd() * w, y = 0; g.moveTo(x, y); while (y < h) { x += (rnd() - .5) * 18; y += 8 + rnd() * 10; g.lineTo(x, y); } g.stroke(); } }, 12);
   const niche = (g, x, y, w, h) => { const grd = g.createLinearGradient(0, y, 0, y + h); grd.addColorStop(0, '#b9ae9c'); grd.addColorStop(1, '#d9d0c1'); g.fillStyle = grd;
@@ -3080,8 +3090,9 @@ SITES.taj = (s) => {
     for (let x = 16; x < w - 16; x += 7) { g.beginPath(); g.moveTo(x, 16); g.quadraticCurveTo(x + 3, 13, x + 6, 16); g.stroke(); } g.drawImage(marbleT.image, 30, 30, w - 60, h - 40); }, 1);
   pishT.repeat.set(1 / 24, 1 / 38);
   const MARBLE = std({ color: '#ffffff', map: marbleT, roughness: .32 }), RED = std({ color: '#a4533b', map: stoneTex('#a4533b', '#7a3a28', 20, 40, ['#8e452f', '#b8664c'], 2), roughness: .9 });
-  box(95, 7, 95, MARBLE, 0, 3.5, 0, s);                                   // plinth
-  const body = new THREE.Group(); body.position.y = 7; s.add(body);
+  const proc = new THREE.Group(); s.add(proc);   // hand-built stand-in, replaced by the downloaded model once it loads
+  box(95, 7, 95, MARBLE, 0, 3.5, 0, proc);                                   // plinth
+  const body = new THREE.Group(); body.position.y = 7; proc.add(body);
   const oct = new THREE.Mesh(new THREE.CylinderGeometry(33, 33, 32, 8), [std({ color: '#ffffff', map: faceT, roughness: .32 }), MARBLE, MARBLE]); oct.rotation.y = Math.PI / 8; oct.position.y = 16; oct.castShadow = oct.receiveShadow = true; body.add(oct);
   for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2, iw = new THREE.Group(); iw.position.set(Math.sin(a) * 31, 0, Math.cos(a) * 31); iw.rotation.y = a; body.add(iw);   // great arched iwans
     const sh = new THREE.Shape(); sh.moveTo(-9, 0); sh.lineTo(9, 0); sh.lineTo(9, 22); sh.quadraticCurveTo(9, 30, 0, 32); sh.quadraticCurveTo(-9, 30, -9, 22); sh.closePath();
@@ -3095,7 +3106,11 @@ SITES.taj = (s) => {
   for (const [x, z] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { const ch = lathe([[.1, 32], [6, 32], [6, 37], [6.8, 40], [5, 44], [.1, 47]], MARBLE); ch.position.set(x * 19, 0, z * 19); body.add(ch); }
   for (const [x, z] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {        // four minarets
     const mn = lathe([[.1, 0], [3.4, 0], [3, 16], [3.8, 16], [3.8, 17], [2.8, 17], [2.5, 32], [3.3, 32], [3.3, 33], [2.3, 33], [2, 45], [3, 45], [3, 46], [2.5, 46], [2.5, 49], [.1, 53]], MARBLE, 24);
-    mn.position.set(x * 45, 7, z * 45); s.add(mn); }
+    mn.position.set(x * 45, 7, z * 45); proc.add(mn); }
+  ctx.loadModel('models/taj.glb').then(g => {   // "Taj Mahal 3D Model" by Dinendra Neyo, CC BY 4.0
+    const m = fitModel(g.scene.clone(), 60); m.traverse(o => { if (o.isMesh) { o.material = std({ color: '#d9d2c4', roughness: .7, flatShading: true }); o.castShadow = o.receiveShadow = true; } });
+    s.add(m); proc.visible = false;
+  }).catch(e => console.warn(e));
   // long reflecting pool, cypress rows, gardens, red sandstone wall & gate
   const pool = water(8, 280, '#5f8fa8', 10); pool.position.set(0, .6, 190); s.add(pool); box(12, .8, 284, MARBLE, 0, .2, 190, s);
   for (let z = 70; z < 330; z += 12) for (const x of [-12, 12]) { cyl(.25, .3, 2, BARK, x, 1, z, s); const c = new THREE.Mesh(new THREE.ConeGeometry(1.8, 10, 10), std({ color: '#2d5a2f', roughness: 1 })); c.position.set(x, 7, z); c.castShadow = true; s.add(c); }
@@ -3110,7 +3125,7 @@ SITES.taj = (s) => {
     for (const dx of [-34, 34]) for (const dz of [-12, 12]) { const c = lathe([[.1, 0], [2, 0], [2, 22], [3, 23], [1.5, 27], [.1, 28]], RED, 12); c.position.set(dx, 5, dz); mq.add(c); } }
   const ground = add(new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), std({ color: '#c7a98a', map: concreteTex, roughness: 1 })), s, 0, -.1, 0); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true;
   const riv = water(3000, 400, '#6b7f76'); riv.position.set(0, -.5, -260); s.add(riv);
-  return { target: new THREE.Vector3(0, 35, 0), dist: 260, el: .1, az: 0, shadow: 200, haze: '#e7d5c2', far: 3000 };
+  return { target: new THREE.Vector3(0, 28, 20), dist: 330, el: .13, az: 0, shadow: 220, haze: '#e7d5c2', far: 3000 };
 };
 SITES.opera = (s) => {
   // chevron roof tiles: glossy white with matte cream rib lines, laid out along each sail's surface (u across, v along)
@@ -3251,6 +3266,11 @@ function gltfToGlb(json){
 // models are meshopt-compressed .glb files, parsed from memory (no data: URLs anywhere)
 const loadModel = url => modelCache[url] || (modelCache[url] = fetch(url).then(r => { if (!r.ok) throw new Error(url + ' ' + r.status); return /\.glb$/.test(url) ? r.arrayBuffer() : r.json().then(gltfToGlb); })
   .then(b => new Promise((res, rej) => gltfLoader.parse(b, '', res, rej))).catch(e => { delete modelCache[url]; throw e; }));
+// place a downloaded model: centred on x/z, standing on y = 0, scaled so one side of its box matches a real size in metres
+function fitModel(root, size, axis = 'y'){
+  const b = new THREE.Box3().setFromObject(root), sz = b.getSize(new THREE.Vector3()), k = size / sz[axis], c = b.getCenter(new THREE.Vector3());
+  const g = new THREE.Group(); root.position.sub(new THREE.Vector3(c.x, b.min.y, c.z)); g.add(root); g.scale.setScalar(k); return g;
+}
 function disposeScene(sc){
   const mk = sc.userData.mark, mats = new Set();
   sc.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.isLight && o.shadow && o.shadow.map) { o.shadow.map.dispose(); o.shadow.map = null; } if (mk && o.material) [].concat(o.material).forEach(m => { if (m.id > mk.m) mats.add(m); }); });
