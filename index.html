@@ -433,7 +433,7 @@ function pickVoice(){
 if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 // Every line is pre-recorded (Kokoro-82M, voice af_heart, the same voice as Princess Quest) and embedded below;
 // anything missing falls back to the phone's own text-to-speech.
-const APP_VERSION = 'space-v5';
+const APP_VERSION = 'space-v6';
 let VOICE = {};
 // grown-up settings, kept on this phone
 const prefs = { rate: 1, vol: 1, captions: true }; try { Object.assign(prefs, JSON.parse(localStorage.getItem('ast-prefs') || '{}')); } catch {}
@@ -3940,7 +3940,8 @@ function updateFly(dt, t){
   if ((t * 2 | 0) % 3 === 0 && F.stars.some(st => st.got || st.pos.clone().normalize().angleTo(F.p) > .5)) flyStarsAround();
   // famous places: close and low enough to land
   if (!F.landed) {
-    let near = null, best = .075; for (const L of LM) { const a = featDir(L.lat, L.lon).angleTo(F.p); if (a < best) { best = a; near = L; } }
+    let near = null, best = .12; for (const L of LM) { const a = featDir(L.lat, L.lon).angleTo(F.p); if (a < best) { best = a; near = L; } }
+    if (near) F.nearT = 5; else if (F.near && (F.nearT -= dt) > 0) near = F.near;   // the Land button stays a while after you pass, so small fingers can catch it
     if (near !== F.near) { F.near = near; if (near) { $('#pill').textContent = near.name; if (!F.saidNear.has(near.id)) { F.saidNear.add(near.id); speak([near.name + '!', SAY.flyNear]); } } else $('#pill').textContent = 'Fly!'; nav(); }
   }
   // mission: a green arrow in front of the plane points toward the goal
@@ -4740,7 +4741,7 @@ window.__showState = n => toyShowState(n);
 window.__mission = () => { const F = toy.fly; if (!F.mission) flyMission(); return F.mission.lm ? F.mission.lm.id : F.mission.an; };
 window.__flyGoal = () => { const F = toy.fly, m = F.mission, d = featDir(m.lat, m.lon), ax = F.p.clone().cross(d).normalize(), a = F.p.angleTo(d) - .1; F.p.applyAxisAngle(ax, a).normalize(); F.f.applyAxisAngle(ax, a); F.f.addScaledVector(F.p, -F.f.dot(F.p)).normalize(); };
 window.__fly = () => { const F = toy && toy.fly; return F && { missions: F.missions || 0, alt: +F.alt.toFixed(2), score: F.score, combo: F.combo, best: F.best, near: F.near && F.near.id, landed: F.landed && F.landed.id, stamps: FLY_STAMPS.size }; };
-window.__flyTo = id => { const F = toy.fly, L = LM.find(l => l.id === id), d = featDir(L.lat, L.lon); const ax = F.p.clone().cross(d).normalize(), a = F.p.angleTo(d) - .05; F.p.applyAxisAngle(ax, a).normalize(); F.f.applyAxisAngle(ax, a); F.f.addScaledVector(F.p, -F.f.dot(F.p)).normalize(); };
+window.__flyTo = id => { const F = toy.fly, L = LM.find(l => l.id === id), d = featDir(L.lat, L.lon); const ax = F.p.clone().cross(d).normalize(), a = F.p.angleTo(d) - .1; F.p.applyAxisAngle(ax, a).normalize(); F.f.applyAxisAngle(ax, a); F.f.addScaledVector(F.p, -F.f.dot(F.p)).normalize(); };
 window.__stateC = n => TOY_STATES.find(s => s.name === n).c;
 window.__toyState = () => ({ tour: toy.lmTour ? LM[toy.lmI].id : null, mode, dist: +rig.dist.toFixed(2), follow: toy.follow && toy.follow.kind, hunt: toy.hunt ? toy.hunt.found.size : null, built: toy.buildList.length, pill: $('#pill').textContent });
 window.__proj = o => { const v = o.getWorldPosition(new THREE.Vector3()).project(camera); return [((v.x + 1) / 2 * W) | 0, ((1 - v.y) / 2 * H) | 0, v.z.toFixed(3), camera.position.toArray().map(a => a | 0)]; };

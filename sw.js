@@ -1,5 +1,5 @@
 // Offline cache for Amelia's Space Trip. Bump VERSION on every deploy.
-const VERSION = 'space-v5';
+const VERSION = 'space-v6';
 const ASSETS = [
  "./",
  "icons/icon-192.png",
