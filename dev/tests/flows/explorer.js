@@ -19,5 +19,5 @@ await pg.click('#actions >> text=House');await pg.mouse.click(200,420);await W(8
 await pg.click('#actions >> text=Done');await W(1000);
 // animals from the places bar
 await pg.click('#tstrip >> text=Asia');await W(7000);await S('t2_asia');
-await pg.click('#actions >> text=Rides');await W(800);await pg.click('#actions >> text=Plane');await W(7000);await S('t2_plane');await pg.click('#actions >> text=Stop ride');await W(2000);
+await pg.click('#actions >> text=Games');await W(600);await pg.click('#actions >> text=Rides');await W(800);await pg.click('#actions >> text=Plane');await W(7000);await S('t2_plane');await pg.click('#actions >> text=Stop ride');await W(2000);
 await pg.click('#actions >> text=Real Earth');await W(4000);};
