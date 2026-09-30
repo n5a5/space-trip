@@ -2596,6 +2596,7 @@ function tap(x, y){
   audio()?.resume?.();
   ndc.set(x / W * 2 - 1, -(y / H) * 2 + 1); ray.setFromCamera(ndc, camera);
   if (sceneMode === 'toy') return toyTap(x, y);
+  if (sceneMode === 'site') return siteTap(x, y);
   if (sceneMode === 'space' && (mode === 'space' || mode === 'focus' || mode === 'world')) {
     if (current === earth && mode !== 'world' && ray.intersectObject(pinHit, false).length) return flyHome();
     if (current === earth) { const lh = ray.intersectObjects(lmHits, false)[0]; if (lh) return enterToy(null, { tour: LM.indexOf(lh.object.userData.lm) }); }
@@ -2725,6 +2726,43 @@ const SITE_EXTRA = {   // a second thing to spot, said a little later
   pyramids: "Can you spot the Sphinx? It has the body of a lion and the head of a person!",
   bigben: "The giant wheel across the river is called the London Eye. People ride up high inside its glass pods!",
 };
+// three sparkles to tap in every landmark scene, each with something true to learn
+const SITE_SPOTS = {
+  ksc: [ANIMAL_SAY.ksc, "The giant Saturn V rocket was taller than a thirty-story building. It took astronauts to the Moon!", "Alligators live near the Space Center too! It's inside a big wildlife refuge."],
+  liberty: ["The flame on her torch is covered in real gold!", "Her crown has seven points, for the seven seas and the seven continents.", ANIMAL_SAY.liberty],
+  canyon: ["The Colorado River carved the Grand Canyon, a tiny bit at a time, over millions of years.", "See the stripes in the rocks? They're layers, like a cake. The bottom ones are the oldest!", ANIMAL_SAY.canyon],
+  amazon: ["Sloths move so slowly that tiny green plants called algae grow in their fur!", "The Amazon River has pink dolphins!", "Toucans use their big, colorful beaks to reach fruit."],
+  penguins: ["Penguins can't fly, but they are super fast swimmers!", "Penguins huddle close together to stay warm in the freezing wind.", "Most of Antarctica is covered with thick ice, all year round."],
+  bigben: ["The clock has four faces, so people can tell the time from every side.", SITE_EXTRA.bigben, "London's red buses have two floors, one on top of the other!"],
+  eiffel: ["At night, the tower sparkles with thousands of twinkly lights!", "On hot summer days, the metal tower grows a tiny bit taller!", "The tower gets a fresh coat of paint every few years."],
+  colosseum: ["Long ago, about fifty thousand people could sit here to watch shows.", "It had a giant cloth roof to shade people from the hot sun.", "Under the floor were tunnels and elevators for the animals!"],
+  pyramids: [SITE_EXTRA.pyramids, ANIMAL_SAY.pyramids, "The Great Pyramid was the tallest building in the world for thousands of years!"],
+  taj: ["The long pool reflects the Taj Mahal like a mirror.", "The white marble can look pink in the morning and golden in the evening.", "About twenty thousand workers helped build it!"],
+  everest: ["Climbers carry oxygen tanks because the air way up high is so thin.", "Everest grows a tiny bit taller every year!", "The Sherpa people live in the mountains near Everest. They are amazing climbers!"],
+  wall: ["Soldiers watched for danger from the towers along the wall.", "Some people say you can see the wall from space, but it's too thin to spot with just your eyes!", "Parts of the wall are more than two thousand years old!"],
+  opera: ["The roof is covered with more than one million tiles!", ANIMAL_SAY.opera, "Ferries zoom across the harbour, right past the Opera House."],
+};
+SAY.sparkleHint = "Tap the sparkles to find out more!";
+SAY.sparkleAll = "You found all the sparkles here! Great exploring!";
+let sparkTex = null;
+function siteSparkles(L, info){
+  if (!sparkTex) sparkTex = tex((() => { const c = mkCanvas(128, 128), g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gr.addColorStop(0, 'rgba(255,240,170,.9)'); gr.addColorStop(.5, 'rgba(255,190,60,.45)'); gr.addColorStop(1, 'rgba(255,170,40,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+    g.beginPath(); for (let i = 0; i < 10; i++) { const a = i * Math.PI / 5 - Math.PI / 2, r = i % 2 ? 17 : 40; g.lineTo(64 + Math.cos(a) * r, 64 + Math.sin(a) * r); } g.closePath();
+    g.fillStyle = '#ffd166'; g.fill(); g.lineWidth = 6; g.strokeStyle = '#7a3e00'; g.stroke(); g.fillStyle = '#fff8dc'; g.beginPath(); g.arc(58, 56, 7, 0, 7); g.fill(); return c; })());
+  const lines = SITE_SPOTS[L.id]; if (!lines) return [];
+  const d = new THREE.Vector3(Math.cos(info.el) * Math.sin(info.az), Math.sin(info.el), Math.cos(info.el) * Math.cos(info.az)), up = new THREE.Vector3(0, 1, 0), right = up.clone().cross(d).normalize(), D = info.dist;
+  return lines.map((line, i) => { const [ox, oy] = [[-.11, -.08], [.11, .06], [-.02, .22]][i];
+    const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: sparkTex, transparent: true, depthWrite: false, depthTest: false }));
+    m.position.copy(info.target).addScaledVector(right, ox * D).addScaledVector(up, oy * D); m.scale.setScalar(D * .09); m.userData = { line, got: false, t: 0, base: D * .09, i };
+    site.sc.add(m); return m; });
+}
+function siteTap(x, y){
+  if (!site || !site.spots) return; let best = null, bd = 60; const v = new THREE.Vector3();
+  for (const m of site.spots) { if (m.userData.got) continue; v.copy(m.position).project(camera); const d = Math.hypot((v.x + 1) / 2 * W - x, (1 - v.y) / 2 * H - y); if (v.z < 1 && d < bd) { bd = d; best = m; } }
+  if (!best) return; best.userData.got = true; best.userData.t = 0; chime(); const left = site.spots.filter(m => !m.userData.got).length;
+  speak(left ? best.userData.line : [best.userData.line, SAY.sparkleAll]); if (!left) award('sparkles');
+}
 // a flock of gliding birds that circle and flap; shared by several scenes
 function flock(s, n, cx, cy, cz, R, size, bodyC, wingC){
   const birds = [];
@@ -3349,10 +3387,9 @@ function enterSite(L){
   $('#amcard').hidden = false; $('#amcard').classList.remove('fade'); { const my = seq; setTimeout(() => { if (my === seq) { $('#amcard').classList.add('fade'); setTimeout(() => { if (my === seq) $('#amcard').hidden = true; }, 700); } }, 9000); }
   $('#amcard span').textContent = 'Amelia at ' + (L.name.length > 16 ? L.name.split(' ').slice(-2).join(' ') : L.name);
   setTimeout(() => waveAmelia(pcAm, 3), 600);
-  if (ANIMAL_SAY[L.id]) { const my = seq; setTimeout(() => { if (my === seq && mode === 'site' && siteL === L) speak(ANIMAL_SAY[L.id]); }, 7000); }
-  if (SITE_EXTRA[L.id]) { const my = seq; setTimeout(() => { if (my === seq && mode === 'site' && siteL === L) speak(SITE_EXTRA[L.id]); }, ANIMAL_SAY[L.id] ? 16000 : 8000); }
+  { const my = seq; setTimeout(() => { if (my === seq && mode === 'site' && siteL === L && site && site.spots.every(m => !m.userData.got)) speak(SAY.sparkleHint); }, 9000); }
   if (site) { disposeScene(site.sc); site.rt.dispose(); }
-  site = buildSite(L); siteL = L;
+  site = buildSite(L); siteL = L; site.spots = siteSparkles(L, site.info);
   sceneMode = 'site'; mode = 'site'; current = null; manualCam = false; camera.up.set(0, 1, 0);
   $('#pill').textContent = L.name; $('#inset').hidden = true;
   nav(); layout();
@@ -3390,6 +3427,8 @@ function updateSite(dt, t){
   site.sc.traverse(o => { if (o.userData.waterTex) { o.userData.waterTex.offset.x += dt * .01; o.userData.waterTex.offset.y += dt * .006; } });
   if (site.info.update) site.info.update(dt, t);
   if (site.info.lights) site.info.lights(site.night);
+  (site.spots || []).forEach(m => { const u = m.userData; u.t += dt; if (u.got) { m.scale.setScalar(u.base * (1 + u.t * 3)); m.material.opacity = Math.max(0, m.material.opacity - dt * 1.5); if (m.material.opacity <= 0) m.visible = false; return; }
+    m.scale.setScalar(u.base * (1 + Math.sin(t * 4 + u.i * 2) * .18)); m.material.rotation = t * .8 + u.i; });
 }
 
 
@@ -4611,7 +4650,7 @@ const STAMPS = [
   ...P.map(p => ({ id: 'p:' + p.id, img: p.thumb, label: p.label })),
   { id: 'eclipse', em: '🌑', label: 'Eclipse' }, { id: 'home', em: '🏡', label: 'Home' }, { id: 'landing', em: '🪂', label: 'Landing' }, { id: 'launch', em: '🚀', label: 'Blast off' }, { id: 'sky', em: '🔭', label: "Tonight's sky" },
   { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
-  { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
+  { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'sparkles', em: '✨', label: 'Sparkle finder' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
   ...LM.map(l => ({ id: 'l:' + l.id, em: l.em, label: l.name.replace('Pyramids of Giza', 'Pyramids').replace('Great Wall of China', 'Great Wall').replace('Sydney Opera House', 'Opera House').replace('Kennedy Space Center', 'Space Center').replace('Amazon Rainforest', 'Rainforest') })),
 ];
 let stamps = new Set();
@@ -4838,6 +4877,7 @@ window.__toyScr = (kind, k) => { const T = toy, v = kind === 'animal' ? T.animal
   const vis = v.clone().sub(camera.position).dot(v) < 0; v.project(camera); return [Math.round((v.x + 1) / 2 * W), Math.round((1 - v.y) / 2 * H), vis]; };
 window.__stateAt = (a, b) => stateAt(a, b)?.name ?? null; window.__nStates = () => TOY_STATES.length;
 window.__showState = n => toyShowState(n);
+window.__spots = () => site && site.spots ? site.spots.map(m => { const v = m.position.clone().project(camera); return [Math.round((v.x + 1) / 2 * W), Math.round((1 - v.y) / 2 * H), m.userData.got]; }) : null;
 window.__mission = () => { const F = toy.fly; if (!F.mission) flyMission(); return F.mission.lm ? F.mission.lm.id : F.mission.an; };
 const flyNear = (F, d) => { const ax = F.p.clone().cross(d).normalize(), a = F.p.angleTo(d) - .1; F.p.applyAxisAngle(ax, a).normalize(); F.f.copy(d).addScaledVector(F.p, -d.dot(F.p)).normalize(); };   // test helper: just short of a spot, heading for it
 window.__flyGoal = () => { const F = toy.fly, m = F.mission; flyNear(F, featDir(m.lat, m.lon)); };
@@ -4854,6 +4894,7 @@ window.__allLines = () => {
   P.forEach(p => { p.facts.forEach(f => s.add(f)); if (p.g) s.add(jumpLine(p)); });
   [...HOME_FACTS, ...MARS_ROCKS, SAY.fast, SAY.fastYear, SAY.slow, ...STORY, SAY.iss1, ...RIDDLES.map(r => r[1]), ...Object.values(SAY), ...COUNT, ...Object.values(MOON_SAY), ...LM.map(l => l.say), ...Object.values(ANIMAL_SAY), ...Object.values(SITE_EXTRA), ...Object.values(FEATURES).flat().map(f => f[3]), ...Object.values(REGIONS).map(r => r[4]), ...Object.values(ANIMALS).map(a => a[2]), ...Object.keys(STATE_CAPITALS).map(stateLine), ...QUIZ_STATES.map(findLine)].forEach(x => s.add(x));
   ORDER.forEach((id, i) => { s.add(paradeYes(i)); s.add(paradeNo(id, false)); s.add(paradeNo(id, true)); });
+  Object.values(SITE_SPOTS).flat().forEach(x => s.add(x));
   LM.forEach(l => { s.add(l.name + '!'); s.add(missionLine({ lm: l })); }); Object.keys(ANIMALS).forEach(an => s.add(missionLine({ an })));   // said when your plane flies over it
   DIRS.forEach(d => { s.add(moonWhere(d)); SKY_PLANETS.forEach(id => s.add(planetWhere(id, d))); });
   return [...s];
