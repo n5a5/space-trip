@@ -1,5 +1,5 @@
 // Offline cache for Amelia's Space Trip. Bump VERSION on every deploy.
-const VERSION = 'space-v22';
+const VERSION = 'space-v23';
 const ASSETS = [
  "./",
  "fonts/OFL-Fredoka.txt",
@@ -13,6 +13,12 @@ const ASSETS = [
  "icons/icon-512.png",
  "index.html",
  "manifest.webmanifest",
+ "models/cubepets/License.txt",
+ "models/cubepets/Textures/colormap.png",
+ "models/cubepets/animal-elephant.glb",
+ "models/cubepets/animal-giraffe.glb",
+ "models/cubepets/animal-panda.glb",
+ "models/cubepets/animal-polar.glb",
  "models/liberty_scan.glb",
  "models/perseverance.glb",
  "models/saturn_v.glb",
@@ -87,6 +93,7 @@ const ASSETS = [
  "voice/0cbdbf78.ogg",
  "voice/0ce41291.ogg",
  "voice/0d3616b4.ogg",
+ "voice/0d4c5030.ogg",
  "voice/0ef65ae1.ogg",
  "voice/0f2ec40c.ogg",
  "voice/0f36c415.ogg",
@@ -471,6 +478,7 @@ const ASSETS = [
  "voice/c22e6dcb.ogg",
  "voice/c2762f12.ogg",
  "voice/c28609f7.ogg",
+ "voice/c2f2ca13.ogg",
  "voice/c497c182.ogg",
  "voice/c53436f6.ogg",
  "voice/c54a1496.ogg",
