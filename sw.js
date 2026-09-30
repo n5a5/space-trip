@@ -1,5 +1,5 @@
 // Offline cache for Amelia's Space Trip. Bump VERSION on every deploy.
-const VERSION = 'space-v11';
+const VERSION = 'space-v12';
 const ASSETS = [
  "./",
  "icons/icon-192.png",
@@ -217,6 +217,7 @@ const ASSETS = [
  "voice/51cc16b3.ogg",
  "voice/53bff417.ogg",
  "voice/5402f627.ogg",
+ "voice/54b85e42.ogg",
  "voice/55b14468.ogg",
  "voice/565890a8.ogg",
  "voice/567e72e2.ogg",
@@ -449,6 +450,7 @@ const ASSETS = [
  "voice/c602f6cf.ogg",
  "voice/c6b48e99.ogg",
  "voice/c7e11f82.ogg",
+ "voice/c85ea419.ogg",
  "voice/c8f9728e.ogg",
  "voice/c9d02e26.ogg",
  "voice/ca45cac6.ogg",
@@ -479,6 +481,7 @@ const ASSETS = [
  "voice/d5364491.ogg",
  "voice/d6435cde.ogg",
  "voice/d6f8f904.ogg",
+ "voice/d71b3352.ogg",
  "voice/d75cfee4.ogg",
  "voice/d775abeb.ogg",
  "voice/d7cbc696.ogg",
