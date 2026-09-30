@@ -135,6 +135,12 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #toast .ico img,.stamp .ico img{width:118%;height:118%;object-fit:cover}
 #toast.in{animation:tin .5s cubic-bezier(.3,1.6,.5,1)}
 @keyframes tin{from{transform:translateX(-50%) scale(.3);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
+#sizes{position:absolute;inset:0;z-index:6;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top,0px) + 14px) 0 calc(env(safe-area-inset-bottom,0px) + 16px);background:radial-gradient(ellipse at 50% 0,#2a2380,#0d0b2e 70%)}
+#sizes .phead{display:flex;justify-content:space-between;align-items:flex-start;padding:0 16px}#sizes h2{margin:0;font:700 26px/1.1 var(--display);color:var(--gold)}#sizes p{margin:4px 0 0;font:700 14px/1 var(--body);color:var(--muted)}
+#szclose{flex:0 0 auto;width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:rgba(255,255,255,.1);color:var(--ink);font:700 22px/1 var(--body)}
+#szrow{flex:1;display:flex;align-items:center;gap:26px;overflow-x:auto;padding:0 40px 0 0;scrollbar-width:none}
+#szrow .sz{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;color:var(--ink);font:800 15px/1 var(--body);cursor:pointer}
+#szrow .sz img{display:block}#szrow .sun{flex:0 0 auto;width:120px;height:900px;border-radius:0 450px 450px 0;background:radial-gradient(circle at -300px 50%,#fff7c2 40%,#ffb703 75%,#ff7a00 100%);box-shadow:0 0 60px #ffb70388;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;font:800 15px/1 var(--body);color:#5a2a00;cursor:pointer;border:0}
 #passport{position:absolute;inset:0;z-index:6;overflow:auto;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 20px);background:radial-gradient(ellipse at 50% 0%,#3a2f8f,#140f3d 70%)}
 #passport .phead,#grown .phead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
 #passport h2,#grown h2{margin:0;font:700 26px/1.1 var(--display);color:var(--gold)}
@@ -229,6 +235,10 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
       <button id="gbld" class="gbtn danger">Clear Explorer Earth building</button>
       <p class="gver" id="gver"></p>
     </div>
+  </section>
+  <section id="sizes" hidden aria-label="Planet sizes">
+    <div class="phead"><div><h2>How big are they?</h2><p>Real sizes, side by side. Swipe →</p></div><button id="szclose" aria-label="Close sizes">✕</button></div>
+    <div id="szrow"></div>
   </section>
   <section id="passport" hidden aria-label="Sticker passport">
     <div class="phead"><div><h2>Amelia's Space Passport</h2><p id="pcount"></p></div><button id="pclose" aria-label="Close passport">✕</button></div>
@@ -2467,6 +2477,7 @@ function homeToSpace(){
 }
 function goBack(){
   if (!$('#grown').hidden) { $('#grown').hidden = true; return true; }
+  if (!$('#sizes').hidden) { $('#sizes').hidden = true; return true; }
   if (!$('#passport').hidden) { $('#passport').hidden = true; return true; }
   if (mode === 'flying' || mode === 'launch' || mode === 'landing') return true;   // mid-trip: ignore
   if (mode === 'eclipse') { closeEclipse(); return true; }
@@ -2501,7 +2512,7 @@ function nav(){
   strip.querySelectorAll('.th').forEach(t => t.setAttribute('aria-pressed', String(current && t.dataset.id === current.id)));
   acts.innerHTML = '';
   $('#backbtn').hidden = mode === 'space' || mode === 'intro' || mode === 'flying' || mode === 'launch' || mode === 'landing'; armBack();
-  if (mode === 'space') acts.append(btn(warpGoal > 1 ? '🐢' : '⏩', warpGoal > 1 ? 'Normal' : 'Speed up', toggleWarp), btn('🛂', 'Passport', openPassport), btn('🎯', 'Line up', startParade, 'gold'), btn('❓', 'Riddles', startQuiz, 'gold'), btn('🏡', 'Fly home', flyHome, 'hero'));
+  if (mode === 'space') acts.append(btn(warpGoal > 1 ? '🐢' : '⏩', warpGoal > 1 ? 'Normal' : 'Speed up', toggleWarp), btn('🛂', 'Passport', openPassport), btn('🎯', 'Line up', startParade, 'gold'), btn('❓', 'Riddles', startQuiz, 'gold'), btn('📏', 'Sizes', openSizes, 'gold'), btn('🏡', 'Fly home', flyHome, 'hero'));
   if (mode === 'focus' && tour) acts.append(btn('◀️', 'Back', () => tourGo(tour.i - 1)), btn('🔊', 'Tell me', () => speak(FEATURES[tour.p.id][tour.i][3])), btn('▶️', 'Next', () => tourGo(tour.i + 1), 'hero'), btn('✅', 'Done', endTour));
   else if (mode === 'focus') {
     acts.append(btn('🌌', 'All planets', () => { stopJump(); overview(); }), btn('🔊', 'Tell me more', moreFact));
@@ -3662,7 +3673,7 @@ function buildToy(){
   g.setTransform(1, 0, 0, 1, 0, 0); { const y0 = (90 + 78) / 180 * MAPH, gr = g.createLinearGradient(0, y0 - 10, 0, y0 + 6); gr.addColorStop(0, 'rgba(240,246,252,0)'); gr.addColorStop(1, '#eef4fa'); g.fillStyle = gr; g.fillRect(0, y0 - 10, MAPW, MAPH - y0 + 10); }
   g.restore();
   const mapBase = mkCanvas(MAPW, MAPH); mapBase.getContext('2d').drawImage(map, 0, 0);
-  const mapTex = tex(map);
+  const mapTex = tex(map); mapTex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());   // crisper ground at low angles
   // --- the planet: a smooth sphere lifted where there's land ---
   const pg = new THREE.SphereGeometry(R, 200, 100), P = pg.attributes.position, v = V();
   for (let i = 0; i < P.count; i++) { v.fromBufferAttribute(P, i); const [lat, lon] = ll(v); v.normalize().multiplyScalar(R + h(lat, lon)); P.setXYZ(i, v.x, v.y, v.z); }
@@ -4417,8 +4428,34 @@ function toyNightStep(dt){
     for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i), n = (x * d.x + y * d.y + z * d.z) / Math.hypot(x, y, z), k = sst(.02, -.18, n) * (.75 + .25 * ((i * 7919) % 13) / 13);
       C.setXYZ(i, k * 2.4, k * 1.9, k * .8); } C.needsUpdate = true; }
 }
+// weather: a few rain clouds drifting east with rain falling under them, a rainbow in the Amazon, snow near the poles
+const RAIN_AT = [[4, -62], [14, 100], [49, -4], [-3, 20], [36, -86]];
+SAY.cloudThrough = "Whoosh! We flew through a rain cloud. Clouds are made of tiny drops of water!";
+SAY.rainbow = "Look, a rainbow! Rainbows appear when sunlight shines through raindrops.";
+function toyWeather(dt, t){
+  const T = toy, R = TOY_R;
+  if (!T.wx) { const W = T.wx = { clouds: [] }, geo = mergeGeometries([...Array(7)].map((_, j) => new THREE.IcosahedronGeometry(.26 + (j * 5 % 4) * .06, 2).translate((j - 3) * .2, Math.sin(j * 2.1) * .06, Math.cos(j * 1.7) * .14)));
+    const cm = toyToon('#dfe6ef'), rm = new THREE.LineBasicMaterial({ color: '#9fd4ff', transparent: true, opacity: .75 });
+    for (const [la, lo] of RAIN_AT) { const g = new THREE.Group(), c = new THREE.Mesh(geo, cm); inkChild(c, .02); g.add(c);
+      const pts = []; for (let i = 0; i < 70; i++) { const x = (Math.random() - .5) * 1.1, z = (Math.random() - .5) * .35, y = -Math.random() * 1.2; pts.push(x, y, z, x, y - .09, z); }
+      const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); const rain = new THREE.LineSegments(lg, rm); rain.userData.base = pts.slice(); g.add(rain);
+      T.s.add(g); W.clouds.push({ g, rain, lat: la, lon: lo }); }
+    const rb = new THREE.Group(); ['#ff4d4d', '#ff9f1c', '#ffe066', '#4ade80', '#38bdf8', '#6366f1', '#a855f7'].forEach((c, i) => { const m = new THREE.Mesh(new THREE.TorusGeometry(.75 - i * .045, .024, 6, 48, Math.PI), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .8 })); rb.add(m); });
+    W.rainbow = rb; T.s.add(rb); W.rbLL = [0, -56];
+    const sp = []; for (let i = 0; i < 600; i++) { const north = i % 2, la = (north ? 1 : -1) * (63 + Math.random() * 25), lo = Math.random() * 360 - 180, a = .08 + Math.random() * 1.1; sp.push(...featDir(la, lo).multiplyScalar(R + a).toArray()); }
+    const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3)); W.snow = new THREE.Points(sg, new THREE.PointsMaterial({ color: '#ffffff', size: .09, transparent: true, opacity: .9, depthWrite: false })); W.snow.userData.base = sp.slice(); T.s.add(W.snow); }
+  const W = T.wx, up = new THREE.Vector3();
+  W.clouds.forEach((c, i) => { c.lon += dt * .35; if (c.lon > 180) c.lon -= 360; const d = featDir(c.lat, c.lon); up.copy(d);
+    c.g.position.copy(d).multiplyScalar(R + 1); c.g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d); c.g.rotateY(i); c.g.scale.setScalar(.8);
+    const P = c.rain.geometry.attributes.position, b = c.rain.userData.base, fall = (t * 1.6) % 1.2; for (let k = 0; k < P.count; k++) { let y = b[k * 3 + 1] - fall; if (y < -1.25) y += 1.2; P.setY(k, y); } P.needsUpdate = true; });
+  { const d = featDir(...W.rbLL); W.rainbow.position.copy(d).multiplyScalar(R + .05); W.rainbow.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d); W.rainbow.rotateY(t * .05); }
+  { const P = W.snow.geometry.attributes.position, b = W.snow.userData.base, k = (t * .12) % 1; for (let i = 0; i < P.count; i++) { const x = b[i * 3], y = b[i * 3 + 1], z = b[i * 3 + 2], r = Math.hypot(x, y, z), f = 1 - ((k + i * .618) % 1) * (r - R - .02) / r; P.setXYZ(i, x * f, y * f, z * f); } P.needsUpdate = true; }
+  const F = T.fly; if (F) { const pos = F.p.clone().multiplyScalar(R + F.alt);
+    if (!T.saidCloud && W.clouds.some(c => c.g.position.distanceTo(pos) < .5)) { T.saidCloud = true; speak(SAY.cloudThrough); }
+    if (!T.saidRainbow && featDir(...W.rbLL).angleTo(F.p) < .12) { T.saidRainbow = true; speak(SAY.rainbow); } }
+}
 function discoveriesStep(dt, t){
-  const T = toy; toyNightStep(dt);
+  const T = toy; toyNightStep(dt); toyWeather(dt, t);
   if (T.erupt != null) { T.erupt += dt; const lava = T.animals.volcano.userData.lava; lava.children.forEach(m => { const v = m.userData.v; m.position.addScaledVector(v, dt); v.y -= 3.2 * dt; if (m.position.y < .9 && v.y < 0) m.visible = false; }); if (T.erupt > 3) { T.erupt = null; lava.children.forEach(m => { m.visible = false; }); } }
   // Kennedy Space Center: a rocket lifts off every so often, then a new one stands ready
   const k = T.kscMini || (T.kscMini = T.lms.children.find(g => g.userData.lm && g.userData.lm.id === 'ksc')); const r = k && k.userData.rocket; if (!r) return;
@@ -4817,7 +4854,7 @@ const STAMPS = [
   ...P.map(p => ({ id: 'p:' + p.id, img: p.thumb, label: p.label })),
   { id: 'eclipse', em: '🌑', label: 'Eclipse' }, { id: 'home', em: '🏡', label: 'Home' }, { id: 'landing', em: '🪂', label: 'Landing' }, { id: 'launch', em: '🚀', label: 'Blast off' }, { id: 'sky', em: '🔭', label: "Tonight's sky" },
   { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
-  { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'sparkles', em: '✨', label: 'Sparkle finder' }, { id: 'placequiz', em: '🧠', label: 'Place quiz' }, { id: 'daily', em: '🌟', label: 'Daily mission' }, { id: 'moonwalk', em: '🧑‍🚀', label: 'Moonwalker' }, { id: 'moonrocks', em: '🌕', label: 'Moon rock hunter' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
+  { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'sparkles', em: '✨', label: 'Sparkle finder' }, { id: 'placequiz', em: '🧠', label: 'Place quiz' }, { id: 'daily', em: '🌟', label: 'Daily mission' }, { id: 'moonwalk', em: '🧑‍🚀', label: 'Moonwalker' }, { id: 'sizes', em: '📏', label: 'Size explorer' }, { id: 'moonrocks', em: '🌕', label: 'Moon rock hunter' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
   ...LM.map(l => ({ id: 'l:' + l.id, em: l.em, label: l.name.replace('Pyramids of Giza', 'Pyramids').replace('Great Wall of China', 'Great Wall').replace('Sydney Opera House', 'Opera House').replace('Kennedy Space Center', 'Space Center').replace('Amazon Rainforest', 'Rainforest') })),
 ];
 let stamps = new Set();
@@ -4850,6 +4887,32 @@ function drawPassportMap(){   // the places you've been: gold pins; still to vis
     g.globalAlpha = been ? 1 : .5; g.filter = been ? 'none' : 'grayscale(1)'; g.font = '28px sans-serif'; g.fillText(L.em, x, y - 24); g.filter = 'none'; g.globalAlpha = 1;
     if (FLY_STAMPS.has(L.id)) { g.font = '22px sans-serif'; g.fillText('✈️', x + 24, y - 48); } }
 }
+// real sizes side by side: Earth is 44 px across; the Sun is only an edge, it's far too big to fit
+const SIZE_KM = { sun: 696340, mercury: 2440, venus: 6052, earth: 6371, moon: 1737, mars: 3390, jupiter: 69911, saturn: 58232, uranus: 25362, neptune: 24622 };
+const SIZE_SAY = {
+  sun: "The Sun is so big that about one million Earths could fit inside it! An airplane would need about nineteen years to fly there.",
+  mercury: "Mercury is the smallest planet. It's just a little bigger than our Moon.",
+  venus: "Venus is almost the same size as Earth. They're like twins!",
+  earth: "This is Earth, our home!",
+  moon: "The Moon is about one quarter as wide as Earth. Driving a car to the Moon would take about half a year, without stopping!",
+  mars: "Mars is about half as wide as Earth.",
+  jupiter: "Jupiter is the biggest planet. More than a thousand Earths could fit inside it!",
+  saturn: "Saturn is the second biggest planet. Its rings are much wider than the planet itself!",
+  uranus: "Uranus is about four times as wide as Earth.",
+  neptune: "Neptune is almost the same size as Uranus.",
+};
+SAY.sizesIn = "Here are the planets at their real sizes, side by side! Swipe to see them all, and tap one to hear about it.";
+function openSizes(){
+  const row = $('#szrow'); row.innerHTML = '';
+  const sun = document.createElement('button'); sun.className = 'sun'; sun.textContent = 'Sun'; sun.onclick = () => { pop(); speak(SIZE_SAY.sun); }; row.append(sun);
+  for (const id of ['mercury', 'venus', 'earth', 'moon', 'mars', 'jupiter', 'saturn', 'uranus', 'neptune']) {
+    const p = byId[id], b = document.createElement('button'); b.className = 'sz'; const d = 44 * SIZE_KM[id] / SIZE_KM.earth, w = Math.max(14, d * (id === 'saturn' ? 2.2 : 1.12));
+    const im = imgEl(p.thumb, p.label); im.style.width = im.style.height = w + 'px'; b.append(im); const l = document.createElement('span'); l.textContent = p.label; b.append(l);
+    b.onclick = () => { pop(); speak(SIZE_SAY[id]); award('sizes'); }; row.append(b);
+  }
+  $('#sizes').hidden = false; row.scrollLeft = 0; speak(SAY.sizesIn); pop();
+}
+$('#szclose') && ($('#szclose').onclick = () => { $('#sizes').hidden = true; });
 function openPassport(){
   drawPassportMap();
   const g = $('#pgrid'); g.innerHTML = '';
@@ -5085,7 +5148,7 @@ window.__allLines = () => {
   P.forEach(p => { p.facts.forEach(f => s.add(f)); if (p.g) s.add(jumpLine(p)); });
   [...HOME_FACTS, ...MARS_ROCKS, ...MOON_ROCKS, SAY.fast, SAY.fastYear, SAY.slow, ...STORY, SAY.iss1, ...RIDDLES.map(r => r[1]), ...Object.values(SAY), ...COUNT, ...Object.values(MOON_SAY), ...LM.map(l => l.say), ...Object.values(ANIMAL_SAY), ...Object.values(SITE_EXTRA), ...Object.values(FEATURES).flat().map(f => f[3]), ...Object.values(REGIONS).map(r => r[4]), ...Object.values(ANIMALS).map(a => a[2]), ...Object.keys(STATE_CAPITALS).map(stateLine), ...QUIZ_STATES.map(findLine)].forEach(x => s.add(x));
   ORDER.forEach((id, i) => { s.add(paradeYes(i)); s.add(paradeNo(id, false)); s.add(paradeNo(id, true)); });
-  Object.values(SITE_SPOTS).flat().forEach(x => s.add(x)); LM.forEach(L => { s.add(whichLine(L)); s.add(contLine(L, contOpts(L))); if (PLACE_Q[L.id]) s.add(PLACE_Q[L.id][0]); });
+  Object.values(SITE_SPOTS).flat().forEach(x => s.add(x)); Object.values(SIZE_SAY).forEach(x => s.add(x)); LM.forEach(L => { s.add(whichLine(L)); s.add(contLine(L, contOpts(L))); if (PLACE_Q[L.id]) s.add(PLACE_Q[L.id][0]); });
   LM.forEach(l => { s.add(l.name + '!'); s.add(missionLine({ lm: l })); }); Object.keys(ANIMALS).forEach(an => s.add(missionLine({ an })));   // said when your plane flies over it
   DIRS.forEach(d => { s.add(moonWhere(d)); SKY_PLANETS.forEach(id => s.add(planetWhere(id, d))); });
   return [...s];
