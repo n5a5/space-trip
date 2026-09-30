@@ -216,6 +216,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
       <label for="grate">Luna's voice speed <output id="grateo"></output></label><input id="grate" type="range" min="0.8" max="1.2" step="0.05">
       <label for="gvol">Luna's voice volume <output id="gvolo"></output></label><input id="gvol" type="range" min="0" max="1" step="0.1">
       <label class="gtoggle"><input id="gcap" type="checkbox"> Show captions</label>
+      <label class="gtoggle"><input id="gmusic" type="checkbox"> Background music</label>
       <label class="gtoggle"><input id="gawake" type="checkbox"> Keep the screen on while playing</label>
       <button id="gfull" class="gbtn">⛶ Full screen</button>
       <button id="gstk" class="gbtn danger">Reset stickers</button>
@@ -2012,7 +2013,7 @@ async function launch(){
   if (mode !== 'home') return;
   const my = ++seq; mode = 'launch'; $('#inset').hidden = true; nav(); layout(); $('#pill').textContent = 'Countdown!';
   goal.azMin = -Infinity; goal.azMax = Infinity; goal.elMin = -1; goal.elMax = 1.4;
-  goal.target.set(ROCKET_HOME.x, 2.4, ROCKET_HOME.z); goal.dist = 14; goal.az = .6; goal.el = .1;
+  goal.target.set(ROCKET_HOME.x, W > H ? 4.4 : 2.4, ROCKET_HOME.z); goal.dist = 14; goal.az = .6; goal.el = W > H ? .16 : .1;   // wide screens: less empty road
   amYard.userData.walkTo = new THREE.Vector3(ROCKET_HOME.x + 1.1, 0, ROCKET_HOME.z + .4);
   speak([SAY.board, SAY.count]); await sleep(5200); if (my !== seq) return;
   const cd = $('#count'); cd.hidden = false;
@@ -3530,6 +3531,9 @@ const TOY_CITIES = [['New York', 40.7, -74], ['Chicago', 41.9, -87.6], ['Los Ang
   ['Rome', 41.9, 12.5], ['Moscow', 55.8, 37.6], ['Cairo', 30, 31.2], ['Lagos', 6.5, 3.4], ['Nairobi', -1.3, 36.8], ['Johannesburg', -26.2, 28], ['Istanbul', 41, 29], ['Tehran', 35.7, 51.4],
   ['Delhi', 28.6, 77.2], ['Mumbai', 19.1, 72.9], ['Beijing', 39.9, 116.4], ['Shanghai', 31.2, 121.5], ['Tokyo', 35.7, 139.7], ['Seoul', 37.6, 127], ['Bangkok', 13.8, 100.5], ['Jakarta', -6.2, 106.8],
   ['Sydney', -33.9, 151.2], ['Perth', -31.95, 115.9], ['Anchorage', 61.2, -149.9]];
+// the world's big deserts, as soft ellipses [lat, lon, lat radius, lon radius]: painted sandy, with cacti instead of trees
+const DESERTS = [[23, 10, 8, 22], [23, 47, 7, 9], [43, 105, 4, 10], [-25, 132, 6, 12], [-23, 21, 4, 5], [33, -113, 3.5, 4], [-24, -69.5, 4, 1.2], [27, 71, 2.5, 3], [39, 83, 2, 6]];
+function desertK(lat, lon){ let k = 0; for (const [la, lo, rla, rlo] of DESERTS) { const e = Math.hypot((lat - la) / rla, (lon - lo) / rlo); if (e < 1.4) k = Math.max(k, sst(1.15, .7, e + (fbm2(lon / 3, lat / 3, 3) - .5) * .5)); } return k; }
 const TOY_ROADS = [['New York', 'Chicago'], ['Chicago', 'Los Angeles'], ['Chicago', 'Houston'], ['New York', 'Toronto'], ['Los Angeles', 'Houston'],
   ['Bogotá', 'Lima'], ['Lima', 'São Paulo'], ['São Paulo', 'Buenos Aires'], ['Paris', 'Madrid'], ['Paris', 'Berlin'], ['Berlin', 'Moscow'], ['Paris', 'Rome'], ['Istanbul', 'Tehran'], ['Tehran', 'Delhi'],
   ['Delhi', 'Mumbai'], ['Delhi', 'Beijing'], ['Beijing', 'Shanghai'], ['Cairo', 'Nairobi'], ['Nairobi', 'Johannesburg'], ['Lagos', 'Nairobi']];
@@ -3572,6 +3576,15 @@ function buildToy(){
   g.save(); g.setTransform(SC, 0, 0, SC, 0, 0); const clip = new Path2D(); landPaths.forEach(p => clip.addPath(p)); g.clip(clip); g.setTransform(1, 0, 0, 1, 0, 0);
   g.drawImage(src, 0, 0, MAPW, MAPH);
   for (let i = 0; i < 2600; i++) { const x = rnd() * MAPW, y = rnd() * MAPH, r = 6 + rnd() * 26; g.fillStyle = rnd() < .5 ? 'rgba(255,255,255,.07)' : 'rgba(0,60,20,.07)'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
+  // deserts: sandy colour with soft, bumpy edges and dune streaks (Sahara, Arabia, Gobi, Australia, Kalahari, and smaller ones)
+  { 
+    const DW = 1024, DH = 512, dc = mkCanvas(DW, DH, true), dx = dc.getContext('2d'), im = dx.createImageData(DW, DH), d = im.data;
+    for (let y = 0; y < DH; y++) { const lat = 90 - (y + .5) / DH * 180; if (lat > 50 || lat < -35) continue;
+      for (let x = 0; x < DW; x++) { const lon = (x + .5) / DW * 360 - 180; let k = 0;
+        k = desertK(lat, lon);
+        if (k <= 0) continue; const dune = .5 + .5 * Math.sin(lon * 1.7 + lat * .6 + fbm2(lon, lat, 2) * 3), o = (y * DW + x) * 4;
+        d[o] = 236 + dune * 10; d[o + 1] = 196 + dune * 14; d[o + 2] = 120 + dune * 16; d[o + 3] = 235 * k; } }
+    dx.putImageData(im, 0, 0); g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.imageSmoothingEnabled = true; g.drawImage(dc, 0, 0, MAPW, MAPH); g.restore(); }
   // mountains as soft painted relief (lit slopes, shaded slopes, snowy tops): they read as mountains without covering the state lines
   { const RW = 1024, RH = 512, rc = mkCanvas(RW, RH, true), rx = rc.getContext('2d'), im = rx.createImageData(RW, RH), d = im.data, M = new Float32Array(RW * RH);
     const boxes = TOY_RANGES.map(([pts]) => { let a0 = 90, a1 = -90, o0 = 180, o1 = -180; for (const [la, lo] of pts) { a0 = Math.min(a0, la); a1 = Math.max(a1, la); o0 = Math.min(o0, lo); o1 = Math.max(o1, lo); } return [a0 - 11, a1 + 11, o0 - 13, o1 + 13]; });
@@ -3622,12 +3635,18 @@ function buildToy(){
   let np = 0, nr = 0;
   for (let k = 0; k < 9000 && (np < 900 || nr < 900); k++) {
     const [lat, lon] = randLL(), c = col(lat, lon); if (sea(lat, lon) || nearRoad(lat, lon, .45)) continue; const hh = h(lat, lon);
-    if (hh > .34 || (c[0] > 200 && c[1] > 215 && c[2] > 225) || (c[0] > 200 && c[1] > 160 && c[2] < 170)) continue;   // no trees on snow, ice or desert
+    if (hh > .34 || (c[0] > 200 && c[1] > 215 && c[2] > 225) || (c[0] > 200 && c[1] > 160 && c[2] < 170) || desertK(lat, lon) > .25) continue;   // no trees on snow, ice or desert
     const d = featDir(lat, lon), pos = d.clone().multiplyScalar(R + hh - .02), sc = .1 + rnd() * .06;
     if (Math.abs(lat) > 45 || hh > .25) { if (np < 900) { setAt(pines, np, pos, d, rnd() * 6, sc); pines.setColorAt(np++, c3.setHSL(.36 + rnd() * .05, .55, .26 + rnd() * .1)); } }
     else if (nr < 900) { setAt(rounds, nr, pos, d, rnd() * 6, sc); rounds.setColorAt(nr++, c3.setHSL(.27 + rnd() * .08, .6, .36 + rnd() * .12)); }
   }
   pines.count = np; rounds.count = nr; inked(pines, .07); inked(rounds, .07);
+  { const arm = (x, y, l) => [new THREE.CylinderGeometry(.09, .09, l, 8).translate(x, y + l / 2, 0), new THREE.CylinderGeometry(.09, .09, .3, 8).rotateZ(Math.PI / 2).translate(x / 2, y, 0)];   // cacti in the deserts
+    const cg = mergeGeometries([new THREE.CylinderGeometry(.13, .15, 1.1, 8).translate(0, .55, 0), new THREE.SphereGeometry(.13, 8, 6).translate(0, 1.1, 0), ...arm(-.3, .45, .4), ...arm(.3, .6, .3)].map(x => x.toNonIndexed()));
+    const cacti = new THREE.InstancedMesh(cg, toyToon('#4f9d4a'), 260); s.add(cacti); let nc = 0;
+    for (let k = 0; k < 20000 && nc < 260; k++) { const [lat, lon] = randLL(); if (desertK(lat, lon) < .6 || sea(lat, lon) || nearRoad(lat, lon, .45)) continue; const d = featDir(lat, lon);
+      setAt(cacti, nc, d.clone().multiplyScalar(R + h(lat, lon) - .01), d, rnd() * 6, .09 + rnd() * .05); cacti.setColorAt(nc++, c3.setHSL(.3 + rnd() * .04, .5, .38 + rnd() * .08)); }
+    cacti.count = nc; inked(cacti, .06); var toyCacti = cacti; }
   // --- cities: towers downtown, little houses with red roofs around ---
   const winT = canvasTex(64, 128, (g, w, hh) => { g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, hh); g.fillStyle = '#7fb8e6'; for (let y = 8; y < hh - 6; y += 16) for (let x = 7; x < w - 6; x += 16) g.fillRect(x, y, 9, 9); }, 1);
   const bG = new THREE.BoxGeometry(1, 1, 1).translate(0, .5, 0), towers = new THREE.InstancedMesh(bG, toyToon('#ffffff', { map: winT }), 1400);
@@ -3707,7 +3726,10 @@ function buildToy(){
     taj: g => { bx(g, .5, .3, .5, '#ffffff'); ball2(g, .2, '#ffffff', 0, .45, 0); for (const [x, z] of [[-.3, -.3], [.3, -.3], [-.3, .3], [.3, .3]]) cyl2(g, .025, .03, .55, '#ffffff', x, 0, z); },
     opera: g => { for (const [x, sc] of [[-.2, 1], [0, .85], [.2, .7]]) { const m = new THREE.Mesh(new THREE.SphereGeometry(.3 * sc, 12, 8, 0, Math.PI, 0, Math.PI / 2), toyToon('#ffffff', { side: THREE.DoubleSide })); m.position.set(x, 0, 0); m.rotation.set(0, Math.PI / 2, -.3); g.add(m); } },
     wall: g => { for (let i = -4; i <= 4; i++) bx(g, .22, .12, .08, '#c9bfa8', i * .2, 0, Math.sin(i * .8) * .12); },
-    everest: g => { cyl2(g, .015, .015, .5, '#ffffff'); const f = new THREE.Mesh(new THREE.PlaneGeometry(.22, .14), toyToon('#ff4d6d', { side: THREE.DoubleSide })); f.position.set(.11, .42, 0); g.add(f); },
+    everest: g => {   // a rocky peak with snow on top, a smaller peak beside it, and a climber's flag at the summit
+      const peak = (r, hgt, x, z, c) => { const m = new THREE.Mesh(new THREE.ConeGeometry(r, hgt, 7, 1), T(c)); m.position.set(x, hgt / 2, z); m.rotation.y = x * 3; g.add(m); return m; };
+      peak(.42, .8, 0, 0, '#8a8f9c'); peak(.2, .38, 0, 0, '#ffffff').position.y = .8 - .19 + .001; peak(.3, .5, .38, .12, '#7a7f8c'); peak(.13, .2, .38, .12, '#ffffff').position.y = .5 - .1 + .001;
+      cyl2(g, .008, .008, .22, '#ffffff', 0, .78); const f = new THREE.Mesh(new THREE.PlaneGeometry(.14, .09), toyToon('#ff4d6d', { side: THREE.DoubleSide })); f.position.set(.07, .95, 0); g.add(f); },
     canyon: g => { for (const [x, z, hh] of [[0, 0, .3], [.3, .1, .22], [-.25, .15, .18]]) bx(g, .2, hh, .2, '#d9763b', x, 0, z); },
     penguins: g => { for (let i = 0; i < 5; i++) { const x = (i - 2) * .14; cyl2(g, .04, .05, .16, '#1f2230', x, 0, 0); ball2(g, .04, '#ffffff', x, .08, .035); cone(g, .015, .04, '#ff9f1c', x, .13, .05, 6).rotation.x = Math.PI / 2; } },
     amazon: g => { ball2(g, .08, '#e63946', 0, .25, 0); const w = bx(g, .22, .02, .06, '#2a6fdb', 0, .22, 0); w.rotation.z = .2; },
@@ -3719,7 +3741,7 @@ function buildToy(){
   const hAm = makeAmelia('play'); hAm.scale.setScalar(.45); hAm.position.set(.8, 0, .6); home.add(hAm);
   home.traverse(o => { if (o.isMesh) { o.userData.home = true; pick.push(o); } });
   s.traverse(o => { if (o.isInstancedMesh) o.frustumCulled = false; });
-  toy = { map, mapBase, mapTex, quiz: null, s, planet, light, h, sea, surf, ll, paths, cars, carT, carS, planes, planeS, puffs, boats, boatS, wakes, clouds3, cloudS, shadows, sunS, pick, hAm, home, setAt, follow: null, picked: null, NC, dodgeMeshes: [pines, rounds, towers, houses, roofs], lms, skyC: new THREE.Color(), nightC: new THREE.Color('#1c1a4d'), dayC: new THREE.Color('#8fd3ff'), stars, trees: [pines, rounds] };
+  toy = { map, mapBase, mapTex, quiz: null, s, planet, light, h, sea, surf, ll, paths, cars, carT, carS, planes, planeS, puffs, boats, boatS, wakes, clouds3, cloudS, shadows, sunS, pick, hAm, home, setAt, follow: null, picked: null, NC, dodgeMeshes: [pines, rounds, towers, houses, roofs, toyCacti], lms, skyC: new THREE.Color(), nightC: new THREE.Color('#1c1a4d'), dayC: new THREE.Color('#8fd3ff'), stars, trees: [pines, rounds, toyCacti] };
   return s;
 }
 function roadAt(p, d){   // position, up and forward on a road path at distance d
@@ -4877,6 +4899,7 @@ window.__toyScr = (kind, k) => { const T = toy, v = kind === 'animal' ? T.animal
   const vis = v.clone().sub(camera.position).dot(v) < 0; v.project(camera); return [Math.round((v.x + 1) / 2 * W), Math.round((1 - v.y) / 2 * H), vis]; };
 window.__stateAt = (a, b) => stateAt(a, b)?.name ?? null; window.__nStates = () => TOY_STATES.length;
 window.__showState = n => toyShowState(n);
+window.__audioState = () => ({ ctx: ac && ac.state, music: !!mus, step: mus ? mus.step : 0, engine: eng ? +eng.og.gain.value.toFixed(4) : null, noise: eng ? +eng.ng.gain.value.toFixed(4) : null });
 window.__spots = () => site && site.spots ? site.spots.map(m => { const v = m.position.clone().project(camera); return [Math.round((v.x + 1) / 2 * W), Math.round((1 - v.y) / 2 * H), m.userData.got]; }) : null;
 window.__mission = () => { const F = toy.fly; if (!F.mission) flyMission(); return F.mission.lm ? F.mission.lm.id : F.mission.an; };
 const flyNear = (F, d) => { const ax = F.p.clone().cross(d).normalize(), a = F.p.angleTo(d) - .1; F.p.applyAxisAngle(ax, a).normalize(); F.f.copy(d).addScaledVector(F.p, -d.dot(F.p)).normalize(); };   // test helper: just short of a spot, heading for it
@@ -4904,7 +4927,7 @@ window.__wheels = () => roverWheels.length + " r=" + (roverWheels.r || 0).toFixe
 window.__pos = () => P.map(p => p.id + ':' + (p.ang / DEG % 360).toFixed(0));
 window.__sky = () => { const e = evening(); return { look: e.look.toString(), ph: e.ph, moon: e.moon, planets: e.planets, lines: skyLines(e) }; };
 function frame(now){
-  const raw = (now - last) / 1000, dt = Math.min(.05, raw); last = now; T += dt;
+  const raw = (now - last) / 1000, dt = Math.min(.05, raw); last = now; T += dt; engineSound(dt);
   if (sceneMode === 'space') updateSpace(dt, T); else if (sceneMode === 'site') updateSite(dt, T); else if (sceneMode === 'mars') updateMars(dt, T); else if (sceneMode === 'toy') updateToy(dt, T); else updateHome(dt, T);
   if (!manualCam) applyRig(dt);
   const scene = sceneMode === 'space' ? space : sceneMode === 'site' && site ? site.sc : sceneMode === 'mars' ? marsScene : sceneMode === 'toy' ? toyScene : home;
@@ -4962,7 +4985,7 @@ $('#pclose').onclick = () => { $('#passport').hidden = true; };
 const savePrefs = () => { try { localStorage.setItem('ast-prefs', JSON.stringify(prefs)); } catch {} };
 function openGrown(){
   const g = $('#grown'); g.hidden = false;
-  $('#grate').value = prefs.rate; $('#gvol').value = prefs.vol; $('#gcap').checked = prefs.captions; $('#gawake').checked = !!prefs.awake;
+  $('#grate').value = prefs.rate; $('#gvol').value = prefs.vol; $('#gcap').checked = prefs.captions; $('#gmusic').checked = prefs.music !== false; $('#gawake').checked = !!prefs.awake;
   $('#grateo').textContent = prefs.rate.toFixed(2) + '×'; $('#gvolo').textContent = Math.round(prefs.vol * 100) + '%';
   $('#gfull').hidden = !document.documentElement.requestFullscreen; $('#gver').textContent = 'Version ' + APP_VERSION;
   for (const b of ['#gstk', '#gbld']) { $(b).classList.remove('sure'); $(b).dataset.sure = ''; }
@@ -4972,6 +4995,7 @@ $('#grate').oninput = e => { prefs.rate = +e.target.value; $('#grateo').textCont
 $('#gvol').oninput = e => { prefs.vol = +e.target.value; $('#gvolo').textContent = Math.round(prefs.vol * 100) + '%'; savePrefs(); };
 $('#grate').onchange = $('#gvol').onchange = () => speak(SAY.hi);
 $('#gcap').onchange = e => { prefs.captions = e.target.checked; savePrefs(); };
+$('#gmusic').onchange = e => { prefs.music = e.target.checked; savePrefs(); };
 $('#gawake').onchange = e => { prefs.awake = e.target.checked; savePrefs(); stayAwake(prefs.awake); };
 $('#gfull').onclick = () => { document.documentElement.requestFullscreen?.().catch(() => {}); };
 const confirmTap = (b, done, label) => () => { const el = $(b); if (el.dataset.sure) { done(); el.textContent = label + ' ✓'; el.classList.remove('sure'); el.dataset.sure = ''; } else { el.dataset.sure = '1'; el.classList.add('sure'); el.textContent = 'Tap again to confirm'; } };
@@ -4993,6 +5017,41 @@ function setMute(m){
   if (m) { try { vEl.pause(); } catch {} try { speechSynthesis.cancel(); } catch {} try { ac?.suspend(); } catch {} } else { try { ac?.resume(); } catch {} }
 }
 $('#mutebtn').onclick = () => setMute(!prefs.muted); setMute(!!prefs.muted);
+/* ---------- music and engine sounds, all made on the phone (nothing downloaded) ---------- */
+// a soft, slow arpeggio in C major (C, A minor, F, G); each place has its own tempo and register
+const MOODS = { space: { bpm: 72, oct: 1.5, wave: 'sine', v: .035 }, toy: { bpm: 96, oct: 1, wave: 'triangle', v: .04 }, home: { bpm: 84, oct: 1, wave: 'triangle', v: .035 },
+  site: { bpm: 80, oct: 1, wave: 'sine', v: .03 }, mars: { bpm: 66, oct: .75, wave: 'sine', v: .035 } };
+const CHORDS = [[261.6, 329.6, 392], [220, 261.6, 329.6], [174.6, 220, 261.6], [196, 246.9, 293.7]], ARP = [0, 1, 2, 1, 2, 0, 1, 2];
+let mus = null;
+function musicTick(){
+  const a = ac; if (!a || a.state !== 'running' || prefs.muted || prefs.music === false || !started || mode === 'sky' || document.hidden) { if (mus) mus.next = 0; return; }
+  const mood = MOODS[sceneMode] || MOODS.space;
+  if (!mus) { const g = a.createGain(); g.gain.value = 1; g.connect(a.destination); mus = { g, next: 0, step: 0 }; }
+  const spb = 60 / mood.bpm / 2; if (mus.next < a.currentTime) mus.next = a.currentTime + .05;
+  while (mus.next < a.currentTime + .4) {
+    const bar = Math.floor(mus.step / 8) % 8, ch = CHORDS[Math.floor(bar / 2)], t = mus.next, f = ch[ARP[mus.step % 8]] * mood.oct * (mus.step % 16 === 15 ? 2 : 1);
+    const o = a.createOscillator(), g = a.createGain(); o.type = mood.wave; o.frequency.value = f; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(mood.v, t + .015); g.gain.exponentialRampToValueAtTime(.0005, t + spb * 3); o.connect(g).connect(mus.g); o.start(t); o.stop(t + spb * 3 + .05);
+    if (mus.step % 8 === 0) { const b = a.createOscillator(), bg = a.createGain(); b.type = 'sine'; b.frequency.value = ch[0] / 2 * mood.oct; bg.gain.setValueAtTime(0, t); bg.gain.linearRampToValueAtTime(mood.v * 1.2, t + .05); bg.gain.exponentialRampToValueAtTime(.0005, t + spb * 8); b.connect(bg).connect(mus.g); b.start(t); b.stop(t + spb * 8 + .05); }
+    mus.next += spb; mus.step++;
+  }
+}
+let started = false; setInterval(musicTick, 120);
+// the plane hums, the car purrs, the boat splashes, and wind rushes when you fly high
+let eng = null;
+function engineSound(dt){
+  const a = ac; const F = mode === 'toy' && toy && toy.fly; if (!a || a.state !== 'running' || prefs.muted) { if (eng) eng.out.gain.value = 0; return; }
+  if (!eng && F) { const o = a.createOscillator(), f = a.createBiquadFilter(), og = a.createGain(), n = a.createBufferSource(), nb = a.createBuffer(1, a.sampleRate * 2, a.sampleRate), d = nb.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; n.buffer = nb; n.loop = true; const nf = a.createBiquadFilter(), ng = a.createGain(), out = a.createGain();
+    o.type = 'sawtooth'; f.type = 'lowpass'; f.frequency.value = 500; nf.type = 'bandpass'; nf.Q.value = .8; o.connect(f).connect(og).connect(out); n.connect(nf).connect(ng).connect(out); out.connect(a.destination); og.gain.value = ng.gain.value = 0; o.start(); n.start();
+    eng = { o, f, og, nf, ng, out }; }
+  if (!eng) return; const k = 1 - Math.exp(-dt * 4), set = (p, v) => { p.value += (v - p.value) * k; };
+  eng.out.gain.value = 1;
+  if (!F) { set(eng.og.gain, 0); set(eng.ng.gain, 0); return; }
+  const sea = F.kind === 'car' && toy.boat && toy.boat.visible, sp = F.v / (F.vMax || 1);
+  if (F.kind === 'plane') { set(eng.o.frequency, 95 + sp * 40 + F.sy * 15); set(eng.og.gain, .018 * sp); eng.nf.frequency.value = 900; set(eng.ng.gain, .012 * sp * (.4 + F.alt)); }
+  else if (sea) { set(eng.o.frequency, 55); set(eng.og.gain, .006 * sp); eng.nf.frequency.value = 500 + Math.sin(performance.now() / 300) * 150; set(eng.ng.gain, .03 * sp); }
+  else { set(eng.o.frequency, 60 + sp * 30 + Math.abs(F.sx) * 8); set(eng.og.gain, .02 * sp); eng.nf.frequency.value = 300; set(eng.ng.gain, .004 * sp); }
+}
 // computers: the mouse wheel scrolls the picture strips sideways, and the keyboard drives
 for (const id of ['#strip', '#wstrip', '#tstrip']) $(id).addEventListener('wheel', e => { const el = e.currentTarget; if (el.scrollWidth > el.clientWidth && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { el.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
 if (matchMedia('(pointer:fine)').matches) $('#flyhint').textContent = '⌨️ Arrow keys to steer';
@@ -5017,11 +5076,12 @@ $('#style').onclick = async () => {   // on Earth, the switch also swaps between
 mode = 'intro'; nav(); layout();
 goal.target.set(0, 0, 0); goal.dist = fitDist(37, 1.06, .95) * 1.9; goal.el = .7; goal.az = -.6; snapRig();
 requestAnimationFrame(frame);
+$('#top').style.visibility = 'hidden';   // the start card stands alone
 $('#go').onclick = () => {
   audio()?.resume?.(); pickVoice();
   speak([SAY.hi, SAY.today]);
-  $('#start').hidden = true; whooshSfx();
+  $('#start').hidden = true; whooshSfx(); started = true; $('#top').style.visibility = '';
   overview(); goal.az = .35;
 };
-$('#gotoy').onclick = () => { audio()?.resume?.(); pickVoice(); $('#start').hidden = true; whooshSfx(); overview(); enterToy(); };
+$('#gotoy').onclick = () => { audio()?.resume?.(); pickVoice(); $('#start').hidden = true; started = true; $('#top').style.visibility = ''; whooshSfx(); overview(); enterToy(); };
 </script>
