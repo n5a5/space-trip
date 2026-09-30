@@ -17,7 +17,7 @@ jobs:
       - name: Serve the site
         run: (python3 -m http.server 8765 > /tmp/http.log 2>&1 &) && sleep 2
       - name: Run phone-size flows
-        run: mkdir -p dev/tests/out && node dev/tests/run.js start planets explorer places sparkles placequiz discover daily moon landing sizes weather ramp sound fly high uturn passport countries drive back states mars home chaos
+        run: mkdir -p dev/tests/out && node dev/tests/run.js start planets explorer places sparkles placequiz discover daily moon landing sizes weather ramp sound fly high uturn passport countries moonframe voice drive back states mars home chaos
         env: { NODE_PATH: dev/node_modules }
       - name: Keep screenshots
         if: always()
