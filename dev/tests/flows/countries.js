@@ -1,0 +1,5 @@
+// Country names under the plane: disputed places give no country (the title shows the continent); small countries are right.
+module.exports=async({pg,W})=>{await W(500);const want={'Simferopol (Crimea)':[44.95,34.1,null],'Dakhla (W. Sahara)':[23.7,-15.9,null],'Smara (W. Sahara)':[26.7,-11.7,null],'Stanley (Falklands)':[-51.7,-57.85,null],'Srinagar (Kashmir)':[34.08,74.8,null],'Eilat':[29.55,34.95,null],
+'Singapore':[1.35,103.82,'Singapore'],'Andorra':[42.55,1.6,'Andorra'],'Monaco':[43.74,7.42,'Monaco'],'Kisangani':[0.5,25.2,'DR Congo'],'Pointe-Noire':[-4.8,11.9,'Republic of the Congo'],'Paris':[48.86,2.35,'France'],'Kyiv':[50.45,30.52,'Ukraine'],'Rabat':[34.0,-6.8,'Morocco'],'Tokyo':[35.7,139.7,'Japan']};
+const bad=[];for(const[k,[la,lo,n]]of Object.entries(want)){const got=await pg.evaluate(([la,lo])=>window.__countryAt(la,lo),[la,lo]);if(got!==n)bad.push(k+': '+got);}
+console.log('countries checked',Object.keys(want).length);if(bad.length)throw new Error('wrong: '+bad.join('; '));};
