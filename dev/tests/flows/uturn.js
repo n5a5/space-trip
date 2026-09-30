@@ -4,7 +4,8 @@ await pg.click('#actions >> text=Fly!');await W(3000);await pg.evaluate(()=>wind
 console.log('goal ang at start',a);
 await pg.evaluate(()=>window.__flyFlip());await W(300);const a0=await pg.evaluate(()=>window.__goalAng());await S('ut0');
 let a1=a0;for(let i=0;i<40&&Math.abs(a1)>1.15;i++){await W(1000);a1=await pg.evaluate(()=>window.__goalAng());}await S('ut1');console.log('after flip',a0,'->',a1);if(Math.abs(a1)>1.2)throw new Error('did not turn toward goal');
-await pg.click('#actions >> text=Stop flying');await W(600);await S('ut2');console.log('armed',await pg.evaluate(()=>document.querySelector('#actions .armed')?.textContent));
-await pg.click('#actions >> text=Tap again');await W(2000);
+const tap=t=>pg.evaluate(t=>{const b=[...document.querySelectorAll('#actions .act')].find(b=>b.textContent.includes(t));if(b)b.click();return !!b;},t);   // by label: buttons re-render as landmarks come and go
+if(!await tap('Stop flying'))throw new Error('no Stop button');await W(600);await S('ut2');console.log('armed',await pg.evaluate(()=>document.querySelector('#actions .armed')?.textContent));
+if(!await tap('Tap again'))throw new Error('Stop did not arm');await W(2000);
 await pg.click('#actions >> text=Places');await W(3000);await pg.goBack();await pg.waitForTimeout(250);await pg.goBack();await W(3000);
 const url=pg.url();console.log('after 2 backs',url,await pg.evaluate(()=>document.querySelector('#pill')&&document.querySelector('#pill').textContent));if(!/(index|test)\.html/.test(url))throw new Error('double Back left the app');};

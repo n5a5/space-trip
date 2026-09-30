@@ -488,7 +488,7 @@ function pickVoice(){
 if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 // Every line is pre-recorded (Kokoro-82M, voice af_heart, the same voice as Princess Quest) and embedded below;
 // anything missing falls back to the phone's own text-to-speech.
-const APP_VERSION = 'space-v17';
+const APP_VERSION = 'space-v18';
 let VOICE = {};
 // grown-up settings, kept on this phone
 const prefs = { rate: 1, vol: 1, captions: true }; try { Object.assign(prefs, JSON.parse(localStorage.getItem('ast-prefs') || '{}')); } catch {}
@@ -4492,7 +4492,7 @@ function toyWeather(dt, t){
     const rb = new THREE.Group(); ['#ff4d4d', '#ff9f1c', '#ffe066', '#4ade80', '#38bdf8', '#6366f1', '#a855f7'].forEach((c, i) => { const m = new THREE.Mesh(new THREE.TorusGeometry(.75 - i * .045, .024, 6, 48, Math.PI), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: .8 })); rb.add(m); });
     W.rainbow = rb; T.s.add(rb); W.rbLL = [0, -56];
     const sp = []; for (let i = 0; i < 600; i++) { const north = i % 2, la = (north ? 1 : -1) * (63 + Math.random() * 25), lo = Math.random() * 360 - 180, a = .08 + Math.random() * 1.1; sp.push(...featDir(la, lo).multiplyScalar(R + a).toArray()); }
-    const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3)); W.snow = new THREE.Points(sg, new THREE.PointsMaterial({ color: '#ffffff', size: .09, transparent: true, opacity: .9, depthWrite: false })); W.snow.userData.base = sp.slice(); T.s.add(W.snow); }
+    const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3)); W.snow = new THREE.Points(sg, new THREE.PointsMaterial({ color: '#ffffff', size: .1, transparent: true, opacity: .95, depthWrite: false, alphaTest: .05, map: (() => { const c = mkCanvas(32, 32), g = c.getContext('2d'), gr = g.createRadialGradient(16, 16, 2, 16, 16, 15); gr.addColorStop(0, '#fff'); gr.addColorStop(.5, 'rgba(255,255,255,.9)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 32, 32); return new THREE.CanvasTexture(c); })() })); W.snow.userData.base = sp.slice(); T.s.add(W.snow); }   // round, soft flakes (not squares)
   const W = T.wx, up = new THREE.Vector3(), Fl = T.fly, fl = Fl && (Fl.landed || Fl.near) || (T.lmTour && LM[T.lmI]) || (T.picked && T.picked.lat != null && T.picked);
   W.focus = fl ? featDir(fl.lat, fl.lon) : (!Fl && W.rbLL && camera.position.clone().normalize().angleTo(featDir(...W.rbLL)) < .25 ? featDir(...W.rbLL) : null);
   W.clouds.forEach((c, i) => { c.lon += dt * .35; if (c.lon > 180) c.lon -= 360; const d = featDir(c.lat, c.lon); up.copy(d);
@@ -4923,21 +4923,25 @@ function award(id){
 function stickerIcon(st){ const s = document.createElement('span'); s.className = 'ico'; if (st.img) s.append(imgEl(st.img)); else s.textContent = st.em; return s; }
 function passportTapTo(e){   // tap a pin on the passport map to fly there in Explorer Earth
   const c = $('#pmap'), r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * c.width, y = (e.clientY - r.top) / r.height * c.height;
-  const hit = (c.pins || []).find(p => Math.hypot(p.x - x, p.y - 26 - y) < 34); if (!hit) return; $('#passport').hidden = true; pop();
+  const pr = c.pr || 24, hit = (c.pins || []).map(p => [p, Math.hypot(p.x - x, p.y - pr - 2 - y)]).filter(([, d]) => d < pr + 10).sort((a, b) => a[1] - b[1]).map(([p]) => p)[0]; if (!hit) return; $('#passport').hidden = true; pop();
   const i = LM.indexOf(hit.L); if (mode === 'toy') toyLmTour(i); else if (sceneMode === 'space' && (mode === 'space' || mode === 'focus' || mode === 'world')) enterToy(null, { tour: i });
 }
-function drawPassportMap(){   // the places you've been: gold pins; still to visit: grey pins; a plane where you've landed
+function drawPassportMap(){   // the places you've been: gold pins; still to visit: blue pins with a "?"; a plane where you've landed
   const c = $('#pmap'), g = c.getContext('2d'), W2 = c.width, H2 = c.height, X = lo => (lo + 180) / 360 * W2, Y = la => (90 - la) / 180 * H2;
   const mat = earth && (earth.cartoonMat || earth.mesh.material), src = mat && mat.map && mat.map.image; if (src) g.drawImage(src, 0, 0, W2, H2); else { g.fillStyle = '#2a7fd4'; g.fillRect(0, 0, W2, H2); }
   g.textAlign = 'center'; g.textBaseline = 'middle';
-  const pts = LM.map(L => ({ L, x: X(L.lon), y: Y(L.lat) })); for (let it = 0; it < 30; it++) for (const a of pts) for (const b of pts) { if (a === b) continue; const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1; if (d < 50) { const k = (50 - d) / 2 / d; a.x -= dx * k; a.y -= dy * k; b.x += dx * k; b.y += dy * k; } }
-  c.pins = pts; if (!c.onclick) c.onclick = passportTapTo;
-  for (const q of pts) { const tx = X(q.L.lon), ty = Y(q.L.lat); if (Math.hypot(q.x - tx, q.y - ty) > 6) { g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 2; g.beginPath(); g.moveTo(q.x, q.y); g.lineTo(tx, ty); g.stroke(); } g.fillStyle = '#fff'; g.beginPath(); g.arc(tx, ty, 4, 0, 7); g.fill(); }
-  for (const { L, x, y } of pts) { const been = stamps.has('l:' + L.id);
-    g.beginPath(); g.arc(x, y - 26, 24, 0, 7); g.fillStyle = been ? '#ffd166' : 'rgba(40,40,60,.6)'; g.fill(); g.lineWidth = 4; g.strokeStyle = '#fff'; g.stroke();
-    g.beginPath(); g.moveTo(x - 9, y - 6); g.lineTo(x + 9, y - 6); g.lineTo(x, y + 5); g.fillStyle = '#fff'; g.fill();
-    g.globalAlpha = been ? 1 : .5; g.filter = been ? 'none' : 'grayscale(1)'; g.font = '28px sans-serif'; g.fillText(L.em, x, y - 24); g.filter = 'none'; g.globalAlpha = 1;
-    if (FLY_STAMPS.has(L.id)) { g.font = '22px sans-serif'; g.fillText('✈️', x + 24, y - 48); } }
+  const shown = Math.min(innerWidth - 32, 720, innerHeight * .8), pr = clamp(22 * W2 / shown, 24, 40);   // pins about 44 px across on the screen, whatever its size
+  const pts = LM.map(L => ({ L, x: X(L.lon), y: Y(L.lat) })), gap = pr * 2 + 6;
+  for (let it = 0; it < 80; it++) { for (const a of pts) for (const b of pts) { if (a === b) continue; const dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1; if (d < gap) { const k = (gap - d) / 2 / d; a.x -= dx * k; a.y -= dy * k; b.x += dx * k; b.y += dy * k; } }
+    for (const q of pts) { q.x = clamp(q.x, pr + 2, W2 - pr - 2); q.y = clamp(q.y, pr * 2 + 6, H2 - 4); } }
+  c.pins = pts; c.pr = pr; if (!c.onclick) c.onclick = passportTapTo;
+  for (const q of pts) { const tx = X(q.L.lon), ty = Y(q.L.lat); if (Math.hypot(q.x - tx, q.y - ty) > 6) { g.strokeStyle = 'rgba(255,255,255,.95)'; g.lineWidth = 3; g.beginPath(); g.moveTo(q.x, q.y); g.lineTo(tx, ty); g.stroke(); } g.fillStyle = '#fff'; g.beginPath(); g.arc(tx, ty, 5, 0, 7); g.fill(); }
+  for (const { L, x, y } of pts) { const been = stamps.has('l:' + L.id), cy = y - pr - 2;
+    g.beginPath(); g.moveTo(x - pr * .4, cy + pr * .8); g.lineTo(x + pr * .4, cy + pr * .8); g.lineTo(x, y + 2); g.fillStyle = '#fff'; g.fill();
+    g.beginPath(); g.arc(x, cy, pr, 0, 7); g.fillStyle = been ? '#ffd166' : '#bde0fe'; g.fill(); g.lineWidth = 4; g.strokeStyle = '#fff'; g.stroke();
+    g.font = Math.round(pr * 1.15) + 'px sans-serif'; g.fillText(L.em, x, cy + 2);
+    if (!been) { const bx = x + pr * .75, by = cy - pr * .75, br = pr * .42; g.beginPath(); g.arc(bx, by, br, 0, 7); g.fillStyle = '#ff7eb6'; g.fill(); g.lineWidth = 2; g.stroke(); g.fillStyle = '#fff'; g.font = '800 ' + Math.round(br * 1.5) + 'px sans-serif'; g.fillText('?', bx, by + 1); }
+    if (FLY_STAMPS.has(L.id)) { g.font = Math.round(pr * .8) + 'px sans-serif'; g.fillText('✈️', x - pr * .8, cy - pr * .8); } }
 }
 // real sizes side by side: Earth is 44 px across; the Sun is only an edge, it's far too big to fit
 const SIZE_KM = { sun: 696340, mercury: 2440, venus: 6052, earth: 6371, moon: 1737, mars: 3390, jupiter: 69911, saturn: 58232, uranus: 25362, neptune: 24622 };
