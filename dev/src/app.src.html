@@ -2501,7 +2501,8 @@ function nav(){
     if (FEATURES[current.id]) acts.append(btn('🔍', 'Explore', startTour, 'gold'));
     if (current.g) acts.append(btn('🤸', 'Jump!', startJump, 'gold'));
     if (current === moon || current.id === 'sun') acts.append(btn('🌑', 'Eclipse', openEclipse, 'hero'));
-    if (current.id === 'mars') acts.append(btn('🚗', 'Drive on Mars', enterMars, 'hero'));
+    if (current.id === 'mars') acts.append(btn('🚗', 'Drive on Mars', () => enterMars('mars'), 'hero'));
+    if (current.id === 'moon') acts.append(btn('🧑‍🚀', 'Walk on the Moon', () => enterMars('moon'), 'hero'));
     if (current === earth) acts.append(btn('🌍', 'Around the world', () => enterToy(null, { tour: 0 }), 'gold'), btn('🏡', 'Fly home', flyHome, 'hero'));
   }
   if (mode === 'eclipse') acts.append(btn('🌙', 'Back to Moon', closeEclipse, 'hero'));
@@ -4463,16 +4464,41 @@ function marsH(x, z){
   h += dz * (Math.abs(Math.sin(x * .12 + fbm2(x / 30, z / 30) * 3)) * 2.2);
   return h;
 }
+// the Moon: rolling grey ground pocked with craters of every size
+const MOON_CRATERS = [[40, -40, 18], [-60, -90, 30], [110, 70, 14], [-30, 80, 9], [15, 150, 22], [-140, -10, 16], [180, -130, 36], [70, 20, 6], [-20, -30, 5], [-90, 40, 11], [130, -40, 8]];
+function moonH(x, z){
+  let h = fbm2(x / 110, z / 110) * 5 + fbm2(x / 25, z / 25) * 1.1 + fbm2(x / 5, z / 5) * .15;
+  for (const [cx, cz, r] of MOON_CRATERS) { const d = Math.hypot(x - cx, z - cz) / r; if (d < 1.6) h += d < 1 ? (d * d - 1) * r * .32 + r * .1 : r * .1 * Math.max(0, 1 - (d - 1) / .6) ** 2; }
+  return h;
+}
+let marsWorld = 'mars', _greyTex = null;
+const greyTex = () => _greyTex || (_greyTex = canvasTex(512, 512, (g, w, h) => { g.fillStyle = '#8a8a8e'; g.fillRect(0, 0, w, h); speckle(g, w, h, 30000, ['#6e6e72', '#a0a0a4', '#58585c', '#b4b4b8'], 1, 3, .25, .7); }, 3));
+const groundH = (x, z) => marsWorld === 'moon' ? moonH(x, z) : marsH(x, z);
+const MOON_ROCKS = [
+  "The Moon has no air, so astronauts wear space suits to breathe.",
+  "On the Moon, you weigh about six times less than on Earth. You can jump super high!",
+  "Footprints on the Moon can last for millions of years, because there is no wind to blow them away.",
+  "The dark patches on the Moon are giant plains of old, cooled lava.",
+  "Astronauts first walked on the Moon in 1969.",
+  "Twelve astronauts walked on the Moon during the Apollo missions.",
+  "The Moon's craters were made by space rocks crashing into it.",
+  "From the Moon, the Earth looks like a big blue and white marble in the sky.",
+  "The sky on the Moon is black, even in the daytime.",
+  "Astronauts once drove a moon buggy, called the lunar rover, across the Moon!",
+];
+SAY.moonIn = "Welcome to the Moon! Amelia is bouncing along in her space suit. Find all the glowing moon rocks!";
+SAY.moonDone = "You found all the moon rocks! Great moonwalking, Amelia!";
 const MARS_CRATERS = [[60, -50, 22], [-80, -120, 34], [140, 90, 16], [-40, 110, 12], [20, 180, 26], [-170, -20, 18], [200, -160, 40]];
 let marsScene = null, rover = null, roverBody = null, roverAm = null, marsRocks = [], marsFound = 0, drv = null, tracks = null, dustP = null;
 const drive = { x: 0, z: 0, yaw: 0, v: 0, steer: 0, gas: 0 };
-function buildMars(){
+function buildMars(world = 'mars'){
+  marsWorld = world; const moonW = world === 'moon';
   const s = new THREE.Scene();
-  s.background = new THREE.Color('#c99c6e');
-  s.fog = new THREE.Fog('#d6a877', 90, 700);
+  s.background = new THREE.Color(moonW ? '#000000' : '#c99c6e');
+  s.fog = moonW ? new THREE.Fog('#000000', 400, 1300) : new THREE.Fog('#d6a877', 90, 700);
   const sun = new THREE.DirectionalLight('#fff0dc', 3); sun.position.set(-60, 90, 40); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
   Object.assign(sun.shadow.camera, { left: -25, right: 25, top: 25, bottom: -25, near: 1, far: 300 }); sun.shadow.bias = -.0006; s.add(sun, sun.target); s.userData.sun = sun;
-  s.add(new THREE.HemisphereLight('#f3d2ae', '#6b3a22', .9));
+  s.add(moonW ? new THREE.HemisphereLight('#c8d0e0', '#303038', .55) : new THREE.HemisphereLight('#f3d2ae', '#6b3a22', .9));
   // sky dome: butterscotch, paler near the sun
   const skyM = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
     uniforms: { sd: { value: sun.position.clone().normalize() } },
@@ -4483,55 +4509,61 @@ function buildMars(){
       gl_FragColor = vec4(c, 1.);
       #include <colorspace_fragment>
     }` });
-  s.add(new THREE.Mesh(new THREE.SphereGeometry(1500, 32, 16), skyM));
+  if (!moonW) s.add(new THREE.Mesh(new THREE.SphereGeometry(1500, 32, 16), skyM));
+  else {   // black sky full of stars, and the Earth hanging overhead
+    s.add(starfield(1600, 1200, 2.4, true));
+    const em = new THREE.Mesh(new THREE.SphereGeometry(60, 48, 32), new THREE.MeshBasicMaterial({ map: (earth.cartoonMat || earth.mesh.material).map, fog: false }));
+    em.position.set(-160, 150, -620); em.rotation.y = 2.2; s.add(em);
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: new THREE.Color(.5, .8, 1.6), blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); halo.scale.setScalar(170); halo.position.copy(em.position); s.add(halo); }
   const redTex = canvasTex(512, 512, (g, w, h) => {
     g.fillStyle = '#b0643a'; g.fillRect(0, 0, w, h);
     speckle(g, w, h, 30000, ['#8c4a2a', '#c9784a', '#6e3a22', '#d99464'], 1, 3, .25, .7);
     for (let i = 0; i < 250; i++) { g.fillStyle = ['#5a301c', '#7a4428', '#9a5a36'][i % 3]; g.beginPath(); g.ellipse(Math.random() * w, Math.random() * h, 2 + Math.random() * 6, 2 + Math.random() * 4, Math.random() * 3, 0, 7); g.fill(); }
   }, 3);
-  const t = terrainMesh(1400, 280, marsH, (x, y, z, ny, c) => {
-    const k = fbm2(x / 40, z / 40); c.setRGB(.78 + k * .2, .45 + k * .12, .28 + k * .06);
+  const t = terrainMesh(1400, 280, groundH, (x, y, z, ny, c) => {
+    const k = fbm2(x / 40, z / 40); if (moonW) { const g = .5 + k * .25 - (fbm2(x / 160, z / 160) > .55 ? .14 : 0); c.setRGB(g, g, g * 1.03); } else c.setRGB(.78 + k * .2, .45 + k * .12, .28 + k * .06);
     if (ny < .85) c.multiplyScalar(.78); if (y < -2) c.multiplyScalar(.9);
-  }, redTex);
+  }, moonW ? greyTex() : redTex);
   t.material.bumpScale = 3; s.add(t);
   // Olympus Mons: a vast, gentle shield volcano on the horizon
-  const om = new THREE.Mesh(new THREE.CylinderGeometry(60, 700, 110, 64, 6), std({ color: '#a8643e', roughness: 1, flatShading: false }));
-  om.position.set(250, 20, -1150); s.add(om);
-  const cal = new THREE.Mesh(new THREE.CylinderGeometry(45, 60, 6, 48), std({ color: '#7a4428', roughness: 1 })); cal.position.set(250, 76, -1150); s.add(cal);
+  if (!moonW) { const om = new THREE.Mesh(new THREE.CylinderGeometry(60, 700, 110, 64, 6), std({ color: '#a8643e', roughness: 1, flatShading: false }));
+  om.position.set(250, 20, -1150); s.add(om); }
+  if (!moonW) { const cal = new THREE.Mesh(new THREE.CylinderGeometry(45, 60, 6, 48), std({ color: '#7a4428', roughness: 1 })); cal.position.set(250, 76, -1150); s.add(cal); }
   for (const [x, z, r, h] of [[-600, -900, 260, 70], [700, -700, 300, 55], [-900, 300, 280, 80], [900, 400, 240, 60]]) {
-    const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 24, 4), std({ color: '#9c5a36', roughness: 1 })); m.position.set(x, h / 2 - 8, z); s.add(m);
+    const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 24, 4), std({ color: moonW ? '#6c6c72' : '#9c5a36', roughness: 1 })); m.position.set(x, h / 2 - 8, z); s.add(m);
   }
   // scattered rocks
   const rockG = new THREE.DodecahedronGeometry(1, 1);
   { const p = rockG.attributes.position; for (let i = 0; i < p.count; i++) { const v = new THREE.Vector3().fromBufferAttribute(p, i); v.multiplyScalar(.75 + hash2(i, 7) * .5); p.setXYZ(i, v.x, v.y * .7, v.z); } rockG.computeVertexNormals(); }
-  const rocks = new THREE.InstancedMesh(rockG, std({ color: '#6e3c24', map: redTex, roughness: 1, flatShading: true }), 1400), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
+  const rocks = new THREE.InstancedMesh(rockG, std({ color: moonW ? '#77777c' : '#6e3c24', map: moonW ? greyTex() : redTex, roughness: 1, flatShading: true }), 1400), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
   for (let i = 0; i < 1400; i++) {
     const x = (rnd() - .5) * 600, z = (rnd() - .5) * 600; if (Math.hypot(x, z) < 8) continue;
     const sz = .08 + Math.pow(rnd(), 4) * 1.6;
-    rocks.setMatrixAt(i, m4.compose(new THREE.Vector3(x, marsH(x, z) + sz * .2, z), q.setFromEuler(e.set(rnd() * 3, rnd() * 3, rnd() * 3)), new THREE.Vector3(sz, sz, sz)));
+    rocks.setMatrixAt(i, m4.compose(new THREE.Vector3(x, groundH(x, z) + sz * .2, z), q.setFromEuler(e.set(rnd() * 3, rnd() * 3, rnd() * 3)), new THREE.Vector3(sz, sz, sz)));
   }
   rocks.castShadow = rocks.receiveShadow = true; s.add(rocks);
   // glowing rocks to collect
   marsRocks = []; marsFound = 0;
   for (let i = 0; i < 10; i++) {
     const a = i / 10 * Math.PI * 2 + rnd() * .4, r = 22 + (i % 5) * 16 + rnd() * 10, x = Math.sin(a) * r, z = -Math.cos(a) * r;
-    const g = new THREE.Group(); g.position.set(x, marsH(x, z) + .5, z);
+    const g = new THREE.Group(); g.position.set(x, groundH(x, z) + .5, z);
     const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(.5, 0), std({ color: '#7de2d1', emissive: '#35c9b5', emissiveIntensity: 2.2, roughness: .3, flatShading: true })); g.add(gem);
     const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: new THREE.Color(.6, 2.2, 2), blending: THREE.AdditiveBlending, depthWrite: false })); glow.scale.setScalar(4); g.add(glow);
     const beam = new THREE.Mesh(new THREE.CylinderGeometry(.08, .35, 14, 12, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(.5, 2, 1.8), transparent: true, opacity: .25, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
     beam.position.y = 7; g.add(beam);
-    s.add(g); marsRocks.push({ g, gem, fact: MARS_ROCKS[i], found: false });
+    s.add(g); marsRocks.push({ g, gem, fact: (moonW ? MOON_ROCKS : MARS_ROCKS)[i], found: false });
   }
   // wheel tracks (instanced dark stripes) and dust
   tracks = new THREE.InstancedMesh(new THREE.PlaneGeometry(.45, .5), new THREE.MeshStandardMaterial({ color: '#5a2e1a', transparent: true, opacity: .55, roughness: 1, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }), 2400);
   tracks.count = 0; tracks.userData.i = 0; tracks.frustumCulled = false; s.add(tracks);
-  dustP = { pts: [], mat: new THREE.SpriteMaterial({ map: softTex, color: '#d9a577', transparent: true, depthWrite: false, opacity: 0 }) };
+  dustP = { pts: [], mat: new THREE.SpriteMaterial({ map: softTex, color: moonW ? '#b8b8bc' : '#d9a577', transparent: true, depthWrite: false, opacity: 0 }) };
   for (let i = 0; i < 60; i++) { const sp = new THREE.Sprite(dustP.mat.clone()); sp.visible = false; s.add(sp); dustP.pts.push({ sp, life: 1, v: new THREE.Vector3() }); }
   dustP.i = 0;
   // the rover (loaded lazily) with Amelia riding on the deck
   rover = new THREE.Group(); s.add(rover);
   roverBody = new THREE.Group(); rover.add(roverBody);
-  roverAm = makeAmelia('astro'); roverAm.scale.setScalar(.95); roverAm.position.set(0, 1.2, .3); roverAm.rotation.y = .6; roverBody.add(roverAm);
+  roverAm = makeAmelia('astro'); roverAm.scale.setScalar(moonW ? 1.5 : .95); roverAm.position.set(0, moonW ? 0 : 1.2, moonW ? 0 : .3); roverAm.rotation.y = moonW ? Math.PI : .6; roverBody.add(roverAm);
+  if (moonW) { roverWheels = []; tracks.scale.setScalar(.45); return s; }
   loadModel('models/perseverance.glb').then(g => {
     const m = g.scene; m.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
     m.rotation.y = Math.PI;   // the model's cameras face +z; the rover drives toward -z
@@ -4539,19 +4571,19 @@ function buildMars(){
   }).catch(e => { console.warn(e); const b = box(2.2, .6, 2.8, '#ddd', 0, .9, 0, roverBody); for (const [x, z] of [[-1.2, -1], [1.2, -1], [-1.2, 0], [1.2, 0], [-1.2, 1], [1.2, 1]]) { const w = cyl(.3, .3, .3, '#555', x, .3, z, roverBody); w.rotation.z = Math.PI / 2; } });
   return s;
 }
-function enterMars(){
-  award('drive');
+function enterMars(world = 'mars'){
+  award(world === 'moon' ? 'moonwalk' : 'drive');
   ++seq; stopJump();
-  if (!marsScene) marsScene = buildMars();
+  if (!marsScene || marsWorld !== world) { if (marsScene) disposeScene(marsScene); marsScene = buildMars(world); }
   Object.assign(drive, { x: 0, z: 0, yaw: 0, v: 0, steer: 0, gas: 0 });
   sceneMode = 'mars'; mode = 'mars'; current = null; manualCam = true; camera.up.set(0, 1, 0); camera.far = 2400; camera.updateProjectionMatrix();
-  $('#pill').textContent = 'Drive on Mars'; $('#inset').hidden = true; $('#drive').hidden = false; updRockCount();
+  $('#pill').textContent = world === 'moon' ? 'Walk on the Moon' : 'Drive on Mars'; $('#inset').hidden = true; $('#drive').hidden = false; updRockCount();
   nav(); layout();
-  speak(SAY.marsIn);
+  speak(world === 'moon' ? SAY.moonIn : SAY.marsIn);
 }
 function leaveMars(){
   $('#drive').hidden = true; manualCam = false; sceneMode = 'space'; camera.far = 3000; camera.updateProjectionMatrix();
-  speak(SAY.marsBack); focus(byId.mars, true); worldPos(byId.mars, rig.target); rig.dist = 3;
+  speak(SAY.marsBack); const pw = byId[marsWorld]; focus(pw, true); worldPos(pw, rig.target); rig.dist = 3;
 }
 function updRockCount(){ $('#rockct').textContent = `💎 ${marsFound} / ${marsRocks.length || 10}`; }
 // The model's six wheels are one mesh; split it by wheel (left/right x front/middle/back) so each can spin on its own axle.
@@ -4601,14 +4633,15 @@ function updateMars(dt, t){
   const R = 290; const r = Math.hypot(D.x, D.z); if (r > R) { D.x *= R / r; D.z *= R / r; }
   // rest on the ground: height and tilt from four sample points (suspension feel)
   const fx = Math.sin(D.yaw), fz = -Math.cos(D.yaw), sx = Math.cos(D.yaw), sz = Math.sin(D.yaw);
-  const hF = marsH(D.x + fx * 1.4, D.z + fz * 1.4), hB = marsH(D.x - fx * 1.4, D.z - fz * 1.4), hL = marsH(D.x - sx * 1.1, D.z - sz * 1.1), hR = marsH(D.x + sx * 1.1, D.z + sz * 1.1);
+  const hF = groundH(D.x + fx * 1.4, D.z + fz * 1.4), hB = groundH(D.x - fx * 1.4, D.z - fz * 1.4), hL = groundH(D.x - sx * 1.1, D.z - sz * 1.1), hR = groundH(D.x + sx * 1.1, D.z + sz * 1.1);
   const y = (hF + hB + hL + hR) / 4;
   rover.position.set(D.x, y, D.z); rover.rotation.set(0, -D.yaw, 0, 'YXZ');
   const pitch = Math.atan2(hF - hB, 2.8), roll = Math.atan2(hR - hL, 2.2);
   roverBody.rotation.x += (pitch - roverBody.rotation.x) * Math.min(1, dt * 6); roverBody.rotation.z += (-roll - roverBody.rotation.z) * Math.min(1, dt * 6);
-  roverBody.position.y = Math.sin(t * 18) * .012 * Math.min(1, Math.abs(D.v) / 3);
+  if (marsWorld === 'moon') { D.hop = (D.hop || 0) + dt * (Math.abs(D.v) > .3 ? 2.2 : 0); roverBody.position.y = Math.abs(Math.sin(D.hop)) * 1.6 * Math.min(1, Math.abs(D.v) / 2); roverBody.rotation.x = 0; roverBody.rotation.z = 0; }   // big slow bounces: the Moon's gravity is weak
+  else roverBody.position.y = Math.sin(t * 18) * .012 * Math.min(1, Math.abs(D.v) / 3);
   if (roverWheels.length) { const ws = new THREE.Vector3(); roverWheels[0].getWorldScale(ws); const a = D.v * dt / Math.max(.05, roverWheels.r * ws.y); roverWheels.forEach(w => w.rotation.x += a); }
-  roverAm.userData.anim.mode = Math.abs(D.v) > .3 ? 'idle' : roverAm.userData.anim.mode; animAmelia(roverAm, dt, t);
+  roverAm.userData.anim.mode = marsWorld === 'moon' ? (Math.abs(D.v) > .3 ? 'walk' : roverAm.userData.anim.mode === 'walk' ? 'idle' : roverAm.userData.anim.mode) : Math.abs(D.v) > .3 ? 'idle' : roverAm.userData.anim.mode; animAmelia(roverAm, dt, t);
   if (Math.abs(D.v) < .2 && roverAm.userData.anim.waveT <= 0 && Math.sin(t * .5) > .995) waveAmelia(roverAm, 1.5);
   // tracks and dust
   D.trk = (D.trk || 0) + Math.abs(D.v) * dt;
@@ -4616,7 +4649,7 @@ function updateMars(dt, t){
     for (const sd of [-1, 1]) {
       const x = D.x - fx * 1.3 + sx * sd * 1.05, z = D.z - fz * 1.3 + sz * sd * 1.05, m = new THREE.Matrix4(), q = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, -D.yaw, 'YXZ'));
       q.setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)); const q2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -D.yaw); q2.multiply(q);
-      m.compose(new THREE.Vector3(x, marsH(x, z) + .03, z), q2, new THREE.Vector3(1, 1, 1)); tracks.setMatrixAt(tracks.userData.i % 2400, m); tracks.userData.i++;
+      m.compose(new THREE.Vector3(x, groundH(x, z) + .03, z), q2, new THREE.Vector3(1, 1, 1)); tracks.setMatrixAt(tracks.userData.i % 2400, m); tracks.userData.i++;
       tracks.count = Math.min(2400, tracks.userData.i); tracks.instanceMatrix.needsUpdate = true;
     }
     if (Math.abs(D.v) > 1.5) puffDust(D.x - fx * 1.6, y + .3, D.z - fz * 1.6);
@@ -4628,13 +4661,13 @@ function updateMars(dt, t){
     k.gem.rotation.y += dt * 1.5; k.gem.position.y = Math.sin(t * 2 + k.g.position.x) * .15;
     if (Math.hypot(k.g.position.x - D.x, k.g.position.z - D.z) < 2.6) {
       k.found = true; marsFound++; updRockCount(); chime();
-      speak(marsFound === marsRocks.length ? [k.fact, SAY.marsDone] : k.fact);
-      if (marsFound === marsRocks.length) { burst(); award('mars'); }
+      speak(marsFound === marsRocks.length ? [k.fact, marsWorld === 'moon' ? SAY.moonDone : SAY.marsDone] : k.fact);
+      if (marsFound === marsRocks.length) { burst(); award(marsWorld === 'moon' ? 'moonrocks' : 'mars'); }
     }
   }
   // chase camera
   const cd = 9 + Math.abs(D.v) * .4, ch = 4.2;
-  _v.set(D.x - fx * cd, 0, D.z - fz * cd); _v.y = Math.max(marsH(_v.x, _v.z) + 1.5, y + ch);
+  _v.set(D.x - fx * cd, 0, D.z - fz * cd); _v.y = Math.max(groundH(_v.x, _v.z) + 1.5, y + ch);
   camera.position.lerp(_v, Math.min(1, dt * 3)); camera.lookAt(D.x + fx * 3, y + 1.4, D.z + fz * 3);
   const sun = marsScene.userData.sun; sun.position.set(D.x - 60, 90, D.z + 40); sun.target.position.set(D.x, 0, D.z);
 }
@@ -4761,7 +4794,7 @@ const STAMPS = [
   ...P.map(p => ({ id: 'p:' + p.id, img: p.thumb, label: p.label })),
   { id: 'eclipse', em: '🌑', label: 'Eclipse' }, { id: 'home', em: '🏡', label: 'Home' }, { id: 'landing', em: '🪂', label: 'Landing' }, { id: 'launch', em: '🚀', label: 'Blast off' }, { id: 'sky', em: '🔭', label: "Tonight's sky" },
   { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
-  { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'sparkles', em: '✨', label: 'Sparkle finder' }, { id: 'placequiz', em: '🧠', label: 'Place quiz' }, { id: 'daily', em: '🌟', label: 'Daily mission' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
+  { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'sparkles', em: '✨', label: 'Sparkle finder' }, { id: 'placequiz', em: '🧠', label: 'Place quiz' }, { id: 'daily', em: '🌟', label: 'Daily mission' }, { id: 'moonwalk', em: '🧑‍🚀', label: 'Moonwalker' }, { id: 'moonrocks', em: '🌕', label: 'Moon rock hunter' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
   ...LM.map(l => ({ id: 'l:' + l.id, em: l.em, label: l.name.replace('Pyramids of Giza', 'Pyramids').replace('Great Wall of China', 'Great Wall').replace('Sydney Opera House', 'Opera House').replace('Kennedy Space Center', 'Space Center').replace('Amazon Rainforest', 'Rainforest') })),
 ];
 let stamps = new Set();
@@ -5020,7 +5053,7 @@ window.__q = quality; window.__fps = 0; window.__issScreen = () => { const v = i
 window.__allLines = () => {
   const s = new Set();
   P.forEach(p => { p.facts.forEach(f => s.add(f)); if (p.g) s.add(jumpLine(p)); });
-  [...HOME_FACTS, ...MARS_ROCKS, SAY.fast, SAY.fastYear, SAY.slow, ...STORY, SAY.iss1, ...RIDDLES.map(r => r[1]), ...Object.values(SAY), ...COUNT, ...Object.values(MOON_SAY), ...LM.map(l => l.say), ...Object.values(ANIMAL_SAY), ...Object.values(SITE_EXTRA), ...Object.values(FEATURES).flat().map(f => f[3]), ...Object.values(REGIONS).map(r => r[4]), ...Object.values(ANIMALS).map(a => a[2]), ...Object.keys(STATE_CAPITALS).map(stateLine), ...QUIZ_STATES.map(findLine)].forEach(x => s.add(x));
+  [...HOME_FACTS, ...MARS_ROCKS, ...MOON_ROCKS, SAY.fast, SAY.fastYear, SAY.slow, ...STORY, SAY.iss1, ...RIDDLES.map(r => r[1]), ...Object.values(SAY), ...COUNT, ...Object.values(MOON_SAY), ...LM.map(l => l.say), ...Object.values(ANIMAL_SAY), ...Object.values(SITE_EXTRA), ...Object.values(FEATURES).flat().map(f => f[3]), ...Object.values(REGIONS).map(r => r[4]), ...Object.values(ANIMALS).map(a => a[2]), ...Object.keys(STATE_CAPITALS).map(stateLine), ...QUIZ_STATES.map(findLine)].forEach(x => s.add(x));
   ORDER.forEach((id, i) => { s.add(paradeYes(i)); s.add(paradeNo(id, false)); s.add(paradeNo(id, true)); });
   Object.values(SITE_SPOTS).flat().forEach(x => s.add(x)); LM.forEach(L => { s.add(whichLine(L)); s.add(contLine(L, contOpts(L))); if (PLACE_Q[L.id]) s.add(PLACE_Q[L.id][0]); });
   LM.forEach(l => { s.add(l.name + '!'); s.add(missionLine({ lm: l })); }); Object.keys(ANIMALS).forEach(an => s.add(missionLine({ an })));   // said when your plane flies over it
