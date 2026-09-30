@@ -2527,7 +2527,10 @@ function nav(){
     }
   }
 
-  if (mode === 'site') acts.append(btn('🧭', 'Map', () => leaveSite(wIdx)), btn('🔊', 'Tell me', () => speak(ANIMAL_SAY[LM[wIdx].id] ? [LM[wIdx].say, ANIMAL_SAY[LM[wIdx].id]] : LM[wIdx].say)), btn('▶️', 'Next place', () => siteSwap(wIdx + 1), 'hero'), btn('🌌', 'Planets', siteToSpace));
+  if (mode === 'site' && site && site.quiz) { const Q = site.quiz, q = Q.list[Q.i];
+    q.opts.forEach(o => acts.append(btn(o[0], o[1], () => placeQuizAnswer(o), '')));
+    acts.append(btn('🔊', 'Again', () => speak(q.say)), btn('✋', 'Stop', () => { site.quiz = null; nav(); })); }
+  else if (mode === 'site') { acts.append(...(site && site.spots && site.spots.length && site.spots.every(m => m.userData.got) ? [btn('🧠', 'Quiz', placeQuiz, 'hero')] : [])); acts.append(btn('🧭', 'Map', () => leaveSite(wIdx)), btn('🔊', 'Tell me', () => speak(ANIMAL_SAY[LM[wIdx].id] ? [LM[wIdx].say, ANIMAL_SAY[LM[wIdx].id]] : LM[wIdx].say)), btn('▶️', 'Next place', () => siteSwap(wIdx + 1), 'hero'), btn('🌌', 'Planets', siteToSpace)); }
   if (mode === 'world') {
     acts.append(btn('◀️', 'Back', () => goLandmark(wIdx - 1)), btn('🔊', 'Tell me', () => speak(LM[wIdx].say)), btn('▶️', 'Next stop', () => goLandmark(wIdx + 1), 'hero'),
       btn('🌌', 'Planets', () => { ++seq; overview(); }));
@@ -2758,10 +2761,45 @@ function siteSparkles(L, info){
     m.position.copy(info.target).addScaledVector(right, ox * D).addScaledVector(up, oy * D); m.scale.setScalar(D * .09); m.userData = { line, got: false, t: 0, base: D * .09, i };
     site.sc.add(m); return m; });
 }
+// after the sparkles: three picture questions about the place (no reading needed; Luna says every choice)
+const PLACE_CONT = { ksc: 'northAmerica', liberty: 'northAmerica', canyon: 'northAmerica', amazon: 'southAmerica', penguins: 'antarctica', bigben: 'europe', eiffel: 'europe', colosseum: 'europe', pyramids: 'africa', taj: 'asia', everest: 'asia', wall: 'asia', opera: 'australia' };
+const CONT_ALT = { northAmerica: ['europe', 'africa'], southAmerica: ['asia', 'europe'], antarctica: ['africa', 'australia'], europe: ['asia', 'southAmerica'], africa: ['europe', 'australia'], asia: ['africa', 'northAmerica'], australia: ['asia', 'southAmerica'] };
+const PLACE_Q = {   // [question, [emoji, label, right?] x3]
+  ksc: ["Where did the giant Saturn V rocket take astronauts? The Moon, the Sun, or Mars?", [['🌙', 'Moon', 1], ['☀️', 'Sun'], ['🔴', 'Mars']]],
+  liberty: ["What is the flame on her torch covered in? Gold, chocolate, or ice?", [['🥇', 'Gold', 1], ['🍫', 'Chocolate'], ['🧊', 'Ice']]],
+  canyon: ["What carved the Grand Canyon? A river, a dinosaur, or a robot?", [['🌊', 'River', 1], ['🦖', 'Dinosaur'], ['🤖', 'Robot']]],
+  amazon: ["What color are the Amazon River dolphins? Pink, blue, or green?", [['🩷', 'Pink', 1], ['💙', 'Blue'], ['💚', 'Green']]],
+  penguins: ["Penguins can't fly. What are they super good at? Swimming, climbing trees, or driving?", [['🏊', 'Swimming', 1], ['🌳', 'Climbing'], ['🚗', 'Driving']]],
+  bigben: ["How many floors do London's red buses have? One, two, or ten?", [['1️⃣', 'One'], ['2️⃣', 'Two', 1], ['🔟', 'Ten']]],
+  eiffel: ["What makes the Eiffel Tower sparkle at night? Lights, fireworks, or stars?", [['💡', 'Lights', 1], ['🎆', 'Fireworks'], ['⭐', 'Stars']]],
+  colosseum: ["What was under the floor for the animals? Tunnels, a swimming pool, or a volcano?", [['🕳️', 'Tunnels', 1], ['🏊', 'Pool'], ['🌋', 'Volcano']]],
+  pyramids: ["What has the body of a lion and the head of a person? The Sphinx, a camel, or a pyramid?", [['🦁', 'Sphinx', 1], ['🐪', 'Camel'], ['🔺', 'Pyramid']]],
+  taj: ["What does the long pool do? Reflect like a mirror, bubble, or freeze?", [['🪞', 'Mirror', 1], ['🫧', 'Bubble'], ['🧊', 'Freeze']]],
+  everest: ["Every year, does Everest get a tiny bit taller, shorter, or melt away?", [['⬆️', 'Taller', 1], ['⬇️', 'Shorter'], ['💧', 'Melt']]],
+  wall: ["What did soldiers use to watch for danger on the wall? Towers, boats, or kites?", [['🏯', 'Towers', 1], ['⛵', 'Boats'], ['🪁', 'Kites']]],
+  opera: ["What covers the Opera House roof? Tiles, leaves, or candy?", [['🔲', 'Tiles', 1], ['🍃', 'Leaves'], ['🍬', 'Candy']]],
+};
+const whichLine = L => `Which one is the ${L.name}? Tap it!`;
+const contLine = (L, opts) => `${L.id === 'penguins' ? 'Where do these penguins live?' : 'Which continent is the ' + L.name + ' in?'} Is it ${opts[0][1]}, ${opts[1][1]}, or ${opts[2][1]}?`;
+const contOpts = L => { const c = PLACE_CONT[L.id], [a, b] = CONT_ALT[c], o = [[REGIONS[c][2], REGION_NAME[c], 1], [REGIONS[a][2], REGION_NAME[a]], [REGIONS[b][2], REGION_NAME[b]]], k = LM.indexOf(L) % 3; return [...o.slice(k), ...o.slice(0, k)]; };
+SAY.placeQuizIn = "Quiz time! Tap the right picture.";
+SAY.placeQuizDone = "You got them all! You really know this place!";
+function placeQuiz(){
+  const L = siteL, others = LM.filter(o => o !== L), i = LM.indexOf(L), pick = [others[(i * 5) % others.length], others[(i * 5 + 7) % others.length]];
+  const w = [[L.em, lmShort(L), 1], ...pick.map(o => [o.em, lmShort(o)])], k = i % 3, co = contOpts(L), pq = PLACE_Q[L.id];
+  site.quiz = { i: 0, right: 0, list: [{ say: whichLine(L), opts: [...w.slice(k), ...w.slice(0, k)] }, { say: contLine(L, co), opts: co }, { say: pq[0], opts: pq[1] }] };
+  speak([SAY.placeQuizIn, site.quiz.list[0].say]); nav();
+}
+function placeQuizAnswer(o){
+  const Q = site && site.quiz; if (!Q) return;
+  if (!o[2]) { bloop(); speak(SAY.quizNo); return; }
+  chime(); Q.i++; if (Q.i >= Q.list.length) { site.quiz = null; award('placequiz'); speak([SAY.quizYes, SAY.placeQuizDone]); nav(); return; }
+  speak([SAY.quizYes, Q.list[Q.i].say]); nav();
+}
 function siteTap(x, y){
   if (!site || !site.spots) return; let best = null, bd = 60; const v = new THREE.Vector3();
   for (const m of site.spots) { if (m.userData.got) continue; v.copy(m.position).project(camera); const d = Math.hypot((v.x + 1) / 2 * W - x, (1 - v.y) / 2 * H - y); if (v.z < 1 && d < bd) { bd = d; best = m; } }
-  if (!best) return; best.userData.got = true; best.userData.t = 0; chime(); const left = site.spots.filter(m => !m.userData.got).length;
+  if (!best) return; best.userData.got = true; best.userData.t = 0; chime(); const left = site.spots.filter(m => !m.userData.got).length; if (!left) nav();
   speak(left ? best.userData.line : [best.userData.line, SAY.sparkleAll]); if (!left) award('sparkles');
 }
 // a flock of gliding birds that circle and flap; shared by several scenes
@@ -3720,7 +3758,9 @@ function buildToy(){
     eiffel: g => { cone(g, .42, 1.3, '#8a6a4a', 0, 0, 0); cone(g, .16, .7, '#8a6a4a', 0, 1.0, 0); bx(g, .5, .06, .5, '#8a6a4a', 0, .45, 0); },
     pyramids: g => { cone(g, .45, .6, '#f2c46d', 0, 0, 0); cone(g, .38, .5, '#e9b85e', -.6, 0, -.3); cone(g, .22, .3, '#e9b85e', -1, 0, -.6); },
     colosseum: g => { const m = new THREE.Mesh(new THREE.CylinderGeometry(.42, .42, .32, 20, 1, true), toyToon('#e8c99a', { side: THREE.DoubleSide })); m.position.y = .16; m.scale.z = .8; g.add(m); },
-    ksc: g => { cyl2(g, .09, .09, 1.1, '#ffffff'); cone(g, .09, .25, '#ffffff', 0, 1.1, 0, 12); bx(g, .12, 1.2, .12, '#e2574c', -.22, 0, 0); },
+    ksc: g => { const r = new THREE.Group(); g.add(r); cyl2(r, .09, .09, 1.1, '#ffffff'); cone(r, .09, .25, '#ffffff', 0, 1.1, 0, 12);   // the rocket lifts off now and then (see discoveriesStep)
+      const fl = new THREE.Mesh(new THREE.ConeGeometry(.075, .4, 10).rotateX(Math.PI).translate(0, -.2, 0), toyToon('#ffb703', { emissive: '#ff6b00', emissiveIntensity: .9 })); r.children.forEach(o => inkChild(o, .04)); fl.visible = false; r.add(fl); r.userData.flame = fl; g.userData.rocket = r;
+      bx(g, .12, 1.2, .12, '#e2574c', -.22, 0, 0); },
     liberty: g => { bx(g, .3, .35, .3, '#d8c7a8'); cyl2(g, .09, .12, .6, '#6fcfb0', 0, .35, 0); ball2(g, .07, '#6fcfb0', 0, 1.0, 0); cyl2(g, .03, .03, .35, '#6fcfb0', .1, .9, 0); ball2(g, .06, '#ffd166', .1, 1.3, 0); },
     bigben: g => { bx(g, .22, .9, .22, '#e0c48a'); cone(g, .17, .35, '#3e5a4f', 0, .9, 0); ball2(g, .05, '#ffffff', 0, .75, .12); bx(g, .7, .3, .2, '#e0c48a', .45, 0, 0); },
     taj: g => { bx(g, .5, .3, .5, '#ffffff'); ball2(g, .2, '#ffffff', 0, .45, 0); for (const [x, z] of [[-.3, -.3], [.3, -.3], [-.3, .3], [.3, .3]]) cyl2(g, .025, .03, .55, '#ffffff', x, 0, z); },
@@ -4095,7 +4135,7 @@ function updateFly(dt, t){
     const goalDir = featDir(F.mission.lat, F.mission.lon), to = goalDir.clone().addScaledVector(F.p, -goalDir.dot(F.p)).normalize();
     ar.position.copy(pos).addScaledVector(F.f, .45).addScaledVector(F.p, .2 + Math.sin(t * 5) * .015); orientTo(ar.quaternion, F.p, to);
     if (goalDir.angleTo(F.p) < .07) { const m = F.mission; F.mission = null; F.missionT = 0; F.missions = (F.missions || 0) + 1; F.score += 50; chime(); flyHud(true);
-      if (m.an) { const k = m.an; (ANIMAL_SFX[k] || pop)(); speak([SAY.missionDone, ANIMALS[k][2]]); } else speak(SAY.missionDone);
+      if (m.an) { const k = m.an; (ANIMAL_SFX[k] || pop)(); if (k === 'volcano') toyErupt(); speak([SAY.missionDone, ANIMALS[k][2]]); } else speak(SAY.missionDone);
       if (F.missions % 3 === 0) award('missions'); if (m.lm) F.saidNear.add(m.lm.id); flyConfetti(pos); }
   }
   // a gold light beam and a bobbing badge mark the famous place you're near (or landed at)
@@ -4169,6 +4209,9 @@ const ANIMALS = {
   llama: [-16, -69, "Llamas live high in the Andes mountains of South America. Their fluffy wool keeps them warm."],
   eagle: [46, -102, "Bald eagles live in North America. They have super sharp eyes for spotting fish!"],
   camel: [23, 12, "Look, camels! Camels can walk a long, long way across the hot desert."],
+  zebra: [-2.3, 34.8, "Zebras live in Africa. Every zebra has its own stripe pattern, like a fingerprint!"],
+  bison: [44.6, -110.5, "Bison are the heaviest land animals in North America. They live in big herds on the grasslands."],
+  volcano: [19.4, -155.3, "This is a volcano in Hawaii! Hot melted rock called lava can come out of the top."],
 };
 const BUILDS = { tree: '🌳', house: '🏠', flowers: '🌸' };
 // each animal's own (made-up, cartoon) sound, played when it's tapped
@@ -4183,6 +4226,9 @@ const ANIMAL_SFX = {
   llama: () => tone(230, .55, 'triangle', .09, 280),
   eagle: () => tone(2100, .5, 'sawtooth', .04, 1300),
   camel: () => tone(150, .6, 'sawtooth', .06, 95),
+  zebra: () => { tone(900, .25, 'sawtooth', .035, 1300); setTimeout(() => tone(1200, .3, 'sawtooth', .03, 700), 200); },
+  bison: () => tone(95, .7, 'sawtooth', .08, 65),
+  volcano: () => { tone(55, 1.6, 'sawtooth', .12, 38); whooshSfx(); },
 };
 function toyExtras(){
   const s = toyScene, T = toy, R = TOY_R, UP = new THREE.Vector3(0, 1, 0);
@@ -4202,7 +4248,8 @@ function toyExtras(){
     sp.position.copy(featDir(r[0], r[1])).multiplyScalar(R + 1.2); s.add(sp); T.labels.push(sp);
   }
   // --- animals ---
-  T.animals = {}; const A = (k, build, lift = 0) => { const g = new THREE.Group(); build(g); ink(g); const [la, lo] = ANIMALS[k]; put(g, la, lo, lift, rnd() * 6); g.scale.setScalar(.34); s.add(g); g.userData = { k, lat: la, lon: lo, base: g.position.clone(), q: g.quaternion.clone() }; T.animals[k] = g; return g; };
+  const bxs = (p, w, hh, d, c, x, y, z) => mesh(new THREE.BoxGeometry(w, hh, d), c, p, x, y, z);
+  T.animals = {}; const A = (k, build, lift = 0) => { const g = new THREE.Group(); build(g); ink(g); const [la, lo] = ANIMALS[k]; put(g, la, lo, lift, rnd() * 6); g.scale.setScalar(.34); s.add(g); g.userData = Object.assign(g.userData, { k, lat: la, lon: lo, base: g.position.clone(), q: g.quaternion.clone() }); T.animals[k] = g; return g; };
   A('kangaroo', g => { S(.3, '#c7864c', g, 0, .55, 0, 1, 1.3, .9); S(.17, '#c7864c', g, 0, 1.05, .12); for (const x of [-.07, .07]) Cy(.03, .05, .22, '#c7864c', g, x, 1.1, .08); mesh(new THREE.ConeGeometry(.08, .6, 8), '#b77640', g, 0, .3, -.35).rotation.x = -1.1; for (const x of [-.12, .12]) S(.08, '#b77640', g, x, .05, .12, 1, .6, 2); S(.03, '#241a3a', g, 0, 1.08, .28); });
   A('elephant', g => { S(.45, '#9aa0ad', g, 0, .75, 0, 1.2, 1, 1); S(.3, '#9aa0ad', g, 0, 1.0, .5); for (const x of [-.3, .3]) S(.25, '#b3b9c5', g, x, 1.02, .45, .3, 1, .9); const tr = Cy(.07, .1, .55, '#9aa0ad', g, 0, .45, .72); for (const [x, z] of [[-.25, -.25], [.25, -.25], [-.25, .25], [.25, .25]]) Cy(.12, .12, .45, '#9aa0ad', g, x, 0, z); });
   A('giraffe', g => { S(.3, '#f2c14e', g, 0, .95, 0, 1.3, .8, .8); const n = Cy(.08, .12, 1.0, '#f2c14e', g, 0, 1.0, .25); n.rotation.x = .35; n.userData.noInk = true; S(.13, '#f2c14e', g, 0, 1.95, .55, 1, .9, 1.4); for (const [x, z] of [[-.2, -.15], [.2, -.15], [-.2, .15], [.2, .15]]) Cy(.05, .05, .75, '#f2c14e', g, x, 0, z);
@@ -4210,6 +4257,14 @@ function toyExtras(){
   A('panda', g => { S(.35, '#ffffff', g, 0, .45, 0, 1, 1, 1.1); S(.25, '#ffffff', g, 0, .9, .2); for (const x of [-.18, .18]) { S(.09, '#1f2230', g, x, 1.12, .15); S(.06, '#1f2230', g, x * .5, .95, .42).userData.noInk = true; } for (const [x, z] of [[-.2, -.2], [.2, -.2], [-.2, .25], [.2, .25]]) S(.12, '#1f2230', g, x, .15, z); Cy(.03, .03, .8, '#6abf4b', g, .35, 0, .3); });
   A('polarBear', g => { S(.4, '#f6f7fb', g, 0, .5, 0, 1, .9, 1.4); S(.22, '#f6f7fb', g, 0, .65, .6); S(.07, '#241a3a', g, 0, .62, .82); for (const x of [-.14, .14]) S(.06, '#f6f7fb', g, x, .85, .55); for (const [x, z] of [[-.22, -.3], [.22, -.3], [-.22, .3], [.22, .3]]) Cy(.11, .11, .3, '#f6f7fb', g, x, 0, z); });
   A('llama', g => { S(.3, '#f3e6d0', g, 0, .75, 0, 1.3, .9, .9); Cy(.09, .11, .6, '#f3e6d0', g, 0, .8, .3); S(.13, '#f3e6d0', g, 0, 1.45, .38, .9, 1, 1.3); for (const x of [-.06, .06]) Cy(.02, .03, .15, '#f3e6d0', g, x, 1.52, .33); for (const [x, z] of [[-.18, -.15], [.18, -.15], [-.18, .15], [.18, .15]]) Cy(.05, .05, .55, '#f3e6d0', g, x, 0, z); });
+  const herd = (g, n, one) => { for (let i = 0; i < n; i++) { const h = new THREE.Group(), a = i / n * 6.28 + rnd(); h.position.set(Math.cos(a) * (.5 + rnd() * .5) * (i ? 1 : 0), 0, Math.sin(a) * (.5 + rnd() * .5) * (i ? 1 : 0)); h.rotation.y = rnd() * 6.28; one(h); g.add(h); } };
+  A('zebra', g => herd(g, 5, h => { S(.26, '#f6f6f6', h, 0, .7, 0, 1.45, .8, .8); for (const x of [-.22, -.08, .06, .2]) mesh(new THREE.TorusGeometry(.2, .035, 6, 18), '#222222', h, x, .7, 0).rotation.y = Math.PI / 2;
+    S(.13, '#f6f6f6', h, .46, 1, 0, 1.3, 1, .9); Cy(.06, .08, .3, '#f6f6f6', h, .36, .75, 0).rotation.z = -.6; bxs(h, .3, .06, .03, '#222222', .38, 1.02, 0); for (const [x, z] of [[-.22, -.12], [-.22, .12], [.22, -.12], [.22, .12]]) Cy(.04, .04, .5, '#f6f6f6', h, x, .05, z); }));
+  A('bison', g => herd(g, 4, h => { S(.3, '#5b3a29', h, -.05, .72, 0, 1.4, .95, .9); S(.26, '#46291c', h, .18, .95, 0); S(.17, '#3a2418', h, .5, .7, 0);
+    for (const z of [-.1, .1]) mesh(new THREE.ConeGeometry(.03, .1, 6), '#f2eadc', h, .52, .86, z).rotation.x = z * 8; for (const [x, z] of [[-.28, -.14], [-.28, .14], [.25, -.14], [.25, .14]]) Cy(.05, .05, .5, '#3a2418', h, x, .05, z); }));
+  A('volcano', g => { mesh(new THREE.CylinderGeometry(.35, 1.3, 1.3, 16, 1), '#6d5446', g, 0, .65, 0); mesh(new THREE.CylinderGeometry(.33, .36, .06, 16), '#ff7a1a', g, 0, 1.31, 0).userData.noInk = true;
+    const lava = new THREE.Group(); g.add(lava); for (let i = 0; i < 26; i++) { const m = mesh(new THREE.SphereGeometry(.07 + (i % 3) * .03, 8, 6), i % 4 ? '#ff6a13' : '#8a8a8a', lava, 0, 1.3, 0); m.userData = { noInk: true, v: new THREE.Vector3() }; m.visible = false; } g.userData.lava = lava; }, -.02);
+  T.animals.volcano.scale.setScalar(.45);
   A('camel', g => { S(.3, '#d6a15c', g, 0, .85, 0, 1.4, .8, .8); S(.2, '#d6a15c', g, 0, 1.15, 0); Cy(.07, .1, .5, '#d6a15c', g, 0, .85, .38).rotation.x = .7; S(.1, '#d6a15c', g, 0, 1.3, .62, 1, .9, 1.4); for (const [x, z] of [[-.18, -.2], [.18, -.2], [-.18, .2], [.18, .2]]) Cy(.05, .05, .65, '#d6a15c', g, x, 0, z); });
   A('whale', g => { S(.5, '#3d5a98', g, 0, 0, 0, .8, .55, 1.5); S(.4, '#dfe8f5', g, 0, -.12, .2, .7, .35, 1.1).userData.noInk = true; const t = mesh(new THREE.BoxGeometry(.6, .05, .25), '#3d5a98', g, 0, .05, -.8); for (const x of [-.12, .12]) S(.04, '#ffffff', g, x * 2.3, .12, .45).userData.noInk = true; }, .02);
   A('dolphin', g => { S(.2, '#8fb3d9', g, 0, 0, 0, .7, .7, 1.8); mesh(new THREE.ConeGeometry(.08, .2, 6), '#8fb3d9', g, 0, .15, 0); mesh(new THREE.BoxGeometry(.3, .03, .1), '#8fb3d9', g, 0, 0, -.38); }, .02);
@@ -4299,7 +4354,7 @@ function toyTap(x, y){
   const p = toyScreenPick(x, y);
   if (p && p.kind === 'star') { const sp = T.starSpots[p.i]; T.hunt.found.add(p.i); pop(); updStars(); toyFlyTo(sp.lat, sp.lon, 2);
     if (T.hunt.found.size === T.starSpots.length) { speak([sp.line, SAY.toyStarsDone]); award('stars'); T.hunt = null; setTimeout(() => { if (!toy.hunt) $('#tstars').hidden = true; }, 6000); nav(); } else speak(sp.line); return; }
-  if (p && p.kind === 'animal') { const a = T.animals[p.i]; (ANIMAL_SFX[p.i] || pop)(); if (T.trick) { const o = T.animals[T.trick.k]; o.rotateY(Math.PI * 2 - T.trick.spun); o.scale.setScalar(T.trick.base); } T.trick = { k: p.i, t: 0, spun: 0, base: a.scale.x }; T.done.add(p.i); if (T.done.size >= 5) award('animals'); speak(ANIMALS[p.i][2]); $('#pill').textContent = { polarBear: 'Polar bear' }[p.i] || p.i[0].toUpperCase() + p.i.slice(1); if (goal.dist > TOY_LEVELS[2] + .1) toyFlyTo(a.userData.lat, a.userData.lon, 2); return; }
+  if (p && p.kind === 'animal') { const a = T.animals[p.i]; (ANIMAL_SFX[p.i] || pop)(); if (p.i === 'volcano') toyErupt(); else if (T.trick) { const o = T.animals[T.trick.k]; o.rotateY(Math.PI * 2 - T.trick.spun); o.scale.setScalar(T.trick.base); } if (p.i !== 'volcano') T.trick = { k: p.i, t: 0, spun: 0, base: a.scale.x }; T.done.add(p.i); if (T.done.size >= 5) award('animals'); speak(ANIMALS[p.i][2]); $('#pill').textContent = { polarBear: 'Polar bear' }[p.i] || p.i[0].toUpperCase() + p.i.slice(1); if (goal.dist > TOY_LEVELS[2] + .1) toyFlyTo(a.userData.lat, a.userData.lon, 2); return; }
   if (p && (p.kind === 'car' || p.kind === 'plane' || p.kind === 'boat')) { T.follow = { kind: p.kind, i: p.i }; T.picked = null; T.menu = null; pop(); speak(SAY[p.kind === 'car' ? 'toyCar' : p.kind === 'plane' ? 'toyPlane' : 'toyBoat']); nav(); return; }
   const hit = ray.intersectObjects([T.planet, ...T.pick], false)[0];
   if (hit && hit.object.userData.home) { pop(); toyHomeSpot(); return; }
@@ -4312,13 +4367,22 @@ function toyTap(x, y){
     $('#pill').textContent = REGION_NAME[k]; if (T.lastRegion !== k || goal.dist >= L[1]) speak(REGIONS[k][4]); T.lastRegion = k; T.picked = null; nav();
   }
 }
+function toyErupt(){ const T = toy, lava = T.animals.volcano.userData.lava; T.erupt = 0; lava.children.forEach(m => { const a = Math.random() * 6.28, r = Math.random() * .9; m.userData.v.set(Math.cos(a) * r, 2.4 + Math.random() * 1.6, Math.sin(a) * r); m.position.set(0, 1.3, 0); m.visible = true; }); }
+function discoveriesStep(dt, t){
+  const T = toy;
+  if (T.erupt != null) { T.erupt += dt; const lava = T.animals.volcano.userData.lava; lava.children.forEach(m => { const v = m.userData.v; m.position.addScaledVector(v, dt); v.y -= 3.2 * dt; if (m.position.y < .9 && v.y < 0) m.visible = false; }); if (T.erupt > 3) { T.erupt = null; lava.children.forEach(m => { m.visible = false; }); } }
+  // Kennedy Space Center: a rocket lifts off every so often, then a new one stands ready
+  const k = T.kscMini || (T.kscMini = T.lms.children.find(g => g.userData.lm && g.userData.lm.id === 'ksc')); const r = k && k.userData.rocket; if (!r) return;
+  const c = t % 40; if (c < 9) { const u = Math.max(0, c - 1.2); r.position.y = u * u * .35; r.position.x = c < 1.2 ? Math.sin(t * 60) * .01 : 0; r.userData.flame.visible = c > .3; r.userData.flame.scale.setScalar(.8 + Math.random() * .5); r.visible = r.position.y < 14; }
+  else { r.position.set(0, 0, 0); r.userData.flame.visible = false; r.visible = true; }
+}
 function confettiStep(dt){
   const T = toy; if (!T.confetti || !T.confetti.visible) return; const C = T.confetti, M4 = new THREE.Matrix4(), Q = new THREE.Quaternion(); C.userData.t += dt; const k = C.userData.t;
   C.userData.parts.forEach((q, i) => { q.v.addScaledVector(q.g, dt); q.p.addScaledVector(q.v, dt); Q.setFromEuler(new THREE.Euler(k * q.s, k * q.s * .7, 0)); C.setMatrixAt(i, M4.compose(q.p, Q, new THREE.Vector3(1, 1, 1).multiplyScalar(q.sz * (k < 1.6 ? 1 : Math.max(0, 1 - (k - 1.6) * 2))))); });
   C.instanceMatrix.needsUpdate = true; if (k > 2.2) C.visible = false;
 }
 function updateToyExtras(dt, t){
-  confettiStep(dt);
+  confettiStep(dt); discoveriesStep(dt, t);
   const T = toy, R = TOY_R, dist = rig.dist, far = T.quiz ? 0 : sst(R * 2.4, R * 3.1, dist);
   const cdir = camera.position.clone().normalize();
   T.labels.forEach(l => { const f = far * sst(.25, .55, l.position.clone().normalize().dot(cdir)); l.material.opacity = f; l.visible = f > .02; });
@@ -4672,7 +4736,7 @@ const STAMPS = [
   ...P.map(p => ({ id: 'p:' + p.id, img: p.thumb, label: p.label })),
   { id: 'eclipse', em: '🌑', label: 'Eclipse' }, { id: 'home', em: '🏡', label: 'Home' }, { id: 'landing', em: '🪂', label: 'Landing' }, { id: 'launch', em: '🚀', label: 'Blast off' }, { id: 'sky', em: '🔭', label: "Tonight's sky" },
   { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
-  { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'sparkles', em: '✨', label: 'Sparkle finder' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
+  { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'sparkles', em: '✨', label: 'Sparkle finder' }, { id: 'placequiz', em: '🧠', label: 'Place quiz' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
   ...LM.map(l => ({ id: 'l:' + l.id, em: l.em, label: l.name.replace('Pyramids of Giza', 'Pyramids').replace('Great Wall of China', 'Great Wall').replace('Sydney Opera House', 'Opera House').replace('Kennedy Space Center', 'Space Center').replace('Amazon Rainforest', 'Rainforest') })),
 ];
 let stamps = new Set();
@@ -4899,6 +4963,8 @@ window.__toyScr = (kind, k) => { const T = toy, v = kind === 'animal' ? T.animal
   const vis = v.clone().sub(camera.position).dot(v) < 0; v.project(camera); return [Math.round((v.x + 1) / 2 * W), Math.round((1 - v.y) / 2 * H), vis]; };
 window.__stateAt = (a, b) => stateAt(a, b)?.name ?? null; window.__nStates = () => TOY_STATES.length;
 window.__showState = n => toyShowState(n);
+window.__toyGo = (lat, lon, lv) => toyFlyTo(lat, lon, lv);
+window.__pquiz = () => site && site.quiz ? { i: site.quiz.i, right: site.quiz.list[site.quiz.i].opts.find(o => o[2])[1], wrong: site.quiz.list[site.quiz.i].opts.find(o => !o[2])[1] } : null;
 window.__audioState = () => ({ ctx: ac && ac.state, music: !!mus, step: mus ? mus.step : 0, engine: eng ? +eng.og.gain.value.toFixed(4) : null, noise: eng ? +eng.ng.gain.value.toFixed(4) : null });
 window.__spots = () => site && site.spots ? site.spots.map(m => { const v = m.position.clone().project(camera); return [Math.round((v.x + 1) / 2 * W), Math.round((1 - v.y) / 2 * H), m.userData.got]; }) : null;
 window.__mission = () => { const F = toy.fly; if (!F.mission) flyMission(); return F.mission.lm ? F.mission.lm.id : F.mission.an; };
@@ -4917,7 +4983,7 @@ window.__allLines = () => {
   P.forEach(p => { p.facts.forEach(f => s.add(f)); if (p.g) s.add(jumpLine(p)); });
   [...HOME_FACTS, ...MARS_ROCKS, SAY.fast, SAY.fastYear, SAY.slow, ...STORY, SAY.iss1, ...RIDDLES.map(r => r[1]), ...Object.values(SAY), ...COUNT, ...Object.values(MOON_SAY), ...LM.map(l => l.say), ...Object.values(ANIMAL_SAY), ...Object.values(SITE_EXTRA), ...Object.values(FEATURES).flat().map(f => f[3]), ...Object.values(REGIONS).map(r => r[4]), ...Object.values(ANIMALS).map(a => a[2]), ...Object.keys(STATE_CAPITALS).map(stateLine), ...QUIZ_STATES.map(findLine)].forEach(x => s.add(x));
   ORDER.forEach((id, i) => { s.add(paradeYes(i)); s.add(paradeNo(id, false)); s.add(paradeNo(id, true)); });
-  Object.values(SITE_SPOTS).flat().forEach(x => s.add(x));
+  Object.values(SITE_SPOTS).flat().forEach(x => s.add(x)); LM.forEach(L => { s.add(whichLine(L)); s.add(contLine(L, contOpts(L))); if (PLACE_Q[L.id]) s.add(PLACE_Q[L.id][0]); });
   LM.forEach(l => { s.add(l.name + '!'); s.add(missionLine({ lm: l })); }); Object.keys(ANIMALS).forEach(an => s.add(missionLine({ an })));   // said when your plane flies over it
   DIRS.forEach(d => { s.add(moonWhere(d)); SKY_PLANETS.forEach(id => s.add(planetWhere(id, d))); });
   return [...s];
