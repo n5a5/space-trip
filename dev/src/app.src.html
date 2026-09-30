@@ -46,7 +46,7 @@ html,body{height:100%;overflow:hidden;background:var(--space);color:var(--ink);f
 #stamppop{position:fixed;left:50%;top:38%;width:150px;height:150px;margin-left:-75px;border-radius:50%;background:#fff;border:8px dashed #e63946;display:grid;place-items:center;font-size:84px;box-shadow:0 8px 30px #0008;pointer-events:none;animation:stampin .5s cubic-bezier(.3,1.7,.5,1)}
 @keyframes stampin{from{transform:scale(3) rotate(-30deg);opacity:0}to{transform:scale(1) rotate(-12deg);opacity:1}}
 #goalchip{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:4px 14px;border-radius:999px;background:rgba(13,11,46,.72);border:3px solid #4ade80;pointer-events:none}
-#goalchip .ge{font-size:40px;line-height:1}#goalchip .ga{font-size:34px;color:#4ade80;display:inline-block;transition:transform .15s}
+#goalchip .ge{font-size:40px;line-height:1}#goalchip .ga{font-size:34px;color:#4ade80;display:inline-block}
 #minimap{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);width:140px;height:70px;border-radius:10px;border:2px solid rgba(255,255,255,.85);box-shadow:0 2px 10px #0006;pointer-events:none}
 #flyhint{position:fixed;left:50%;top:44%;transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:rgba(13,11,46,.7);font:800 20px/1 var(--body);color:#fff;pointer-events:none;animation:flyhint 1.6s ease-in-out infinite}
 @keyframes flyhint{0%,100%{margin-left:-40px}50%{margin-left:40px}}
@@ -154,6 +154,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #grown .phead{max-width:440px;margin:0 auto 14px}
 /* desktop and laptop: mouse and keyboard, wide screens */
 @media (hover:hover) and (pointer:fine){
+  #minimap{width:280px;height:140px}
   .act:hover,.th:hover,.pl:hover{transform:translateY(-2px);filter:brightness(1.12)} .act,.th,.pl{transition:transform .12s,filter .12s}
   #gl{cursor:grab} #gl:active{cursor:grabbing}
   #strip,#wstrip,#tstrip{justify-content:safe center}
@@ -3575,13 +3576,28 @@ function toyLandPaths(){   // Natural Earth land rings as Path2D in the 1024 x 5
   }
   return out;
 }
+const STATE_COLS = ['#ff9aa2', '#ffd166', '#8fe0b0', '#8ec5ff', '#c9b2ff', '#ffb877'];
+let stateCol = null;
+function stateColors(){   // neighbours never share a colour, like a classroom map (greedy colouring over shared border points)
+  if (stateCol) return stateCol; const key = (x, y) => Math.round(x / 3) + ',' + Math.round(y / 3), owners = new Map();
+  TOY_STATES.forEach((st, i) => { for (const r of st.rings) for (let k = 0; k < r.length; k += 2) { const kk = key(r[k], r[k + 1]); if (!owners.has(kk)) owners.set(kk, new Set()); owners.get(kk).add(i); } });
+  const nb = TOY_STATES.map(() => new Set()); for (const set of owners.values()) for (const a of set) for (const b of set) if (a !== b) nb[a].add(b);
+  const order = TOY_STATES.map((_, i) => i).sort((a, b) => nb[b].size - nb[a].size), col = [];
+  for (const i of order) { const used = new Set([...nb[i]].map(j => col[j])); col[i] = STATE_COLS.findIndex((_, c) => !used.has(c)); if (col[i] < 0) col[i] = i % STATE_COLS.length; }
+  return (stateCol = TOY_STATES.map((st, i) => STATE_COLS[col[i]]));
+}
+function paintStates(g, done){   // the States game map: every state its own colour with a clear outline; found ones turn green
+  const cols = stateColors(); g.save(); g.setTransform(2048 / TW, 0, 0, 1024 / TH, 0, 0);
+  TOY_STATES.forEach((st, i) => { g.fillStyle = done && done.has(st.name) ? '#6fd36a' : cols[i]; g.fill(st.path); });
+  g.strokeStyle = '#2b2250'; g.lineWidth = .9; g.lineJoin = 'round'; TOY_STATES.forEach(st => g.stroke(st.path)); g.restore();
+}
 function toyHighlight(st, color = 'rgba(255,209,102,.6)'){   // paint one state gold on the map (or clear it)
-  const T = toy, g = T.map.getContext('2d'); g.drawImage(T.mapBase, 0, 0);
+  const T = toy, g = T.map.getContext('2d'); g.drawImage(T.mapBase, 0, 0); if (T.quiz) paintStates(g, T.quiz.done);
   if (st) { g.save(); g.setTransform(2048 / TW, 0, 0, 1024 / TH, 0, 0); g.fillStyle = color; g.fill(st.path); g.strokeStyle = '#ffd166'; g.lineWidth = 1.4; g.stroke(st.path); g.restore(); }
   T.mapTex.needsUpdate = true;
 }
 function toyStatesGame(){
-  const T = toy; T.lmTour = false; T.quiz = { n: 0, miss: 0, target: null, done: new Set() }; T.menu = null; T.hunt = null; $('#tstars').hidden = false;
+  const T = toy; T.lmTour = false; T.quiz = { n: 0, miss: 0, target: null, done: new Set() }; T.menu = null; T.hunt = null; $('#tstars').hidden = false; toyHighlight(null);
   toyFlyTo(39, -97, null); goal.dist = TOY_R * 2.35; speak(SAY.statesIn); setTimeout(() => { if (toy.quiz && mode === 'toy') toyQuizNext(); }, 5500); nav();
 }
 function toyQuizNext(){
@@ -3604,6 +3620,11 @@ function toyQuizTap(st){
   if (q.miss === 2) { const t = TOY_STATES.find(s => s.name === q.target), tg = q.target; setTimeout(() => { if (toy.quiz === q && q.target === tg) { toyHighlight(t, 'rgba(255,209,102,.55)'); toyShowState(tg); } }, 1600); }   // a golden hint
   if (q.miss >= 3) { const t = TOY_STATES.find(s => s.name === q.target); toyHighlight(t); toyFlyTo(t.c[0], t.c[1], null); goal.dist = TOY_R * 2.2; speak(SAY.statesHere); q.target = null; setTimeout(() => { if (toy.quiz === q && mode === 'toy') toyQuizNext(); }, 6500); }
   else speak(SAY.statesTry);
+}
+function statesDeclutter(){   // while playing States: only the globe, lights, stars and landmarks are drawn (trees, towns, cars, clouds step aside for the frame)
+  const T = toy; if (sceneMode !== 'toy' || !T || !T.quiz) return [];
+  if (!T.keepClean) T.keepClean = new Set([...T.s.children.slice(0, 3), T.stars, T.lms, ...T.s.children.filter(o => o.isLight || o.type === 'Object3D')]);
+  const hid = []; for (const o of T.s.children) if (o.visible && !T.keepClean.has(o)) { o.visible = false; hid.push(o); } return hid;
 }
 function toyQuizEnd(){ const T = toy; T.quiz = null; $('#tstars').hidden = !T.hunt; toyHighlight(null); $('#pill').textContent = 'Explorer Earth'; nav(); }
 
@@ -3651,7 +3672,13 @@ function countryAt(lat, lon){
 // the world's big deserts, as soft ellipses [lat, lon, lat radius, lon radius]: painted sandy, with cacti instead of trees
 const DESERTS = [[23, 10, 8, 22], [23, 47, 7, 9], [43, 105, 4, 10], [-25, 132, 6, 12], [-23, 21, 4, 5], [33, -113, 3.5, 4], [-24, -69.5, 4, 1.2], [27, 71, 2.5, 3], [39, 83, 2, 6]];
 function desertK(lat, lon){ let k = 0; for (const [la, lo, rla, rlo] of DESERTS) { const e = Math.hypot((lat - la) / rla, (lon - lo) / rlo); if (e < 1.4) k = Math.max(k, sst(1.15, .7, e + (fbm2(lon / 3, lat / 3, 3) - .5) * .5)); } return k; }
-const TOY_ROADS = [['New York', 'Chicago'], ['Chicago', 'Los Angeles'], ['Chicago', 'Houston'], ['New York', 'Toronto'], ['Los Angeles', 'Houston'],
+// three real U.S. interstates, roughly along their routes through the cities they pass (waypoints [lat, lon])
+const US_INTERSTATES = {
+  'I-80': [[37.77, -122.42], [38.58, -121.49], [39.53, -119.81], [40.76, -111.89], [41.14, -104.82], [40.81, -96.7], [41.26, -95.94], [41.59, -93.62], [41.88, -87.63], [41.65, -83.54], [41.5, -81.69], [41, -77.5], [40.71, -74]],
+  'I-10': [[34.05, -118.24], [33.45, -112.07], [32.22, -110.97], [31.76, -106.49], [29.42, -98.49], [29.76, -95.37], [30.45, -91.15], [29.95, -90.07], [30.69, -88.04], [30.44, -84.28], [30.33, -81.66]],
+  'I-95': [[25.76, -80.19], [26.71, -80.05], [30.33, -81.66], [32.08, -81.09], [37.54, -77.44], [38.91, -77.04], [39.29, -76.61], [39.95, -75.17], [40.71, -74], [42.36, -71.06]],
+};
+const TOY_ROADS = [...Object.values(US_INTERSTATES), ['New York', 'Toronto'],
   ['Bogotá', 'Lima'], ['Lima', 'São Paulo'], ['São Paulo', 'Buenos Aires'], ['Paris', 'Madrid'], ['Paris', 'Berlin'], ['Berlin', 'Moscow'], ['Paris', 'Rome'], ['Istanbul', 'Tehran'], ['Tehran', 'Delhi'],
   ['Delhi', 'Mumbai'], ['Delhi', 'Beijing'], ['Beijing', 'Shanghai'], ['Cairo', 'Nairobi'], ['Nairobi', 'Johannesburg'], ['Lagos', 'Nairobi']];
 // mountain ranges as ridge lines [lat, lon] with a height (in toy units)
@@ -3743,7 +3770,7 @@ function buildToy(){
   // the highways (city to city along great circles), known up front so nothing is built on top of them
   const cityLL = Object.fromEntries(TOY_CITIES.map(([n, la, lo]) => [n, [la, lo]]));
   const arcLL = (a, b) => { const A = featDir(...a), B = featDir(...b), ang = A.angleTo(B), n = Math.ceil(ang / DEG * 2.4) + 6, out = []; for (let i = 0; i <= n; i++) out.push(ll(A.clone().multiplyScalar(Math.sin((1 - i / n) * ang)).add(B.clone().multiplyScalar(Math.sin(i / n * ang))).normalize())); return out; };
-  const roadLL = TOY_ROADS.map(([a, b]) => arcLL(cityLL[a], cityLL[b]));
+  const roadLL = TOY_ROADS.map(r => typeof r[0] === 'string' ? arcLL(cityLL[r[0]], cityLL[r[1]]) : r.slice(1).reduce((pts, q, i) => pts.concat(arcLL(r[i], q).slice(i ? 1 : 0)), []));   // city pairs, or an interstate's waypoints
   const nearRoad = (la, lo, dmax) => roadLL.some(pts => { for (let i = 0; i < pts.length - 1; i++) if (Math.abs(pts[i][0] - la) < 8 && segD(la, lo, pts[i], pts[i + 1]) < dmax) return true; return false; });
   // --- forests ---
   const pineG = mergeGeometries([new THREE.ConeGeometry(.5, 1.3, 7).translate(0, 1, 0), new THREE.CylinderGeometry(.12, .15, .5, 6).translate(0, .25, 0)]);
@@ -4057,30 +4084,40 @@ function flyMission(){   // pick somewhere new, not too close, and point the way
 }
 const FLY_STAMPS = new Set((() => { try { return JSON.parse(localStorage.getItem('ast-flystamps') || '[]'); } catch { return []; } })());
 const inkChild = (m, w) => { const o = new THREE.Mesh(m.geometry, inkMat(w)); o.raycast = () => {}; m.add(o); return m; };   // outline that moves with its mesh
+function miniAmelia(k){   // the same Amelia as everywhere else, small enough to ride in her plane, car and boat
+  const a = makeAmelia('play'); a.scale.setScalar(k); a.traverse(o => { if (o.isMesh) o.castShadow = false; }); return a;
+}
+function riderStep(F, dt, t){   // her hair streams back with speed; she waves at famous places
+  const T = toy, v = F.kind === 'car' ? (T.boat.visible ? T.boat : T.car) : T.flyer, am = v && v.userData.am; if (!am) return;
+  animAmelia(am, dt, t); const P = am.userData.parts, sp = F.v / (F.vMax || 1); P.hairBack.rotation.x = -.15 - .75 * sp + Math.sin(t * 9) * .06 * sp; P.head.rotation.y = F.sx * -.35;
+  if (F.near && F.near !== F.wavedAt) { F.wavedAt = F.near; waveAmelia(am, 2.5); }
+}
 function buildFlyer(){
   const T = toy, g = new THREE.Group(), part = (geo, c, x, y, z) => { const m = new THREE.Mesh(geo, toyToon(c)); m.position.set(x, y, z); g.add(m); return m; };
   part(new THREE.CapsuleGeometry(.05, .2, 4, 12).rotateX(Math.PI / 2), '#ff4d6d', 0, 0, 0);                  // body
   part(new THREE.BoxGeometry(.44, .016, .09), '#ffd166', 0, -.005, .02);                                    // wings
   part(new THREE.BoxGeometry(.16, .012, .05), '#ffd166', 0, .01, -.14); part(new THREE.BoxGeometry(.012, .08, .06), '#ff4d6d', 0, .045, -.14);
-  part(new THREE.SphereGeometry(.042, 16, 10), '#9fe6ff', 0, .045, .03).scale.set(1, .8, 1.3);               // bubble canopy
-  part(new THREE.SphereGeometry(.024, 12, 8), '#f1c9a5', 0, .05, .035);                                     // the pilot
+  const ws = part(new THREE.PlaneGeometry(.07, .035), '#bfefff', 0, .06, .075); ws.rotation.x = -.5; ws.material.transparent = true; ws.material.opacity = .5; ws.material.side = THREE.DoubleSide;   // little windscreen: an open cockpit
   const prop = part(new THREE.BoxGeometry(.16, .018, .008), '#5b4630', 0, 0, .16); g.userData.prop = prop;
   [...g.children].forEach(o => inkChild(o, .012));
+  const am = miniAmelia(.14); am.position.set(0, -.02, .02); g.add(am); g.userData.am = am;   // Amelia flying her plane
   const trail = []; for (let i = 0; i < 14; i++) { const p = new THREE.Mesh(new THREE.SphereGeometry(.02, 8, 6), new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: .8 })); T.s.add(p); trail.push(p); }
   g.userData.trail = trail; T.s.add(g); return g;
 }
 function buildCarBoat(){
   const T = toy, part = (g, geo, c, x, y, z) => { const m = new THREE.Mesh(geo, toyToon(c)); m.position.set(x, y, z); g.add(m); return m; };
   const car = new THREE.Group(), wheels = [];
-  part(car, new RoundedBoxGeometry(.15, .06, .26, 3, .025), '#ff5fa2', 0, .05, 0); part(car, new RoundedBoxGeometry(.12, .055, .12, 3, .02), '#9fe6ff', 0, .1, -.02);
-  part(car, new THREE.SphereGeometry(.02, 10, 8), '#f1c9a5', 0, .12, -.01);                       // the driver
+  part(car, new RoundedBoxGeometry(.15, .06, .26, 3, .025), '#ff5fa2', 0, .05, 0);   // an open-top convertible
+  part(car, new RoundedBoxGeometry(.12, .03, .025, 2, .01), '#fff4f8', 0, .09, -.075);   // a low seat back
+  const ws = part(car, new THREE.PlaneGeometry(.12, .04), '#bfefff', 0, .1, .055); ws.rotation.x = -.45; ws.material.transparent = true; ws.material.opacity = .5; ws.material.side = THREE.DoubleSide;
   for (const [x, z] of [[-.075, .08], [.075, .08], [-.075, -.08], [.075, -.08]]) { const w = part(car, new THREE.CylinderGeometry(.032, .032, .025, 16).rotateZ(Math.PI / 2), '#2b2b3a', x, .03, z); wheels.push(w); }
   for (const x of [-.045, .045]) part(car, new THREE.SphereGeometry(.013, 8, 6), '#fff6b0', x, .06, .13);
   [...car.children].forEach(o => inkChild(o, .01)); car.userData.wheels = wheels;
+  const cam = miniAmelia(.2); cam.position.set(0, -.035, -.02); car.add(cam); car.userData.am = cam;   // Amelia at the wheel, head and shoulders out in the wind
   const boat = new THREE.Group();
   part(boat, new THREE.CylinderGeometry(.09, .06, .07, 4, 1).rotateY(Math.PI / 4).scale(1, 1, 1.9), '#ffffff', 0, .025, 0); part(boat, new THREE.BoxGeometry(.16, .015, .3), '#ff4d6d', 0, .058, 0);
-  part(boat, new RoundedBoxGeometry(.1, .06, .09, 2, .02), '#9fe6ff', 0, .09, -.03); part(boat, new THREE.SphereGeometry(.02, 10, 8), '#f1c9a5', 0, .13, -.03);
   [...boat.children].forEach(o => inkChild(o, .01));
+  const bam = miniAmelia(.2); bam.position.set(0, -.04, -.03); boat.add(bam); boat.userData.am = bam;   // in a little open boat
   T.s.add(car, boat); car.visible = boat.visible = false; T.car = car; T.boat = boat;
 }
 function flyRingSet(){   // five gold rings ahead of the plane on a gentle curve
@@ -4254,11 +4291,11 @@ function updateFly(dt, t){
     const wn = whereName(la, lo); if (!F.where) F.where = wn; if (wn !== F.whereNext) { F.whereNext = wn; F.whereHold = 0; } else if ((F.whereHold += .5) >= 1) F.where = wn;   // a new name must hold for a second, so the title doesn't flicker at coasts
     if (k !== F.region) { F.region = k; F.regionT = 0; } else if ((F.regionT += .5) === 1.5 && F.lastSaid !== k && performance.now() - (F.saidAt || 0) > 7000 && !F.near && !F.landed) { F.lastSaid = k; F.saidAt = performance.now(); speak(REGIONS[k][4]); }
     if (!F.near && !F.landed) $('#pill').textContent = '📍 ' + F.where; }
-  miniMap(la, lo, t);
+  miniMap(la, lo, t); riderStep(F, dt, t);
   { const gc = $('#goalchip'), m = F.mission; gc.hidden = !m || !!F.landed;   // the goal's picture, with an arrow that turns toward it on screen
     if (m) { gc.querySelector('.ge').textContent = m.lm ? m.lm.em : ANIMAL_EM[m.an] || '🎯'; gc.style.borderColor = m.daily ? '#ffd166' : '#4ade80';
       const gd = featDir(m.lat, m.lon), to = gd.clone().addScaledVector(F.p, -gd.dot(F.p)).normalize(), side = F.p.clone().cross(F.f).normalize();
-      const ang = Math.atan2(-to.dot(side), to.dot(F.f)); gc.querySelector('.ga').style.transform = `rotate(${(-Math.PI / 2 + ang) * 180 / Math.PI}deg)`;   // ➤ points right at 0°: straight ahead is up
+      const ang = Math.atan2(-to.dot(side), to.dot(F.f)); let deg = (-Math.PI / 2 + ang) * 180 / Math.PI; const prev = F.chipDeg ?? deg; deg += Math.round((prev - deg) / 360) * 360; F.chipDeg = deg; gc.querySelector('.ga').style.transform = `rotate(${deg}deg)`;   // keep the angle continuous, so it never spins the long way round when the goal passes behind   // ➤ points right at 0°: straight ahead is up
       const dist = gd.angleTo(F.p), band = dist < .2 ? 3 : dist < .4 ? 2 : dist < .8 ? 1 : 0; if (band > (m.band || 0)) { m.band = band; tone(660 + band * 220, .18, 'sine', .08); }
       if ((m.t += dt) > 30 && !F.near) { m.t = 0; speak(missionLine(m), true); } } }
   // famous places: close and low enough to land
@@ -4278,6 +4315,7 @@ function updateFly(dt, t){
     const goalDir = featDir(F.mission.lat, F.mission.lon), to = goalDir.clone().addScaledVector(F.p, -goalDir.dot(F.p)).normalize();
     ar.position.copy(pos).addScaledVector(F.f, .45).addScaledVector(F.p, .2 + Math.sin(t * 5) * .015); orientTo(ar.quaternion, F.p, to);
     if (goalDir.angleTo(F.p) < .07) { const m = F.mission; F.mission = null; F.missionT = 0; F.missions = (F.missions || 0) + 1; F.score += 50; chime(); flyHud(true);
+      { const v = F.kind === 'car' ? (T.boat.visible ? T.boat : T.car) : T.flyer; if (v && v.userData.am) waveAmelia(v.userData.am, 3); }   // she cheers at every finished mission
       if (m.an) { const k = m.an; (ANIMAL_SFX[k] || pop)(); if (k === 'volcano') toyErupt(); const md = F.kind === 'car' ? SAY.missionDoneCar : SAY.missionDone; speak([md, ANIMALS[k][2]]); } else speak(F.kind === 'car' ? SAY.missionDoneCar : SAY.missionDone);
       if (m.daily) { try { localStorage.setItem('ast-daily', todayKey()); } catch {} award('daily'); setTimeout(() => speak(SAY.dailyDone), 7000); }
       if (F.missions % 3 === 0) award('missions'); if (m.lm) F.saidNear.add(m.lm.id); flyConfetti(pos); }
@@ -5296,7 +5334,7 @@ const flyNear = (F, d) => { const ax = F.p.clone().cross(d).normalize(), a = F.p
 window.__flyGoal = () => { const F = toy.fly, m = F.mission; flyNear(F, featDir(m.lat, m.lon)); };
 window.__fly = () => { const F = toy && toy.fly; return F && { v: +(F.v / F.vMax).toFixed(2), air: !!F.air, jumps: toy.jumps || 0, kind: F.kind, where: F.where, boat: !!(toy.boat && toy.boat.visible), missions: F.missions || 0, alt: +F.alt.toFixed(2), score: F.score, combo: F.combo, best: F.best, near: F.near && F.near.id, landed: F.landed && F.landed.id, stamps: FLY_STAMPS.size }; };
 window.__rampAhead = () => { const F = toy.fly, r = toy.ramps && toy.ramps.find(r => !r.used && r.g.visible); if (!r) return false; const ax = F.p.clone().cross(r.p).normalize(), a = F.p.angleTo(r.p) - .03; F.p.applyAxisAngle(ax, a).normalize(); F.f.copy(r.p).addScaledVector(F.p, -r.p.dot(F.p)).normalize(); return true; };
-window.__flyAlt = a => { toy.fly.alt = a; }; window.__aurora = () => toy && toy.wild ? +Math.max(...toy.wild.aurora.map(a => a.m.visible ? a.m.material.opacity : 0)).toFixed(2) : null; window.__flyToLL = (la, lo) => flyNear(toy.fly, featDir(la, lo)); window.__pets = () => toy && toy.animals ? Object.keys(toy.animals).filter(k => toy.animals[k].userData.pet) : null; window.__camLL = () => toy.ll(camera.position.clone().normalize()).map(v => +v.toFixed(1)); window.__flyLL = () => toy.fly && toy.ll(toy.fly.p).map(v => +v.toFixed(1)); window.__wild = () => toy.wild ? [...toy.wild.seen] : null;
+window.__flyAlt = a => { toy.fly.alt = a; }; window.__arrowCheck = () => { const F = toy.fly, ar = toy.flyArrow; if (!F || !ar || !ar.visible) return null; ar.updateMatrixWorld(); const a = ar.localToWorld(new THREE.Vector3(0, 0, -.05)).project(camera), b = ar.localToWorld(new THREE.Vector3(0, 0, .15)).project(camera), scr = Math.atan2(-(b.y - a.y) * H, (b.x - a.x) * W) * 180 / Math.PI, chip = ((F.chipDeg % 360) + 540) % 360 - 180; return { scr: Math.round(scr), chip: Math.round(chip) }; }; window.__toyInv = () => ({ keys: Object.keys(toy).join(' '), kids: toy.s.children.map((o, i) => { const k = Object.entries(toy).find(([n, v]) => v === o || (Array.isArray(v) && v.includes(o))); return i + ':' + (k ? k[0] : '?') + ':' + o.type + (o.isInstancedMesh ? '#' + o.count : '') + (o.material && o.material.color ? '#' + o.material.color.getHexString() : ''); }).join(' ') }); window.__aurora = () => toy && toy.wild ? +Math.max(...toy.wild.aurora.map(a => a.m.visible ? a.m.material.opacity : 0)).toFixed(2) : null; window.__flyToLL = (la, lo) => flyNear(toy.fly, featDir(la, lo)); window.__pets = () => toy && toy.animals ? Object.keys(toy.animals).filter(k => toy.animals[k].userData.pet) : null; window.__camLL = () => toy.ll(camera.position.clone().normalize()).map(v => +v.toFixed(1)); window.__flyLL = () => toy.fly && toy.ll(toy.fly.p).map(v => +v.toFixed(1)); window.__wild = () => toy.wild ? [...toy.wild.seen] : null;
 window.__speak = (k) => speak(SAY[k]); window.__sayKeys = () => Object.keys(SAY);
 window.__marsFrame = () => { const who = roverAm || rover; if (!who) return null; const v = who.getWorldPosition(new THREE.Vector3()).project(camera); return { feet: Math.round((1 - v.y) / 2 * H), pad: Math.round($('#drive .pad').getBoundingClientRect().top) }; };
 window.__girl2d = () => { const c = document.createElement('canvas'); c.width = 240; c.height = 260; const g = c.getContext('2d'); g.fillStyle = '#20183f'; g.fillRect(0, 0, 240, 260); drawGirl(g, 60, 230, 2, false, 1, false); drawGirl(g, 180, 230, 2, true, 1, false); return c.toDataURL(); };
@@ -5346,7 +5384,9 @@ function frame(now){
   else if (sceneMode === 'site') { const n = site ? site.night : 0; bloom.threshold = 3 - 1.8 * n; bloom.strength = .3 + .4 * n; bloom.radius = .5; }
   else { bloom.threshold = 3 - 1.6 * nightT; bloom.strength = .3 + .35 * nightT; bloom.radius = .45; }
   renderer.setScissorTest(false); renderer.setViewport(0, 0, W, H);
+  const hid = statesDeclutter();
   if (quality.bloom) { renderPass.scene = scene; composer.render(dt); } else renderer.render(scene, camera);
+  hid.forEach(o => { o.visible = true; });
   if (meltSnap) { meltSnap(); meltSnap = null; }
   if (sceneMode === 'site' && !$('#amcard').hidden) {
     const r = $('#amcard').getBoundingClientRect(), x = r.left + 3, y = H - r.bottom + 3, w = r.width - 6, h = r.height - 6;
