@@ -1,6 +1,7 @@
 // Explorer Earth: fly the plane, steer, reach the Eiffel Tower, land for a stamp, take off, Back stops flying.
 module.exports=async({pg,S,W})=>{const f=()=>pg.evaluate(()=>window.__fly());
-await pg.click('#go');await W(2000);await pg.click('.th[data-id="earth"]');await W(10000);
+await pg.click('#go');await W(2000);await pg.click('.th[data-id="earth"]');await W(2500);await pg.click('.th[data-id="earth"]');   // tap Earth, then tap it again to open Explorer Earth
+await W(10000);
 await pg.click('#actions >> text=Fly!');await W(3000);await S('f0_start');console.log('start',JSON.stringify(await f()));
 await W(4000);await S('f1_rings');console.log('4s',JSON.stringify(await f()));
 // steer: drag right and up

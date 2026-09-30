@@ -1,0 +1,7 @@
+// Tapping Earth only flies to it (she can spin it); a second tap, or zooming right in, opens Explorer Earth; Planets goes back to the solar system.
+module.exports=async({pg,S,W})=>{const st=()=>pg.evaluate(()=>window.__toyState());await pg.click('#go');await W(2000);
+await pg.click('.th[data-id="earth"]');await W(9000);let s=await st();await S('et0_focus');console.log('after one tap',s.mode);if(s.mode==='toy')throw new Error('one tap opened Explorer Earth');
+await pg.mouse.move(206,380);await pg.mouse.down();await pg.mouse.move(300,380,{steps:6});await pg.mouse.up();await W(1500);s=await st();console.log('after spinning',s.mode);if(s.mode!=='focus')throw new Error('spinning Earth left the Earth view');
+await pg.click('.th[data-id="earth"]');await W(9000);s=await st();await S('et1_toy');console.log('after second tap',s.mode);if(s.mode!=='toy')throw new Error('second tap did not open Explorer Earth');
+await pg.click('#actions >> text=Planets');await W(8000);s=await st();await S('et2_planets');console.log('after Planets',s.mode);if(s.mode==='toy')throw new Error('Planets did not leave Explorer Earth');
+await pg.click('.th[data-id="mars"]');await W(6000);await pg.click('.th[data-id="earth"]');await W(8000);for(let i=0;i<30&&(await st()).mode!=='toy';i++){await pg.mouse.move(206,380);await pg.mouse.wheel(0,-400);await W(400);}await W(6000);s=await st();console.log('after zooming in',s.mode);if(s.mode!=='toy')throw new Error('zooming in did not open Explorer Earth');};

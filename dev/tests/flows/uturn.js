@@ -1,5 +1,6 @@
 // Mission goal behind the plane: with hands off, the plane turns until the goal is in front; 2 quick Backs keep the app.
-module.exports=async({pg,S,W})=>{await pg.click('#go');await W(2000);await pg.click('.th[data-id="earth"]');await W(10000);
+module.exports=async({pg,S,W})=>{await pg.click('#go');await W(2000);await pg.click('.th[data-id="earth"]');await W(2500);await pg.click('.th[data-id="earth"]');   // tap Earth, then tap it again to open Explorer Earth
+await W(10000);
 await pg.click('#actions >> text=Fly!');await W(3000);await pg.evaluate(()=>window.__mission());await W(500);let a=await pg.evaluate(()=>window.__goalAng());
 console.log('goal ang at start',a);
 await pg.evaluate(()=>window.__flyFlip());await W(300);const a0=await pg.evaluate(()=>window.__goalAng());await S('ut0');

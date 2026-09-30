@@ -1,5 +1,6 @@
 module.exports=async({pg,S,W})=>{const st=()=>pg.evaluate(()=>window.__toyState());
-await pg.click('#go');await W(3000);await pg.click('.th[data-id="earth"]');await W(11000);await S('t2_far');console.log('far',JSON.stringify(await st()));
+await pg.click('#go');await W(3000);await pg.click('.th[data-id="earth"]');await W(2500);await pg.click('.th[data-id="earth"]');   // tap Earth, then tap it again to open Explorer Earth
+await W(11000);await S('t2_far');console.log('far',JSON.stringify(await st()));
 // tap the middle of the planet: fly + name
 await pg.mouse.click(206,330);await W(6000);await S('t2_tap1');console.log('tap1',JSON.stringify(await st()));
 await pg.click('#tzin');await W(6000);await S('t2_zoomin');console.log('zoomin',JSON.stringify(await st()));

@@ -1,5 +1,6 @@
 // Explorer Earth discoveries: the Hawaiian volcano erupts when tapped; zebra and bison herds; the Kennedy rocket lifts off.
-module.exports=async({pg,S,W})=>{await pg.click('#go');await W(2000);await pg.click('.th[data-id="earth"]');await W(11000);
+module.exports=async({pg,S,W})=>{await pg.click('#go');await W(2000);await pg.click('.th[data-id="earth"]');await W(2500);await pg.click('.th[data-id="earth"]');   // tap Earth, then tap it again to open Explorer Earth
+await W(11000);
 await pg.click('#tstrip >> text=Africa');await W(3000);await pg.evaluate(()=>window.__toyGo&&window.__toyGo(-2.3,34.8,2));await W(9000);await S('ds_zebra');
 let p=await pg.evaluate(()=>window.__toyScr('animal','zebra'));console.log('zebra',p);if(p[2]){await pg.mouse.click(p[0],p[1]);await W(2500);}
 await pg.evaluate(()=>window.__toyGo(19.4,-155.3,2));await W(22000);p=await pg.evaluate(()=>window.__toyScr('animal','volcano'));console.log('volcano',p);

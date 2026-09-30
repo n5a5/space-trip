@@ -1,0 +1,6 @@
+// Audio audit: engine sound stops after leaving Fly/Drive; mute silences everything; no voice keeps playing after Back to the start.
+module.exports=async({pg,W})=>{const a=()=>pg.evaluate(()=>window.__audioState());await pg.click('#go');await W(2500);await pg.click('.th[data-id="earth"]');await W(2500);await pg.click('.th[data-id="earth"]');await W(8000);
+await pg.click('#actions >> text=Fly!');await W(3000);const on=await a();console.log('flying',JSON.stringify(on));
+await pg.goBack();let off;for(let i=0;i<40;i++){await W(500);off=await a();if(off.engine<=0.002&&off.noise<=0.002)break;}console.log('after stop',JSON.stringify(off));if(off.engine>0.002||off.noise>0.002)throw new Error('engine still running after Stop: '+JSON.stringify(off));
+await pg.click('#actions >> text=Drive!');await W(3000);await pg.goBack();let off2;for(let i=0;i<40;i++){await W(500);off2=await a();if(off2.engine<=0.002&&off2.noise<=0.002)break;}console.log('after drive',JSON.stringify(off2));if(off2.engine>0.002||off2.noise>0.002)throw new Error('engine still running after Drive stop');
+const v=await pg.evaluate(()=>{const e=[...document.querySelectorAll('audio')];return e.length});console.log('audio elements in DOM',v);};

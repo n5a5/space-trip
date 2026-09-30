@@ -375,6 +375,8 @@ const SAY = {
   flyAll: "You've landed at every famous place! You're a world explorer!",
   missionDone: "Mission complete! Great job, pilot!",
   missionDoneCar: "Mission complete! Great job, driver!",
+  hover: "We're hovering! Let go to fly again.",
+  carStop: "We stopped! Let go to drive again.",
   tapStop: "Tap again to stop.",
   nightHere: "It's nighttime here! The sun is shining on the other side of the Earth. See the town lights?",
   driveIn: "Vroom! You're driving! Drag your finger to steer. You can drive anywhere, even into the ocean!",
@@ -491,7 +493,7 @@ function pickVoice(){
 if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 // Every line is pre-recorded (Kokoro-82M, voice af_heart, the same voice as Princess Quest) and embedded below;
 // anything missing falls back to the phone's own text-to-speech.
-const APP_VERSION = 'space-v21';
+const APP_VERSION = 'space-v22';
 let VOICE = {};
 // grown-up settings, kept on this phone
 const prefs = { rate: 1, vol: 1, captions: true }; try { Object.assign(prefs, JSON.parse(localStorage.getItem('ast-prefs') || '{}')); } catch {}
@@ -2566,7 +2568,7 @@ function nav(){
     if (current === moon || current.id === 'sun') acts.append(btn('🌑', 'Eclipse', openEclipse, 'hero'));
     if (current.id === 'mars') acts.append(btn('🚗', 'Drive on Mars', () => enterMars('mars'), 'hero'));
     if (current.id === 'moon') acts.append(btn('🧑‍🚀', 'Walk on the Moon', () => enterMars('moon'), 'hero'));
-    if (current === earth) acts.append(btn('🌍', 'Around the world', () => enterToy(null, { tour: 0 }), 'gold'), btn('🏡', 'Fly home', flyHome, 'hero'));
+    if (current === earth) acts.append(btn('🗺️', 'Explore Earth', () => enterToy(), 'hero'), btn('🌍', 'Around the world', () => enterToy(null, { tour: 0 }), 'gold'), btn('🏡', 'Fly home', flyHome));
   }
   if (mode === 'eclipse') acts.append(btn('🌙', 'Back to Moon', closeEclipse, 'hero'));
   if (mode === 'mars') acts.append(btn('🪐', 'Back to space', leaveMars, 'hero'));
@@ -2590,6 +2592,7 @@ function nav(){
       acts.append(btn('✈️', 'Fly!', () => toyFly('plane'), 'hero'), btn('🚗', 'Drive!', () => toyFly('car'), 'hero'));
       if (T.hunt) acts.append(btn('💡', 'Hint', toyHint, 'hero')); acts.append(btn('🎮', 'Games', () => { T.menu = 'games'; nav(); }, 'gold'), btn('🏛️', 'Places', () => toyLmTour(T.lmI || 0), 'gold'));
       acts.append(btn('🧱', 'Build', () => { T.menu = 'build'; if (goal.dist > TOY_LEVELS[2] + .1) goal.dist = TOY_LEVELS[2]; speak(SAY.toyBuildIn); nav(); }, 'gold'));
+      acts.append(btn('🪐', 'Planets', () => leaveToy(), 'gold'));   // back to the solar system, with every planet one tap away
       acts.append(btn('📷', 'Real Earth', async () => { await setStyle('real'); if (mode === 'toy') leaveToy(); }));
     }
   }
@@ -2652,7 +2655,7 @@ canvas.addEventListener('pointermove', e => {
     const na = clamp(goal.az - dx * .007 * sens, goal.azMin, goal.azMax); rig.az += na - goal.az; goal.az = na;
     const ne = clamp(goal.el + dy * .005 * sens, goal.elMin, goal.elMax); rig.el += ne - goal.el; goal.el = ne;
   } else if (ptrs.size === 2 && pinch) {
-    const [a, b] = [...ptrs.values()]; goal.dist = clamp(pinch.g * pinch.d / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), goal.min, goal.max);
+    const [a, b] = [...ptrs.values()], sp = Math.hypot(a.x - b.x, a.y - b.y); goal.dist = clamp(pinch.g * pinch.d / Math.max(20, sp), goal.min, goal.max); zoomIntoEarth(sp > pinch.d * 1.15);
   }
 });
 function up(e){
@@ -2662,7 +2665,7 @@ function up(e){
   if (had && !moved && ptrs.size === 0 && e.type === 'pointerup') tap(e.clientX, e.clientY);
 }
 canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
-canvas.addEventListener('wheel', e => { e.preventDefault(); goal.dist = clamp(goal.dist * (1 + e.deltaY * (mode === 'toy' ? .0025 : .001)), goal.min, goal.max); }, { passive: false });
+canvas.addEventListener('wheel', e => { e.preventDefault(); goal.dist = clamp(goal.dist * (1 + e.deltaY * (mode === 'toy' ? .0025 : .001)), goal.min, goal.max); zoomIntoEarth(e.deltaY < 0); }, { passive: false });
 function tap(x, y){
   audio()?.resume?.();
   ndc.set(x / W * 2 - 1, -(y / H) * 2 + 1); ray.setFromCamera(ndc, camera);
@@ -4022,10 +4025,13 @@ function leaveToy(){
     setTimeout(() => { if (my === seq && mode === 'focus' && current === earth) earthSpinGoal = null; }, 5000);
   });
 }
-function openPlanet(p){   // in Cartoon mode, Earth opens as Explorer Earth: fly to it, then melt into the map
+let earthAt = 0, saidEarthTap = false;
+SAY.earthTap = "Tap Earth again, or zoom in, to go exploring!";
+const zoomIntoEarth = inward => { if (inward && mode === 'focus' && current === earth && style !== 'real' && goal.dist <= goal.min * 1.03) enterToy(); };   // zooming right in on Earth opens Explorer Earth
+function openPlanet(p){   // Earth: the first tap flies to it (spin it around); tap it again, double-click or zoom right in to open Explorer Earth
   if (p === earth && style !== 'real') {
-    if (mode === 'focus' && current === earth) return enterToy();
-    focus(earth, true); const my = seq; setTimeout(() => { if (my === seq && mode === 'focus' && current === earth) enterToy(); }, 1400); return;
+    if (mode === 'focus' && current === earth && performance.now() - earthAt > 350) return enterToy();
+    focus(earth, true); earthAt = performance.now(); if (!saidEarthTap) { saidEarthTap = true; setTimeout(() => { if (mode === 'focus' && current === earth) speak(SAY.earthTap, true); }, 2600); } return;
   }
   if (p === current) moreFact(); else focus(p);
 }
@@ -4198,6 +4204,10 @@ function toyTakeOff(){ const F = toy.fly; if (!F) return; F.landed = null; F.lan
 function updateFly(dt, t){
   const T = toy, F = T.fly, R = TOY_R, pl = T.flyer;
   const [la, lo] = T.ll(F.p), ground = Math.max(.03, T.h(la, lo));
+  if (!F.landed && !F.air) {   // holding down brakes the car to a stop, or slows the plane to a hover; let go to go again
+    const hold = F.sy < -.3; F.v += ((hold ? 0 : F.vMax) - F.v) * (1 - Math.exp(-dt * (hold ? 3 : 1.6)));
+    if (hold && F.v < .15 && !F.saidHover) { F.saidHover = true; speak(F.kind === 'car' ? SAY.carStop : SAY.hover, true); }
+  }
   if (F.landed) {   // glide down to the landmark and roll to a stop
     const c0 = featDir(F.landed.lat, F.landed.lon), lg = T.lms.children.find(o => o.userData.lm === F.landed), foot = lg ? Math.min(.05, lmHeight(lg) * (F.kind === 'car' ? .42 : 1.1) * .3 / R) : 0,   // bigger landmarks: set down a little farther away
       d = F.landSpot || (F.landSpot = c0.clone().applyAxisAngle(c0.clone().cross(F.f).normalize(), -((F.kind === 'car' ? .035 : .05) + foot))); F.landT = Math.min(1, F.landT + dt * .6);
@@ -4225,7 +4235,7 @@ function updateFly(dt, t){
   const pos = F.p.clone().multiplyScalar(R + F.alt), isCar = F.kind === 'car';
   if (isCar) { const sea = T.sea(la, lo), v = sea ? T.boat : T.car; T.car.visible = !sea; T.boat.visible = sea; orientTo(v.quaternion, F.p, F.f); v.rotateZ(-F.bank * (sea ? .5 : .15)); v.position.copy(pos); v.scale.setScalar(.6); if (!F.landed) dodge(pos, .3, camera.position);
     if (sea) v.position.addScaledVector(F.p, Math.sin(t * 3) * .008); else T.car.userData.wheels.forEach(w => { w.rotation.x += dt * F.v * 30; }); }
-  if (!isCar) { orientTo(pl.quaternion, F.p, F.f); pl.rotateZ(-F.bank); } pl.rotateX(-F.sy * .25); pl.position.copy(pos); pl.scale.setScalar(1);
+  if (!isCar) { orientTo(pl.quaternion, F.p, F.f); pl.rotateZ(-F.bank); } pl.rotateX(-F.sy * .25); pl.position.copy(pos).addScaledVector(F.p, (1 - F.v / F.vMax) * Math.sin(t * 3) * .02); pl.scale.setScalar(1);   // a gentle bob while hovering
   pl.userData.prop.rotation.z += dt * 40 * (F.v / 1.25 + .1);
   F.hist.unshift(pos.clone().addScaledVector(F.f, -.2)); F.hist.length = Math.min(F.hist.length, 60);
   if (!isCar) pl.userData.trail.forEach((m, i) => { const q = F.hist[Math.min(F.hist.length - 1, 2 + i * 3)]; m.position.copy(q); const s = F.landed ? 0 : (1 - i / 14) * (1 + i * .15); m.scale.setScalar(s); m.material.opacity = .75 * (1 - i / 14); });
@@ -5253,7 +5263,7 @@ window.__daily = () => ({ done: dailyDone(), target: (m => m.lm ? m.lm.id : m.an
 window.__mission = () => { const F = toy.fly; if (!F.mission) flyMission(); return F.mission.lm ? F.mission.lm.id : F.mission.an; };
 const flyNear = (F, d) => { const ax = F.p.clone().cross(d).normalize(), a = F.p.angleTo(d) - .1; F.p.applyAxisAngle(ax, a).normalize(); F.f.copy(d).addScaledVector(F.p, -d.dot(F.p)).normalize(); };   // test helper: just short of a spot, heading for it
 window.__flyGoal = () => { const F = toy.fly, m = F.mission; flyNear(F, featDir(m.lat, m.lon)); };
-window.__fly = () => { const F = toy && toy.fly; return F && { air: !!F.air, jumps: toy.jumps || 0, kind: F.kind, where: F.where, boat: !!(toy.boat && toy.boat.visible), missions: F.missions || 0, alt: +F.alt.toFixed(2), score: F.score, combo: F.combo, best: F.best, near: F.near && F.near.id, landed: F.landed && F.landed.id, stamps: FLY_STAMPS.size }; };
+window.__fly = () => { const F = toy && toy.fly; return F && { v: +(F.v / F.vMax).toFixed(2), air: !!F.air, jumps: toy.jumps || 0, kind: F.kind, where: F.where, boat: !!(toy.boat && toy.boat.visible), missions: F.missions || 0, alt: +F.alt.toFixed(2), score: F.score, combo: F.combo, best: F.best, near: F.near && F.near.id, landed: F.landed && F.landed.id, stamps: FLY_STAMPS.size }; };
 window.__rampAhead = () => { const F = toy.fly, r = toy.ramps && toy.ramps.find(r => !r.used && r.g.visible); if (!r) return false; const ax = F.p.clone().cross(r.p).normalize(), a = F.p.angleTo(r.p) - .03; F.p.applyAxisAngle(ax, a).normalize(); F.f.copy(r.p).addScaledVector(F.p, -r.p.dot(F.p)).normalize(); return true; };
 window.__flyAlt = a => { toy.fly.alt = a; }; window.__camLL = () => toy.ll(camera.position.clone().normalize()).map(v => +v.toFixed(1)); window.__flyLL = () => toy.fly && toy.ll(toy.fly.p).map(v => +v.toFixed(1));
 window.__speak = (k) => speak(SAY[k]); window.__sayKeys = () => Object.keys(SAY);
@@ -5269,7 +5279,7 @@ window.__goalAng = () => { const F = toy.fly, m = F && F.mission; if (!m) return
 window.__flyFlip = () => { toy.fly.f.negate(); };
 window.__flyTo = id => { const F = toy.fly, L = LM.find(l => l.id === id); flyNear(F, featDir(L.lat, L.lon)); };
 window.__stateC = n => TOY_STATES.find(s => s.name === n).c;
-window.__toyState = () => ({ tour: toy.lmTour ? LM[toy.lmI].id : null, mode, dist: +rig.dist.toFixed(2), follow: toy.follow && toy.follow.kind, hunt: toy.hunt ? toy.hunt.found.size : null, built: toy.buildList.length, pill: $('#pill').textContent });
+window.__toyState = () => !toy ? { mode, tour: null } : ({ tour: toy.lmTour ? LM[toy.lmI].id : null, mode, dist: +rig.dist.toFixed(2), follow: toy.follow && toy.follow.kind, hunt: toy.hunt ? toy.hunt.found.size : null, built: toy.buildList.length, pill: $('#pill').textContent });
 window.__proj = o => { const v = o.getWorldPosition(new THREE.Vector3()).project(camera); return [((v.x + 1) / 2 * W) | 0, ((1 - v.y) / 2 * H) | 0, v.z.toFixed(3), camera.position.toArray().map(a => a | 0)]; };
 window.__mem = () => JSON.stringify(renderer.info.memory) + " prog=" + renderer.info.programs.length;
 window.__q = quality; window.__fps = 0; window.__issScreen = () => { const v = iss.getWorldPosition(new THREE.Vector3()).project(camera); return [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H]; }; window.__ans = t => (RIDDLES.find(r => r[1] === t) || [])[0]; window.__RL = () => ({...RL, amv: amYard.visible, wt: !!amYard.userData.walkTo, pv: rocket.userData.pilot.visible});

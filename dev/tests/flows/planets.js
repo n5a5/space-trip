@@ -1,4 +1,5 @@
-module.exports=async({pg,S,W,visit})=>{await pg.click('#go');await W(1500);await pg.click('.th[data-id=\"earth\"]');await W(11000);
+module.exports=async({pg,S,W,visit})=>{await pg.click('#go');await W(1500);await pg.click('.th[data-id="earth"]');await W(2500);if(await pg.isVisible('.th[data-id="earth"]'))await pg.click('.th[data-id="earth"]');   // tap Earth; tap again unless Explorer Earth already opened
+await W(11000);
 await pg.click('#actions >> text=Places');await W(9000);await S('g_ksc');await visit('eiffel');await W(9000);await S('g_eiffel');
 await pg.click('#actions >> text=Planets');await W(2000);await pg.click('text=Line up');await W(1500);await pg.click('.pl[data-id="mercury"]');await W(500);await S('g_parade');
 await pg.click('#actions >> text=All planets');await W(1500);await pg.click('.th[data-id="moon"]');await W(4000);await pg.click('text=Jump!');await W(1500);await S('g_jump');await W(4000);
