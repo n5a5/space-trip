@@ -46,9 +46,9 @@ html,body{height:100%;overflow:hidden;background:var(--space);color:var(--ink);f
 #stamppop{position:fixed;left:50%;top:38%;width:150px;height:150px;margin-left:-75px;border-radius:50%;background:#fff;border:8px dashed #e63946;display:grid;place-items:center;font-size:84px;box-shadow:0 8px 30px #0008;pointer-events:none;animation:stampin .5s cubic-bezier(.3,1.7,.5,1)}
 @keyframes stampin{from{transform:scale(3) rotate(-30deg);opacity:0}to{transform:scale(1) rotate(-12deg);opacity:1}}
 #goalchip{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:4px 14px;border-radius:999px;background:rgba(13,11,46,.72);border:3px solid #4ade80;pointer-events:none}
-@media (max-width:700px){#goalchip{bottom:calc(env(safe-area-inset-bottom,0px) + 146px)}}   
+@media (max-width:700px){#goalchip{bottom:calc(env(safe-area-inset-bottom,0px) + 168px)}}   
 #goalchip .ge{font-size:40px;line-height:1}#goalchip .ga{font-size:34px;color:#4ade80;display:inline-block}
-#minimap{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);width:140px;height:70px;border-radius:10px;border:2px solid rgba(255,255,255,.85);box-shadow:0 2px 10px #0006;pointer-events:none}
+#minimap{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);width:140px;height:70px;border-radius:10px;border:2px solid rgba(255,255,255,.85);box-shadow:0 2px 10px #0006;pointer-events:auto;cursor:pointer}
 #flyhint{position:fixed;left:50%;top:44%;transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:rgba(13,11,46,.7);font:800 20px/1 var(--body);color:#fff;pointer-events:none;animation:flyhint 1.6s ease-in-out infinite}
 @keyframes flyhint{0%,100%{margin-left:-40px}50%{margin-left:40px}}
 #tstars{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 190px);padding:6px 12px;border-radius:999px;background:rgba(13,11,46,.75);border:2px solid rgba(255,209,102,.8);font:800 16px/1 var(--body);color:var(--ink)}
@@ -4705,7 +4705,7 @@ function toyRide(kind){
 const ANIMAL_NAME = { polarBear: 'polar bear' };
 const ANIMAL_EM = { kangaroo: '🦘', elephant: '🐘', giraffe: '🦒', panda: '🐼', polarBear: '🐻‍❄️', whale: '🐋', dolphin: '🐬', llama: '🦙', eagle: '🦅', camel: '🐪', zebra: '🦓', bison: '🦬', volcano: '🌋' };
 const roadLine = (road, end) => `Road trip mission! Drive Interstate ${road.slice(2)} all the way to ${end}! Follow the green arrow from city to city.`;
-const missionLine = m => m.road ? roadLine(m.road, m.end) : m.lm ? `Mission: fly to ${theName(m.lm)}! Follow the green arrow!` : `Mission: find the ${ANIMAL_NAME[m.an] || m.an}! Follow the green arrow!`;
+const missionLine = (m, car = !!(toy && toy.fly && toy.fly.kind === 'car')) => m.road ? roadLine(m.road, m.end) : m.lm ? `Mission: ${car ? 'drive' : 'fly'} to ${theName(m.lm)}! Follow the green arrow!` : `Mission: find the ${ANIMAL_NAME[m.an] || m.an}! Follow the green arrow!`;
 const todayKey = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
 function dailyTarget(){ const all = [...LM.map(l => ({ lm: l, lat: l.lat, lon: l.lon })), ...Object.entries(ANIMALS).map(([an, a]) => ({ an, lat: a[0], lon: a[1] }))], d = new Date(), n = d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate(); return all[(n * 7) % all.length]; }
 const dailyDone = () => { try { return localStorage.getItem('ast-daily') === todayKey(); } catch { return false; } };
@@ -4820,11 +4820,26 @@ function toyFlyStop(keepCam){
 }
 let miniBase = null, toyTried = false;
 function miniMapBase(){ if (miniBase) return; const src = toy.map, c = mkCanvas(280, 140); c.getContext('2d').drawImage(src, 0, 0, 280, 140); miniBase = c; }
+let miniWorld = false;   // the corner map: a close-up of the land around her that scrolls as she goes (tap it for the whole world)
+$('#minimap').addEventListener('click', () => { miniWorld = !miniWorld; pop(); });
 function miniMap(lat, lon, t){
-  const c = $('#minimap'), g = c.getContext('2d'), F = toy.fly, X = lo => (lo + 180) / 360 * 280, Y = la => (90 - la) / 180 * 140;
-  g.drawImage(miniBase, 0, 0);
-  if (F.mission) { const x = X(F.mission.lon), y = Y(F.mission.lat); g.font = '22px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('⭐', x, y); }
-  const x = X(lon), y = Y(lat), r = 7 + Math.sin(t * 6) * 2;
+  const c = $('#minimap'), g = c.getContext('2d'), F = toy.fly;
+  if (miniWorld) { const X = lo => (lo + 180) / 360 * 280, Y = la => (90 - la) / 180 * 140; g.drawImage(miniBase, 0, 0);
+    if (F.mission) { g.font = '22px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('⭐', X(F.mission.lon), Y(F.mission.lat)); }
+    return miniDot(g, X(lon), Y(lat), t); }
+  const WD = 70, HD = 35, cla = clamp(lat, -90 + HD / 2, 90 - HD / 2), M = toy.map, mw = M.width, mh = M.height;   // a window about a continent wide, centred on her
+  const sx = ((lon - WD / 2 + 180) / 360) * mw, sy = (90 - cla - HD / 2) / 180 * mh, sw = WD / 360 * mw, sh = HD / 180 * mh;
+  g.fillStyle = '#2a7fd4'; g.fillRect(0, 0, 280, 140);
+  for (const off of [-mw, 0, mw]) { const x0 = sx + off; if (x0 + sw <= 0 || x0 >= mw) continue; const a = Math.max(0, x0), b = Math.min(mw, x0 + sw); g.drawImage(M, a, sy, b - a, sh, (a - x0) / sw * 280, 0, (b - a) / sw * 280, 140); }   // wraps across the date line
+  const X = lo => { let d = lo - lon; d -= Math.round(d / 360) * 360; return 140 + d / WD * 280; }, Y = la => 70 - (la - cla) / HD * 140;
+  if (F.mission) { const mx = X(F.mission.lon), my = Y(F.mission.lat);
+    if (mx > 10 && mx < 270 && my > 10 && my < 130) { g.font = '24px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('⭐', mx, my); }
+    else { const px = X(lon), py = Y(lat), a = Math.atan2(my - py, mx - px), k = Math.min(126 / Math.max(1e-6, Math.abs(Math.cos(a))), 56 / Math.max(1e-6, Math.abs(Math.sin(a))));   // off the map: an arrow at the edge points the way
+      g.save(); g.translate(px + Math.cos(a) * k, py + Math.sin(a) * k); g.rotate(a); g.fillStyle = '#ffd166'; g.strokeStyle = '#2b2250'; g.lineWidth = 3; g.beginPath(); g.moveTo(12, 0); g.lineTo(-8, -10); g.lineTo(-3, 0); g.lineTo(-8, 10); g.closePath(); g.stroke(); g.fill(); g.restore(); } }
+  miniDot(g, X(lon), Y(lat), t);
+}
+function miniDot(g, x, y, t){
+  const r = 7 + Math.sin(t * 6) * 2;
   g.beginPath(); g.arc(x, y, r + 5, 0, 7); g.fillStyle = 'rgba(255,77,109,.35)'; g.fill();
   g.beginPath(); g.arc(x, y, 7, 0, 7); g.fillStyle = '#ff4d6d'; g.fill(); g.lineWidth = 3; g.strokeStyle = '#fff'; g.stroke();
 }
@@ -6102,6 +6117,7 @@ window.__moonFindAll = () => { marsRocks.forEach(k => { k.g.position.set(drive.x
 window.__bigger = () => qz && qz.kind === 'bigger' && { big: qz.big, pair: qz.pair, n: qz.n, right: qz.right, mode };
 window.__roadMission = () => { const m = toy && toy.fly && toy.fly.mission; return m && m.road ? { road: m.road, i: m.i, n: m.n, end: m.end, lat: m.lat, lon: m.lon } : null; };
 window.__startRoadMission = () => { const F = toy.fly; F.mission = null; const m = roadMission(F); if (m) { F.mission = m; speak(missionLine(m)); } return !!m; };
+window.__perf = () => { const f = (window.__ft || []).slice(-300).filter(x => x > 0 && x < 2), m = f.reduce((a, b) => a + b, 0) / Math.max(1, f.length), sorted = [...f].sort((a, b) => a - b), p95 = sorted[Math.floor(sorted.length * .95)] || 0, i = renderer.info; return { fps: +(1 / Math.max(1e-6, m)).toFixed(1), p95ms: +(p95 * 1000).toFixed(1), calls: i.render.calls, tris: i.render.triangles, geos: i.memory.geometries, texs: i.memory.textures, heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, mode, sceneMode }; };
 window.__camZoom = z => { if (toy) { if (z != null) toy.camZoom = z; return toy.camZoom || 1; } };
 window.__cloudSync = () => clouds.parent === earth.mesh;
 window.__wipeEarth = () => { const c = canvases.earth; c.getContext('2d').clearRect(0, 0, c.width, c.height); };
@@ -6128,7 +6144,7 @@ window.__allLines = () => {
   [...HOME_FACTS, ...MARS_ROCKS, ...MOON_ROCKS, SAY.fast, SAY.fastYear, SAY.slow, ...STORY, SAY.iss1, ...RIDDLES.map(r => r[1]), ...Object.values(SAY), ...COUNT, ...Object.values(MOON_SAY), ...LM.map(l => l.say), ...Object.values(ANIMAL_SAY), ...Object.values(SITE_EXTRA), ...Object.values(FEATURES).flat().map(f => f[3]), ...Object.values(REGIONS).map(r => r[4]), ...Object.values(ANIMALS).map(a => a[2]), ...Object.keys(STATE_CAPITALS).map(stateLine), ...QUIZ_STATES.map(findLine)].forEach(x => s.add(x));
   ORDER.forEach((id, i) => { s.add(paradeYes(i)); s.add(paradeNo(id, false)); s.add(paradeNo(id, true)); });
   Object.values(SITE_SPOTS).flat().forEach(x => s.add(x)); Object.values(SIZE_SAY).forEach(x => s.add(x)); LM.forEach(L => { s.add(whichLine(L)); s.add(contLine(L, contOpts(L))); if (PLACE_Q[L.id]) s.add(PLACE_Q[L.id][0]); });
-  LM.forEach(l => { s.add(l.name + '!'); s.add(missionLine({ lm: l })); }); Object.keys(ANIMALS).forEach(an => s.add(missionLine({ an })));   // said when your plane flies over it
+  LM.forEach(l => { s.add(l.name + '!'); s.add(missionLine({ lm: l }, false)); s.add(missionLine({ lm: l }, true)); }); Object.keys(ANIMALS).forEach(an => s.add(missionLine({ an })));   // said when your plane flies over it
   Object.entries(US_ROAD_CITIES).forEach(([r, n]) => { s.add(roadLine(r, n[0])); s.add(roadLine(r, n[n.length - 1])); });
   [...EUROPA_ROCKS, ...TITAN_ROCKS, jumpLine(byId.europa), jumpLine(byId.titan), ...Object.values(TRIP_SAY), ...Object.values(ROAD_SAY), ...Object.values(BIOME_SAY), ...CITY_STOPS.map(c => c.say)].forEach(x => s.add(x)); Object.values(US_ROAD_CITIES).flat().forEach(n => { if (n) s.add('Welcome to ' + n + '!'); });   // road-trip narration
   DIRS.forEach(d => { s.add(moonWhere(d)); SKY_PLANETS.forEach(id => s.add(planetWhere(id, d))); });
@@ -6140,6 +6156,7 @@ window.__pos = () => P.map(p => p.id + ':' + (p.ang / DEG % 360).toFixed(0));
 window.__sky = () => { const e = evening(); return { look: e.look.toString(), ph: e.ph, moon: e.moon, planets: e.planets, lines: skyLines(e) }; };
 function frame(now){
   const raw = (now - last) / 1000, dt = Math.min(.05, raw); last = now; T += dt; engineSound(dt);
+  const FT = window.__ft || (window.__ft = []); FT.push(raw); if (FT.length > 600) FT.shift();   // recent frame times, for the grown-ups fps readout and the speed tests
   if (sceneMode === 'space') updateSpace(dt, T); else if (sceneMode === 'site') updateSite(dt, T); else if (sceneMode === 'mars') updateMars(dt, T); else if (sceneMode === 'toy') updateToy(dt, T); else updateHome(dt, T);
   if (sceneMode !== 'mars' && marsShift) { marsShift = 0; camera.setViewOffset(W, H + 2 * shift, 0, 2 * shift, W, H); }   // back to the normal framing
   if (!manualCam) applyRig(dt);

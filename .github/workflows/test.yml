@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:   # three groups in parallel so the whole run stays well under the time limit
         flows:
-          - "start places discover landing ramp high countries where landview audio pets drive mars blue camzoom roadtrip wherefix launchfly bigger"
+          - "start places discover landing ramp high countries where landview audio pets drive mars blue camzoom roadtrip wherefix launchfly bigger minimap"
           - "planets sparkles daily sizes sound uturn moonframe coaststart earthtap memory arrow back home skycard allsites skyglare moonplay roadmission"
           - "explorer placequiz moon weather fly passport voice tapguard hover livingworld ride states chaos realclouds spacefix focusbtns walkworlds nextworld"
     steps:
