@@ -63,6 +63,8 @@ html,body{height:100%;overflow:hidden;background:var(--space);color:var(--ink);f
 .act .em{font-size:30px;line-height:1}
 .act:active{transform:scale(.93)}
 .act.hero{background:var(--pink);border-color:#ffc2dc;color:#2b0b24}
+.act.pulse{animation:holdpulse 1.1s ease-in-out infinite;touch-action:none;user-select:none;-webkit-user-select:none}.act.pulse.down{animation:none;transform:scale(.94);filter:brightness(1.15)}
+@keyframes holdpulse{50%{transform:scale(1.08)}}
 .act.gold{background:var(--gold);border-color:#fff0c2;color:#2b1d00}
 button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 
@@ -399,6 +401,8 @@ const SAY = {
   paradeStart: "Let's line up the planets! Which planet is first, the closest to the Sun?",
   count: "Let's count down together, from ten! Ready?",
   blastoff: "Blast off!",
+  holdLaunch: "Press and hold the big rocket button to fly up!",
+  rocketFast: "Real rockets go super fast, about seventeen thousand miles an hour, so they can stay up in space!",
   clouds: "Up, up, up, through the clouds!",
   inSpace: "We're in space! Look, there's Earth, getting smaller and smaller!",
   skyIntro: "Here's what's in the sky tonight, over Amelia's house!",
@@ -1656,7 +1660,7 @@ for (let i = 0; i < 14; i++) {
   for (let k = 0; k < 4; k++) ball(2.2 + rnd() * 1.5, '#ffffff', k * 2.4 - 3.6, (k % 2) * 1.2, rnd() * 2, c, 1, .75, 1);
   launchClouds.add(c);
 }
-const L = { phase: 'idle', y: 0, v: 0 };
+const L = { phase: 'idle', y: 0, v: 0, thrust: 0, idleT: 0, hold: false };   // hold: the Hold to fly button is up; thrust: she's holding it
 home.add(shooter.s);
 
 /* ---------- landmarks around the world (tiny cartoon models standing on the globe) ---------- */
@@ -2079,11 +2083,11 @@ async function launch(){
     await sleep(1000); if (my !== seq) { cd.hidden = true; return; }
   }
   cd.hidden = true; $('#pill').textContent = 'Blast off!';
-  award('launch'); speak(SAY.blastoff); L.phase = 'lift'; L.v = 0; whooshSfx(); goal.dist = 21; goal.el = .05;
+  award('launch'); speak([SAY.blastoff, SAY.holdLaunch]); L.phase = 'lift'; L.v = 0; L.thrust = 0; L.idleT = 0; L.hold = true; nav(); whooshSfx(); goal.dist = 21; goal.el = .05;
   const until = async (ok, max) => { const t0 = performance.now(); while (!ok() && performance.now() - t0 < max) await sleep(100); };
-  await until(() => L.y > 14, 7000); if (my !== seq) return;
-  speak(SAY.clouds); launchClouds.visible = true;
-  await until(() => L.y > 46, 7000); if (my !== seq) return;
+  await until(() => L.y > 14, 20000); if (my !== seq) { L.hold = false; return; }
+  speak([SAY.clouds, SAY.rocketFast]); launchClouds.visible = true;
+  await until(() => L.y > 46, 25000); L.hold = false; L.thrust = 0; if (my !== seq) return; nav();
   await whoosh(true); if (my !== seq) return;
   rumble(false); L.phase = 'idle'; L.y = 0; L.v = 0; resetAmelia(); rocket.position.copy(ROCKET_HOME); rocket.userData.flame.visible = false; flameLight.intensity = 0;
   launchClouds.visible = false; smoke.forEach(q => { q.life = 1; q.sp.visible = false; });
@@ -2457,6 +2461,19 @@ function pick(b, p){
   }
 }
 /* ---------- riddle game: "Which planet am I?" ---------- */
+const TRIP_SAY = {   // how long real trips took (NASA mission pages)
+  sun: "Sunlight zooms to Earth in about eight minutes. That's super fast!",
+  mercury: "Getting to Mercury is tricky! The spacecraft MESSENGER took almost seven years to get there.",
+  venus: "Some spacecraft flew to Venus in about four months.",
+  moon: "Astronauts flew to the Moon in about three days.",
+  mars: "The Perseverance rover took about seven months to fly to Mars.",
+  jupiter: "The spacecraft Juno took about five years to reach Jupiter.",
+  saturn: "The spacecraft Cassini took almost seven years to reach Saturn.",
+  uranus: "The spacecraft Voyager 2 took about eight and a half years to reach Uranus.",
+  neptune: "Voyager 2 kept going, and it took twelve years to reach Neptune!",
+  europa: "The spacecraft Europa Clipper left Earth in 2024. It will take about five and a half years to get to Jupiter and Europa.",
+  titan: "The Huygens probe rode with Cassini for about seven years, then landed on Titan.",
+};
 const RIDDLES = [
   ['mercury', "I'm the smallest planet, and I'm the closest to the Sun. Which planet am I?"],
   ['venus', "I'm the hottest planet, wrapped in thick clouds. Which planet am I?"],
@@ -2468,6 +2485,18 @@ const RIDDLES = [
   ['neptune', "I'm the farthest planet from the Sun, with super fast winds. Which planet am I?"],
   ['moon', "I go around the Earth, and astronauts have walked on me. What am I?"],
   ['sun', "I'm a star, and I give Earth light and warmth. What am I?"],
+  ['mercury', "I zoom around the Sun faster than any other planet. Which planet am I?"],
+  ['venus', "I spin backwards, so on me the Sun comes up in the west. Which planet am I?"],
+  ['earth', "Most of me is covered in water. Which planet am I?"],
+  ['mars', "I have the tallest volcano in the whole solar system. Which planet am I?"],
+  ['jupiter', "I'm so big that all the other planets could fit inside me. Which planet am I?"],
+  ['saturn', "I'm so light that I could float in a giant bathtub! Which planet am I?"],
+  ['uranus', "I'm a blue-green planet with the coldest air of any planet. Which planet am I?"],
+  ['neptune', "I'm a deep blue planet, and people found me by doing math. Which planet am I?"],
+  ['europa', "I'm one of Jupiter's moons. Scientists think a big ocean is hiding under my ice. What am I?"],
+  ['titan', "I'm Saturn's biggest moon, and I have lakes and rain. What am I?"],
+  ['sun', "I'm so big that about a million Earths could fit inside me. What am I?"],
+  ['moon', "I'm Earth's closest neighbor, and I look like a different shape on different nights. What am I?"],
 ];
 SAY.quizIn = "Let's play Space Riddles! Listen to the riddle, then tap the right one.";
 SAY.quizYes = "Yes! You got it!"; SAY.quizNo = "Not that one. Listen again!";
@@ -2550,14 +2579,18 @@ function nav(){
   const strip = $('#strip'), acts = $('#actions');
   const showStrip = mode === 'space' || mode === 'focus';
   $('#style').hidden = !(mode === 'space' || mode === 'focus' || mode === 'world' || (mode === 'toy' && !(toy && (toy.follow || toy.quiz || toy.fly))));
-  strip.hidden = !showStrip; $('#wstrip').hidden = (mode !== 'world' && mode !== 'site') || !!(mode === 'site' && site && site.quiz); $('#tstrip').hidden = mode !== 'toy' || !!(toy && (toy.follow || toy.menu || toy.fly)); $('#tzoom').hidden = mode !== 'toy' || !!(toy && (toy.follow || toy.fly)); $('#flyhud').hidden = mode !== 'toy' || !(toy && toy.fly); if ($('#flyhud').hidden) $('#flyhint').hidden = true; $('#bottom').hidden = mode === 'flying' || mode === 'intro' || mode === 'launch' || mode === 'landing';
+  strip.hidden = !showStrip; $('#wstrip').hidden = (mode !== 'world' && mode !== 'site') || !!(mode === 'site' && site && site.quiz); $('#tstrip').hidden = mode !== 'toy' || !!(toy && (toy.follow || toy.menu || toy.fly)); $('#tzoom').hidden = mode !== 'toy' || !!(toy && (toy.follow || toy.fly)); $('#flyhud').hidden = mode !== 'toy' || !(toy && toy.fly); if ($('#flyhud').hidden) $('#flyhint').hidden = true; $('#bottom').hidden = mode === 'flying' || mode === 'intro' || (mode === 'launch' && !L.hold) || mode === 'landing';   // the launch shows the bar only for the Hold to fly button
   strip.querySelectorAll('.th').forEach(t => t.setAttribute('aria-pressed', String(current && t.dataset.id === current.id)));
   acts.innerHTML = '';
+  if (mode === 'launch' && L.hold) { const b = btn('🚀', 'Hold to fly!', () => {}, 'hero pulse'); b.id = 'holdfly';   // press and hold: the rocket speeds up while she holds it
+    const on = e => { e.preventDefault(); L.thrust = 1; b.classList.add('down'); }, off = () => { if (L.thrust === 1) L.thrust = 0; b.classList.remove('down'); };
+    b.addEventListener('pointerdown', on); for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, off); acts.append(b); }
   $('#backbtn').hidden = mode === 'space' || mode === 'intro' || mode === 'flying' || mode === 'launch' || mode === 'landing'; armBack();
   if (mode === 'space') acts.append(btn(warpGoal > 1 ? '🐢' : '⏩', warpGoal > 1 ? 'Normal' : 'Speed up', toggleWarp), btn('🛂', 'Passport', openPassport), btn('🎯', 'Line up', startParade, 'gold'), btn('❓', 'Riddles', startQuiz, 'gold'), btn('📏', 'Sizes', openSizes, 'gold'), btn('🏡', 'Fly home', flyHome, 'hero'));
   if (mode === 'focus' && tour) acts.append(btn('◀️', 'Back', () => tourGo(tour.i - 1)), btn('🔊', 'Tell me', () => speak(FEATURES[tour.p.id][tour.i][3])), btn('▶️', 'Next', () => tourGo(tour.i + 1), 'hero'), btn('✅', 'Done', endTour));
   else if (mode === 'focus') {
     acts.append(btn('🌌', 'All planets', () => { stopJump(); overview(); }), btn('🔊', 'Tell me more', moreFact));
+    if (TRIP_SAY[current.id]) acts.append(btn('⏱️', 'How long?', () => speak(TRIP_SAY[current.id])));
     if (FEATURES[current.id]) acts.append(btn('🔍', 'Explore', startTour, 'gold'));
     if (current.g) acts.append(btn('🤸', 'Jump!', startJump, 'gold'));
     if (current === moon || current.id === 'sun') acts.append(btn('🌑', 'Eclipse', openEclipse, 'hero'));
@@ -2566,7 +2599,10 @@ function nav(){
     if (current === earth) acts.append(btn('🗺️', 'Explore Earth', () => enterToy(), 'hero'), btn('🌍', 'Around the world', () => enterToy(null, { tour: 0 }), 'gold'), btn('🏡', 'Fly home', flyHome));
   }
   if (mode === 'eclipse') acts.append(ecl.from && ecl.from.id === 'sun' ? btn('☀️', 'Back to Sun', closeEclipse, 'hero') : btn('🌙', 'Back to Moon', closeEclipse, 'hero'));
-  if (mode === 'mars') acts.append(btn('🪐', 'Back to space', leaveMars, 'hero'));
+  if (mode === 'mars') {
+    if (marsWorld === 'moon') acts.append(btn('🦘', 'Jump!', moonJump, 'hero'), btn('🚩', 'Plant my flag', plantFlag, 'gold'));
+    if (marsFound >= marsRocks.length && marsRocks.length) acts.append(btn('🔄', 'New rocks', hideNewRocks, 'gold'));
+    acts.append(btn('🪐', 'Back to space', leaveMars, marsWorld === 'moon' ? '' : 'hero')); }
   if (mode === 'toy') {
     const T = toy;
     if (T.fly) { const F = T.fly;
@@ -5337,6 +5373,8 @@ const MOON_ROCKS = [
 ];
 SAY.moonIn = "Welcome to the Moon! Amelia is bouncing along in her space suit. Find all the glowing moon rocks!";
 SAY.moonDone = "You found all the moon rocks! Great moonwalking, Amelia!";
+SAY.moonFlag = "Amelia planted her flag on the Moon! The Apollo astronauts planted flags here too.";
+SAY.newRocks = "New glowing rocks are hiding! Let's find them!";
 const MARS_CRATERS = [[60, -50, 22], [-80, -120, 34], [140, 90, 16], [-40, 110, 12], [20, 180, 26], [-170, -20, 18], [200, -160, 40]];
 let marsShift = 0; const _v2 = new THREE.Vector3();
 let marsScene = null, rover = null, roverBody = null, roverAm = null, marsRocks = [], marsFound = 0, drv = null, tracks = null, dustP = null;
@@ -5432,6 +5470,24 @@ function enterMars(world = 'mars'){
   nav(); layout();
   speak(world === 'moon' ? SAY.moonIn : SAY.marsIn);
 }
+function moonJump(){   // a big slow Moon hop: about six times higher than on Earth, floating down
+  if (!drive || drive.jumpT > 0) return; drive.jumpT = 2.6; whooshSfx(); if (!drive.saidJump) { drive.saidJump = true; speak(jumpLine(byId.moon)); }
+}
+function plantFlag(){   // a pink flag with her initial where she stands (one flag; planting again moves it)
+  if (!drive || !marsScene) return; let f = marsScene.userData.flag;
+  if (!f) { f = new THREE.Group(); const pole = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 4.2, 8), std({ color: '#d9dde3', metalness: .6, roughness: .3 })); pole.position.y = 2.1; f.add(pole);
+    const c = mkCanvas(128, 84), g = c.getContext('2d'); g.fillStyle = '#ff7eb6'; g.fillRect(0, 0, 128, 84); g.fillStyle = '#fff'; g.font = '800 60px Fredoka, Nunito, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('A', 64, 46);
+    for (let i = 0; i < 9; i++) { g.beginPath(); g.arc(10 + i * 14, 8, 3, 0, 7); g.fill(); }
+    const cloth = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.45), new THREE.MeshStandardMaterial({ map: tex(c), side: THREE.DoubleSide, roughness: .8, emissive: '#3a1028' })); cloth.position.set(1.12, 3.4, 0); f.add(cloth);
+    marsScene.add(f); marsScene.userData.flag = f; }
+  const D = drive, fx = Math.sin(D.yaw || 0), fz = -Math.cos(D.yaw || 0), x = D.x + fx * 1.5 - fz * 2.6, z = D.z + fz * 1.5 + fx * 2.6; f.position.set(x, groundH(x, z), z); f.rotation.y = -(D.yaw || 0) + .4;   // beside her and a little ahead, so the camera sees it
+  pop(); burst(); speak(SAY.moonFlag);
+}
+function hideNewRocks(){   // after all ten: hide them again in new spots around her (the same facts, a new hunt)
+  const D = drive; if (!D) return; marsFound = 0;
+  marsRocks.forEach((k, i) => { const a = rnd() * Math.PI * 2, r = 20 + rnd() * 70, x = D.x + Math.sin(a) * r, z = D.z - Math.cos(a) * r; k.found = false; k.g.scale.setScalar(1); k.g.position.set(x, groundH(x, z) + .5, z); });
+  updRockCount(); speak(SAY.newRocks); nav();
+}
 function leaveMars(){
   $('#drive').hidden = true; manualCam = false; sceneMode = 'space'; camera.far = 3000; camera.updateProjectionMatrix();
   speak(SAY.marsBack); const pw = byId[marsWorld]; focus(pw, true); worldPos(pw, rig.target); rig.dist = 3;
@@ -5489,7 +5545,7 @@ function updateMars(dt, t){
   rover.position.set(D.x, y, D.z); rover.rotation.set(0, -D.yaw, 0, 'YXZ');
   const pitch = Math.atan2(hF - hB, 2.8), roll = Math.atan2(hR - hL, 2.2);
   roverBody.rotation.x += (pitch - roverBody.rotation.x) * Math.min(1, dt * 6); roverBody.rotation.z += (-roll - roverBody.rotation.z) * Math.min(1, dt * 6);
-  if (marsWorld === 'moon') { D.hop = (D.hop || 0) + dt * (Math.abs(D.v) > .3 ? 2.2 : 0); roverBody.position.y = Math.abs(Math.sin(D.hop)) * 1.6 * Math.min(1, Math.abs(D.v) / 2); roverBody.rotation.x = 0; roverBody.rotation.z = 0; }   // big slow bounces: the Moon's gravity is weak
+  if (marsWorld === 'moon') { D.hop = (D.hop || 0) + dt * (Math.abs(D.v) > .3 ? 2.2 : 0); roverBody.position.y = Math.max(Math.abs(Math.sin(D.hop)) * 1.6 * Math.min(1, Math.abs(D.v) / 2), D.jumpT > 0 ? Math.sin(Math.PI * (1 - (D.jumpT = Math.max(0, D.jumpT - dt)) / 2.6)) * 7 : 0); roverBody.rotation.x = 0; roverBody.rotation.z = 0; }   // big slow bounces: the Moon's gravity is weak
   else roverBody.position.y = Math.sin(t * 18) * .012 * Math.min(1, Math.abs(D.v) / 3);
   if (roverWheels.length) { const ws = new THREE.Vector3(); roverWheels[0].getWorldScale(ws); const a = D.v * dt / Math.max(.05, roverWheels.r * ws.y); roverWheels.forEach(w => w.rotation.x += a); }
   roverAm.userData.anim.mode = marsWorld === 'moon' ? (Math.abs(D.v) > .3 ? 'walk' : roverAm.userData.anim.mode === 'walk' ? 'idle' : roverAm.userData.anim.mode) : Math.abs(D.v) > .3 ? 'idle' : roverAm.userData.anim.mode; animAmelia(roverAm, dt, t);
@@ -5513,13 +5569,14 @@ function updateMars(dt, t){
     if (Math.hypot(k.g.position.x - D.x, k.g.position.z - D.z) < 2.6) {
       k.found = true; marsFound++; updRockCount(); chime();
       speak(marsFound === marsRocks.length ? [k.fact, marsWorld === 'moon' ? SAY.moonDone : SAY.marsDone] : k.fact);
-      if (marsFound === marsRocks.length) { burst(); award(marsWorld === 'moon' ? 'moonrocks' : 'mars'); }
+      if (marsFound === marsRocks.length) { burst(); award(marsWorld === 'moon' ? 'moonrocks' : 'mars'); nav(); }
     }
   }
   // chase camera
   const cd = 9 + Math.abs(D.v) * .4, ch = 4.2;
-  _v.set(D.x - fx * cd, 0, D.z - fz * cd); _v.y = Math.max(groundH(_v.x, _v.z) + 1.5, y + ch);
-  camera.position.lerp(_v, Math.min(1, dt * 3)); camera.lookAt(D.x + fx * 3, y + 1.4, D.z + fz * 3);
+  const jy = marsWorld === 'moon' && roverBody ? roverBody.position.y * .85 : 0;   // the camera rises with her Moon hops so she stays in view
+  _v.set(D.x - fx * cd, 0, D.z - fz * cd); _v.y = Math.max(groundH(_v.x, _v.z) + 1.5, y + ch + jy);
+  camera.position.lerp(_v, Math.min(1, dt * 3)); camera.lookAt(D.x + fx * 3, y + 1.4 + jy, D.z + fz * 3);
   { const pad = $('#drive .pad'), top = pad && pad.getBoundingClientRect().top, who = roverAm || rover;   // keep her (or the rover) in the clear space above the GO pad on any screen height
     if (top > 0 && who) { camera.updateMatrixWorld(); const v = who.getWorldPosition(_v2).project(camera), y0 = (1 - v.y) / 2 * H, want = Math.min(H * .6, top - 70), s = clamp(y0 + marsShift - want, 0, H * .35);   // y0 already includes last frame's shift
       marsShift += (s - marsShift) * Math.min(1, dt * 4); camera.setViewOffset(W, H + 2 * shift, 0, 2 * shift + marsShift, W, H); } }
@@ -5873,7 +5930,8 @@ function updateHome(dt, t){
     const f = rocket.userData.flame; f.visible = true;
     f.scale.set(1 + Math.random() * .18, (L.phase === 'ignite' ? .55 : 1.1) + Math.random() * .3, 1 + Math.random() * .18);
     flameLight.intensity = (L.phase === 'ignite' ? 10 : 24) + Math.random() * 6;
-    if (L.phase === 'lift') { L.v += dt * (2.2 + L.v * .45); L.y += L.v * dt; }
+    if (L.phase === 'lift') { if (!L.thrust && L.hold && (L.idleT += dt) > 4) L.thrust = 2;   // nobody pressing: it takes off by itself so the launch never stalls
+      if (L.thrust) { L.v += dt * (2.2 + L.v * .45); L.idleT = 0; } else L.v = Math.max(1.1, L.v - dt * 2.5); L.y += L.v * dt; }
     const sh = L.phase === 'ignite' ? .04 : clamp(.08 - L.y * .002, 0, .08);
     rocket.position.set(ROCKET_HOME.x + (Math.random() - .5) * sh, ROCKET_HOME.y + L.y, ROCKET_HOME.z + (Math.random() - .5) * sh);
     L.acc = (L.acc || 0) + dt;
@@ -5944,6 +6002,9 @@ window.__skyLook = (az, el) => { look.az = look.gaz = az; look.el = look.gel = e
 window.__tracksCheck = () => { if (!tracks || !tracks.count || !rover) return null; const m = new THREE.Matrix4(); tracks.getMatrixAt((tracks.userData.i - 1) % 2400, m); const p = new THREE.Vector3().setFromMatrixPosition(m).applyMatrix4(tracks.matrixWorld); return +p.distanceTo(rover.getWorldPosition(new THREE.Vector3())).toFixed(2); };
 window.__quizState = () => qz && { ans: qz.order[qz.i % qz.order.length][0], tray: [...document.querySelectorAll('#qtray .pl')].map(b => b.dataset.id), right: qz.right };
 window.__spaceState = () => ({ mode, current: current && current.id });
+window.__launch = () => ({ phase: L.phase, y: +L.y.toFixed(1), v: +L.v.toFixed(2), thrust: L.thrust, hold: L.hold, mode });
+window.__moon = () => drive && { jumpT: +(drive.jumpT || 0).toFixed(2), y: roverBody ? +roverBody.position.y.toFixed(2) : null, flag: !!(marsScene && marsScene.userData.flag), found: marsFound, n: marsRocks.length };
+window.__moonFindAll = () => { marsRocks.forEach(k => { k.g.position.set(drive.x, k.g.position.y, drive.z); }); };
 window.__camZoom = z => { if (toy) { if (z != null) toy.camZoom = z; return toy.camZoom || 1; } };
 window.__cloudSync = () => clouds.parent === earth.mesh;
 window.__wipeEarth = () => { const c = canvases.earth; c.getContext('2d').clearRect(0, 0, c.width, c.height); };
@@ -5971,7 +6032,7 @@ window.__allLines = () => {
   ORDER.forEach((id, i) => { s.add(paradeYes(i)); s.add(paradeNo(id, false)); s.add(paradeNo(id, true)); });
   Object.values(SITE_SPOTS).flat().forEach(x => s.add(x)); Object.values(SIZE_SAY).forEach(x => s.add(x)); LM.forEach(L => { s.add(whichLine(L)); s.add(contLine(L, contOpts(L))); if (PLACE_Q[L.id]) s.add(PLACE_Q[L.id][0]); });
   LM.forEach(l => { s.add(l.name + '!'); s.add(missionLine({ lm: l })); }); Object.keys(ANIMALS).forEach(an => s.add(missionLine({ an })));   // said when your plane flies over it
-  [...Object.values(ROAD_SAY), ...Object.values(BIOME_SAY), ...CITY_STOPS.map(c => c.say)].forEach(x => s.add(x)); Object.values(US_ROAD_CITIES).flat().forEach(n => { if (n) s.add('Welcome to ' + n + '!'); });   // road-trip narration
+  [...Object.values(TRIP_SAY), ...Object.values(ROAD_SAY), ...Object.values(BIOME_SAY), ...CITY_STOPS.map(c => c.say)].forEach(x => s.add(x)); Object.values(US_ROAD_CITIES).flat().forEach(n => { if (n) s.add('Welcome to ' + n + '!'); });   // road-trip narration
   DIRS.forEach(d => { s.add(moonWhere(d)); SKY_PLANETS.forEach(id => s.add(planetWhere(id, d))); });
   return [...s];
 };
@@ -6114,6 +6175,7 @@ for (const id of ['#strip', '#wstrip', '#tstrip', '#szrow']) $(id).addEventListe
 if (matchMedia('(pointer:fine)').matches) $('#flyhint').textContent = '⌨️ Arrow keys to steer';
 const typing = () => /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '');
 addEventListener('keydown', e => {
+  if (mode === 'launch' && L.hold && (e.key === ' ' || e.key === 'ArrowUp')) { L.thrust = 1; e.preventDefault(); return; }   // desktop: hold Space or Up to fly the rocket
   if (typing() || e.repeat && !/Arrow|^[wasd]$/i.test(e.key)) return;
   if (mode === 'mars') { const k = e.key.toLowerCase();
     if (k === 'arrowup' || k === 'w') { drive.gas = 1; e.preventDefault(); return; } if (k === 'arrowdown' || k === 's') { drive.gas = -.5; e.preventDefault(); return; }
@@ -6125,7 +6187,7 @@ addEventListener('keydown', e => {
   if ((e.key === 'p' || e.key === 'P') && !$('#start')?.offsetParent) { $('#passport').hidden ? openPassport() : ($('#passport').hidden = true); return; }
   if (e.key === 'Enter' || e.key === ' ') { const b = document.activeElement?.closest?.('button') ? null : $('#actions .act.hero:not([hidden])'); if (b) { b.click(); e.preventDefault(); } }
 });
-addEventListener('keyup', e => { if (mode !== 'mars') return; const k = e.key.toLowerCase();
+addEventListener('keyup', e => { if ((e.key === ' ' || e.key === 'ArrowUp') && L.thrust === 1) L.thrust = 0; if (mode !== 'mars') return; const k = e.key.toLowerCase();
   if (['arrowup', 'w', 'arrowdown', 's'].includes(k)) drive.gas = 0; if (['arrowleft', 'a', 'arrowright', 'd'].includes(k)) drive.steer = 0; });
 $('#style').onclick = async () => {   // on Earth, the switch also swaps between the photo globe and Explorer Earth (the cartoon Earth)
   audio()?.resume?.(); const to = style === 'real' ? 'cartoon' : 'real';
