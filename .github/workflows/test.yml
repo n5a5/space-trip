@@ -11,8 +11,8 @@ jobs:
       fail-fast: false
       matrix:   # three groups in parallel so the whole run stays well under the time limit
         flows:
-          - "start places discover landing ramp high countries where landview audio pets drive mars blue camzoom"
-          - "planets sparkles daily sizes sound uturn moonframe coaststart earthtap memory arrow back home skycard"
+          - "start places discover landing ramp high countries where landview audio pets drive mars blue camzoom roadtrip"
+          - "planets sparkles daily sizes sound uturn moonframe coaststart earthtap memory arrow back home skycard allsites"
           - "explorer placequiz moon weather fly passport voice tapguard hover livingworld ride states chaos realclouds"
     steps:
       - uses: actions/checkout@v4
