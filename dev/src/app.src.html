@@ -139,6 +139,9 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #drevb,#drev{width:auto;padding:8px 16px;border-radius:999px;background:rgba(253,251,255,.85);font-size:15px!important}
 #dl.on,#dr.on,#dgo.on,#drev.on{transform:scale(.92);filter:brightness(1.15)}
 #eclipse{position:absolute;inset:0;z-index:3;background:#000}
+#phases{position:absolute;inset:0;z-index:3;background:#0d0b2e}
+#phc{position:absolute;inset:0;width:100%;height:100%}
+#phslide{position:absolute;left:24px;right:24px;bottom:calc(env(safe-area-inset-bottom,0px) + 118px);width:calc(100% - 48px);height:44px;accent-color:#ffd166}
 #eclc{position:absolute;inset:0;width:100%;height:100%}
 #eslide{position:absolute;left:24px;right:24px;bottom:calc(env(safe-area-inset-bottom,0px) + 118px);width:calc(100% - 48px);height:44px;accent-color:#ffd166}
 #ehint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 168px);text-align:center;font:600 20px/1 var(--display);color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6)}
@@ -246,6 +249,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
     <div class="pad"><button id="dl" aria-label="Steer left">◀</button><span class="deskonly dkeys">⌨️ Arrow keys or W A S D</span><button id="dgo" aria-label="Drive">GO</button><button id="dr" aria-label="Steer right">▶</button></div>
     <button id="drev" aria-label="Back up">⏪ Back up</button>
   </div>
+  <section id="phases" hidden aria-label="Moon phase machine"><canvas id="phc"></canvas><input id="phslide" type="range" min="0" max="1000" value="40" aria-label="Move the Moon around the Earth"></section>
   <section id="eclipse" hidden aria-label="Eclipse machine"><canvas id="eclc"></canvas><input id="eslide" type="range" min="0" max="1000" value="80" aria-label="Move the Moon"><div id="ehint">Slide the Moon ➜</div></section>
   <div id="toast" hidden></div>
   <section id="grown" hidden aria-label="Settings for grown-ups">
@@ -2599,6 +2603,7 @@ function goBack(){
   if (!$('#passport').hidden) { $('#passport').hidden = true; return true; }
   if (mode === 'flying' || mode === 'launch' || mode === 'landing') return true;   // mid-trip: ignore
   if (mode === 'eclipse') { closeEclipse(); return true; }
+  if (mode === 'phases') { closePhases(); return true; }
   if (mode === 'quiz') { endQuiz(); return true; }
   if (mode === 'bigger') { endBigger(); return true; }
   if (mode === 'parade') { endParade(); return true; }
@@ -2645,11 +2650,13 @@ function nav(){
     if (FEATURES[current.id]) acts.append(btn('🔍', 'Explore', startTour, 'gold'));
     if (current.g) acts.append(btn('🤸', 'Jump!', startJump, 'gold'));
     if (current === moon || current.id === 'sun') acts.append(btn('🌑', 'Eclipse', openEclipse, 'hero'));
+    if (current === moon) acts.append(btn('🌗', 'Moon phases', openPhases, 'gold'));
     if (current.id === 'mars') acts.append(btn('🚗', 'Drive on Mars', () => enterMars('mars'), 'hero'));
     if (current.id === 'moon') acts.append(btn('🧑‍🚀', 'Walk on the Moon', () => enterMars('moon'), 'hero'));
     if (current.id === 'europa' || current.id === 'titan') acts.append(btn('🧑‍🚀', 'Walk on ' + current.label, () => enterMars(current.id), 'hero'));
     if (current === earth) acts.append(btn('🗺️', 'Explore Earth', () => enterToy(), 'hero'), btn('🌍', 'Around the world', () => enterToy(null, { tour: 0 }), 'gold'), btn('🏡', 'Fly home', flyHome));
   }
+  if (mode === 'phases') acts.append(btn('🌙', 'Back to Moon', closePhases, 'hero'));
   if (mode === 'eclipse') acts.append(ecl.from && ecl.from.id === 'sun' ? btn('☀️', 'Back to Sun', closeEclipse, 'hero') : btn('🌙', 'Back to Moon', closeEclipse, 'hero'));
   if (mode === 'mars') {
     if (marsWorld !== 'mars') acts.append(btn('🦘', 'Jump!', moonJump, 'hero')); if (marsWorld === 'moon') acts.append(btn('🚩', 'Plant my flag', plantFlag, 'gold'));
@@ -5773,6 +5780,44 @@ function openEclipse(){
   if (!ecl.stars) ecl.stars = Array.from({ length: 140 }, () => [Math.random(), Math.random() * .7, Math.random() * 1.6 + .4]);
   speak(SAY.eclIn); award('eclipse'); drawEclipse();
 }
+// Moon phase machine: slide the Moon around the Earth; the Sun lights half of it; below, how much of the lit half we see from Earth
+const PHASES = [['new', "New Moon. The Moon's lit side faces away from us, so it looks dark."], ['waxc', 'Waxing crescent. A thin sliver of light is growing.'],
+  ['fq', 'First quarter. Half of the Moon looks lit up.'], ['waxg', 'Waxing gibbous. Almost full, and still growing!'], ['full', 'Full Moon! The whole side facing us is lit by the Sun.'],
+  ['wang', 'Waning gibbous. Now the light is shrinking.'], ['lq', 'Last quarter. The other half is lit now.'], ['wanc', 'Waning crescent. Just a thin sliver is left before the new Moon.']];
+SAY.phasesIn = 'This is the Moon phase machine! Slide the Moon around the Earth. The Sun always lights up half of the Moon. Watch how much of the lit half we can see!';
+SAY.phasesDone = 'You found every phase! The Moon goes all the way around the Earth in about a month.';
+const phx = { on: false, raf: 0, seen: new Set(), last: -1, from: null };
+function openPhases(){
+  phx.from = current; ++seq; stopJump(); mode = 'phases'; nav(); layout(); $('#pill').textContent = 'Moon Phases';
+  $('#phases').hidden = false; $('#phslide').value = 40; phx.seen = new Set(); phx.last = -1; phx.done = false; phx.on = true; $('#top').style.zIndex = 4; $('#bottom').style.zIndex = 4;
+  speak(SAY.phasesIn); drawPhases();
+}
+function closePhases(){ phx.on = false; cancelAnimationFrame(phx.raf); $('#phases').hidden = true; $('#top').style.zIndex = ''; $('#bottom').style.zIndex = ''; focus(phx.from || moon, true); }
+function moonShape(g, cx, cy, r, e){   // the Moon as seen from Earth at elongation e, which is 0 at new Moon and PI at full; waxing is lit on the right in the northern sky
+  const k = Math.cos(e), side = Math.sin(e) >= 0 ? 1 : -1;
+  g.fillStyle = '#2b2a3a'; g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fill();
+  g.fillStyle = '#f4f0dc'; g.beginPath(); g.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, side < 0);
+  const thruLit = k > 0; g.ellipse(cx, cy, Math.max(.01, r * Math.abs(k)), r, 0, Math.PI / 2, -Math.PI / 2, side > 0 ? thruLit : !thruLit); g.fill();
+  g.strokeStyle = 'rgba(255,255,255,.25)'; g.lineWidth = 2; g.beginPath(); g.arc(cx, cy, r, 0, 7); g.stroke();
+}
+function drawPhases(){
+  if (!phx.on) return;
+  const c = $('#phc'), dpr = Math.min(2, devicePixelRatio || 1), w = c.clientWidth, h = c.clientHeight;
+  if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; }
+  const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
+  const e = $('#phslide').value / 1000 * Math.PI * 2, top = 90, botBar = 190, avail = h - top - botBar, dy = top + avail * .3, Ro = Math.min(w * .3, avail * .22), ex = w * .55;
+  const sg = g.createRadialGradient(-w * .06, dy, Ro * .8, -w * .06, dy, Ro * 3.2); sg.addColorStop(0, 'rgba(255,214,102,.5)'); sg.addColorStop(1, 'rgba(255,214,102,0)'); g.fillStyle = sg; g.beginPath(); g.arc(-w * .06, dy, Ro * 3.2, 0, 7); g.fill();   // soft sunlight from the left
+  g.fillStyle = '#ffd166'; g.beginPath(); g.arc(-w * .06, dy, Ro * .9, 0, 7); g.fill();
+  g.strokeStyle = 'rgba(255,255,255,.18)'; g.setLineDash([4, 6]); g.beginPath(); g.arc(ex, dy, Ro, 0, 7); g.stroke(); g.setLineDash([]);
+  g.fillStyle = '#3d8bd8'; g.beginPath(); g.arc(ex, dy, Ro * .32, 0, 7); g.fill(); g.fillStyle = '#5ac46b'; g.beginPath(); g.ellipse(ex - Ro * .08, dy - Ro * .05, Ro * .14, Ro * .1, .4, 0, 7); g.fill();
+  const a = Math.PI + e, mx = ex + Ro * Math.cos(a), my = dy - Ro * Math.sin(a), mr = Ro * .16;   // the Moon on its path; its sunny half always faces the Sun (left)
+  g.fillStyle = '#2b2a3a'; g.beginPath(); g.arc(mx, my, mr, 0, 7); g.fill(); g.fillStyle = '#f4f0dc'; g.beginPath(); g.arc(mx, my, mr, Math.PI / 2, Math.PI * 1.5); g.fill();
+  g.strokeStyle = '#ffd166'; g.lineWidth = 2; g.beginPath(); g.moveTo(ex, dy); g.lineTo(mx, my); g.stroke();   // the way we look from Earth
+  const bigR = Math.min(w * .22, avail * .17), by = top + avail * .8; moonShape(g, w / 2, by, bigR, e);   // what we see from Earth
+  const deg = (e * 180 / Math.PI + 22.5) % 360, i = Math.floor(deg / 45) % 8;
+  if (i !== phx.last) { phx.last = i; phx.seen.add(i); speak(PHASES[i][1], true); if (phx.seen.size === 8 && !phx.done) { phx.done = true; award('phases'); burst(); setTimeout(() => speak(SAY.phasesDone), 3500); } }
+  phx.raf = requestAnimationFrame(drawPhases);
+}
 function closeEclipse(){ ecl.on = false; cancelAnimationFrame(ecl.raf); $('#eclipse').hidden = true; $('#top').style.zIndex = ''; $('#bottom').style.zIndex = ''; focus(ecl.from || moon, true); }
 function drawEclipse(){
   if (!ecl.on) return;
@@ -5826,7 +5871,7 @@ function drawEclipse(){
 const STAMPS = [
   ...P.map(p => ({ id: 'p:' + p.id, img: p.thumb, label: p.label })),
   { id: 'eclipse', em: '🌑', label: 'Eclipse' }, { id: 'home', em: '🏡', label: 'Home' }, { id: 'landing', em: '🪂', label: 'Landing' }, { id: 'launch', em: '🚀', label: 'Blast off' }, { id: 'sky', em: '🔭', label: "Tonight's sky" },
-  { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'bigger', em: '⚖️', label: 'Size expert' }, { id: 'highway', em: '🛣️', label: 'Highway hero' }, { id: 'europarocks', em: '🧊', label: 'Europa explorer' }, { id: 'titanrocks', em: '🟠', label: 'Titan explorer' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
+  { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'bigger', em: '⚖️', label: 'Size expert' }, { id: 'highway', em: '🛣️', label: 'Highway hero' }, { id: 'europarocks', em: '🧊', label: 'Europa explorer' }, { id: 'phases', em: '🌗', label: 'Moon phases' }, { id: 'titanrocks', em: '🟠', label: 'Titan explorer' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
   { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'sparkles', em: '✨', label: 'Sparkle finder' }, { id: 'placequiz', em: '🧠', label: 'Place quiz' }, { id: 'daily', em: '🌟', label: 'Daily mission' }, { id: 'moonwalk', em: '🧑‍🚀', label: 'Moonwalker' }, { id: 'sizes', em: '📏', label: 'Size explorer' }, { id: 'jumper', em: '🛹', label: 'Ramp jumper' }, { id: 'moonrocks', em: '🌕', label: 'Moon rock hunter' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
   { id: 'roadtrip', em: '🚗', label: 'Road tripper' }, { id: 'cityhopper', em: '🏙️', label: 'City hopper' }, { id: 'balloons', em: '🎈', label: 'Balloons' }, { id: 'aurora', em: '🌌', label: 'Northern lights' },
   ...LM.map(l => ({ id: 'l:' + l.id, em: l.em, label: l.name.replace('Pyramids of Giza', 'Pyramids').replace('Great Wall of China', 'Great Wall').replace('Sydney Opera House', 'Opera House').replace('Kennedy Space Center', 'Space Center').replace('Amazon Rainforest', 'Rainforest') })),
@@ -6132,6 +6177,7 @@ window.__bigger = () => qz && qz.kind === 'bigger' && { big: qz.big, pair: qz.pa
 window.__roadMission = () => { const m = toy && toy.fly && toy.fly.mission; return m && m.road ? { road: m.road, i: m.i, n: m.n, end: m.end, lat: m.lat, lon: m.lon } : null; };
 window.__startRoadMission = () => { const F = toy.fly; F.mission = null; const m = roadMission(F); if (m) { F.mission = m; speak(missionLine(m)); } return !!m; };
 window.__perf = () => { const f = (window.__ft || []).slice(-300).filter(x => x > 0 && x < 2), m = f.reduce((a, b) => a + b, 0) / Math.max(1, f.length), sorted = [...f].sort((a, b) => a - b), p95 = sorted[Math.floor(sorted.length * .95)] || 0, i = renderer.info; return { fps: +(1 / Math.max(1e-6, m)).toFixed(1), p95ms: +(p95 * 1000).toFixed(1), calls: i.render.calls, tris: i.render.triangles, geos: i.memory.geometries, texs: i.memory.textures, heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, mode, sceneMode }; };
+window.__phases = v => { if (v != null) $('#phslide').value = v; return { on: phx.on, last: phx.last, seen: phx.seen.size, done: !!phx.done, mode }; };
 window.__camZoom = z => { if (toy) { if (z != null) toy.camZoom = z; return toy.camZoom || 1; } };
 window.__cloudSync = () => clouds.parent === earth.mesh;
 window.__wipeEarth = () => { const c = canvases.earth; c.getContext('2d').clearRect(0, 0, c.width, c.height); };
@@ -6160,7 +6206,7 @@ window.__allLines = () => {
   Object.values(SITE_SPOTS).flat().forEach(x => s.add(x)); Object.values(SIZE_SAY).forEach(x => s.add(x)); LM.forEach(L => { s.add(whichLine(L)); s.add(contLine(L, contOpts(L))); if (PLACE_Q[L.id]) s.add(PLACE_Q[L.id][0]); });
   LM.forEach(l => { s.add(l.name + '!'); s.add(missionLine({ lm: l }, false)); s.add(missionLine({ lm: l }, true)); }); Object.keys(ANIMALS).forEach(an => s.add(missionLine({ an })));   // said when your plane flies over it
   Object.entries(US_ROAD_CITIES).forEach(([r, n]) => { s.add(roadLine(r, n[0])); s.add(roadLine(r, n[n.length - 1])); });
-  [...EUROPA_ROCKS, ...TITAN_ROCKS, jumpLine(byId.europa), jumpLine(byId.titan), ...Object.values(TRIP_SAY), ...Object.values(ROAD_SAY), ...Object.values(BIOME_SAY), ...CITY_STOPS.map(c => c.say)].forEach(x => s.add(x)); Object.values(US_ROAD_CITIES).flat().forEach(n => { if (n) s.add('Welcome to ' + n + '!'); });   // road-trip narration
+  [...PHASES.map(p => p[1]), ...EUROPA_ROCKS, ...TITAN_ROCKS, jumpLine(byId.europa), jumpLine(byId.titan), ...Object.values(TRIP_SAY), ...Object.values(ROAD_SAY), ...Object.values(BIOME_SAY), ...CITY_STOPS.map(c => c.say)].forEach(x => s.add(x)); Object.values(US_ROAD_CITIES).flat().forEach(n => { if (n) s.add('Welcome to ' + n + '!'); });   // road-trip narration
   DIRS.forEach(d => { s.add(moonWhere(d)); SKY_PLANETS.forEach(id => s.add(planetWhere(id, d))); });
   return [...s];
 };

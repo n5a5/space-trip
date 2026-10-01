@@ -3,7 +3,7 @@
  "private": true,
  "description": "Build tools and browser tests for Amelia's Space Trip (the site itself is the repo root).",
  "scripts": {
-  "test": "node tests/run.js start planets explorer places sparkles placequiz discover daily moon landing sizes weather ramp sound fly high uturn passport countries moonframe voice where coaststart tapguard landview earthtap hover audio memory livingworld pets arrow ride drive back states mars home chaos blue skycard realclouds camzoom roadtrip allsites wherefix skyglare spacefix launchfly moonplay focusbtns bigger roadmission walkworlds nextworld minimap kscstart",
+  "test": "node tests/run.js start planets explorer places sparkles placequiz discover daily moon landing sizes weather ramp sound fly high uturn passport countries moonframe voice where coaststart tapguard landview earthtap hover audio memory livingworld pets arrow ride drive back states mars home chaos blue skycard realclouds camzoom roadtrip allsites wherefix skyglare spacefix launchfly moonplay focusbtns bigger roadmission walkworlds nextworld minimap kscstart phases",
   "build": "node tools/build.js"
  },
  "devDependencies": {
