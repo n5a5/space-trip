@@ -12,7 +12,7 @@ jobs:
       matrix:   # three groups in parallel so the whole run stays well under the time limit
         flows:
           - "start places discover landing ramp high countries where landview audio pets drive mars blue camzoom roadtrip wherefix launchfly bigger minimap drawbudget"
-          - "planets sparkles daily sizes sound uturn moonframe coaststart earthtap memory arrow back home skycard allsites skyglare moonplay roadmission kscstart"
+          - "planets sparkles daily sizes sound uturn moonframe coaststart earthtap memory arrow back home skycard allsites skyglare moonplay roadmission kscstart homes deskvoice"
           - "explorer placequiz moon weather fly passport voice tapguard hover livingworld ride states chaos realclouds spacefix focusbtns walkworlds nextworld phases"
     steps:
       - uses: actions/checkout@v4

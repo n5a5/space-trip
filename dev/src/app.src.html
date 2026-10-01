@@ -83,6 +83,10 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #qtray .pl img{width:84px;height:84px}
 #goalchip.road .ge{font-size:.8em;letter-spacing:-.02em}
 #szgame{align-self:center;margin:6px auto 0}
+#quiz.homes #qtray{grid-template-columns:repeat(3,1fr);max-width:440px;align-items:stretch}
+#quiz.homes #qtray .pl{min-height:120px;justify-content:center;gap:4px}
+.hem{font-size:52px;line-height:1.1}
+.homesAn{font-size:96px;line-height:1}
 #quiz.bigger #qtray{grid-template-columns:1fr 1fr;max-width:400px;align-items:end}
 #quiz.bigger #qtray .pl{min-height:190px;justify-content:flex-end}
 #quiz.bigger #qtray .pl img{width:130px;height:130px;transition:width 1.2s cubic-bezier(.3,1.4,.5,1),height 1.2s cubic-bezier(.3,1.4,.5,1)}
@@ -529,11 +533,14 @@ function tts(text, done){
     speechSynthesis.speak(u);
   } catch {}
 }
-const DESK_CAP = [[/Drag your finger to steer/g, 'Use the arrow keys to steer'], [/drag to look around the sky/gi, 'drag with the mouse to look around the sky'], [/Swipe to see them all/g, 'Scroll to see them all'], [/\bTap\b/g, 'Click'], [/\btap\b/g, 'click']];
+const DESK_CAP = [[/Drag your finger to steer/g, 'Use the arrow keys to steer'], [/drag to look around the sky/gi, 'drag with the mouse to look around the sky'], [/Swipe to see them all/g, 'Scroll to see them all'], [/pinch to zoom/gi, 'scroll to zoom'], [/\bSwipe\b/g, 'Scroll'], [/\bswipe\b/g, 'scroll'], [/\bTap\b/g, 'Click'], [/\btap\b/g, 'click']];
+const deskLine = l => DESK_CAP.reduce((a, [r, w]) => a.replace(r, w), l);   // the same line with mouse words
+const voicePick = l => { if (!matchMedia('(pointer:fine)').matches) return l; const d = deskLine(l); return d !== l && VOICE.has && VOICE.has(voiceHash(d)) ? d : l; };   // desktop says click and scroll, when that recording exists
 const speaking = () => (!vEl.paused && !vEl.ended) || (canSpeak && speechSynthesis.speaking);
 function speak(lines, soft = false){   // soft: a by-the-way line that waits its turn (skipped if someone is already talking)
   lines = [].concat(lines).filter(l => typeof l === 'string' && l);   // never let a missing line stop the app
   if (!lines.length || (soft && speaking())) return;
+  lines = lines.map(voicePick);
   lines = [].concat(lines); const my = ++vToken, all = lines.join(' ');
   const cap = $('#caption'); cap.textContent = prefs.captions || prefs.muted ? (matchMedia('(pointer:fine)').matches ? DESK_CAP.reduce((a, [r, w]) => a.replace(r, w), all) : all) : ''; clearTimeout(capTimer);
   capTimer = setTimeout(() => { cap.textContent = ''; }, 2500 + all.length * 70);
@@ -2587,6 +2594,38 @@ function answerBigger(el, id){
   const done = ok && qz.right === 5; if (done) { burst(); award('bigger'); setTimeout(() => speak(SAY.biggerDone), 2600); }
   setTimeout(() => { if (mode === 'bigger' && qz) { if (done) { qz.right = 0; qz.cups = (qz.cups || 0) + 1; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextBigger(); } }, done ? 7500 : tricky ? 7000 : 4200);
 }
+// Who lives here? An animal, three homes to choose from; the right home tells one true thing about why it lives there (NGSS K-ESS3-1)
+const HOMES = { desert: ['🏜️', 'Desert'], ocean: ['🌊', 'Ocean'], ice: ['🧊', 'Ice'], grass: ['🌾', 'Grassland'], forest: ['🌳', 'Forest'], mountains: ['⛰️', 'Mountains'] };
+const HOME_OF = { camel: ['desert', 'Yes! Camels live in the desert. They can go a long time without drinking water.'], polarBear: ['ice', 'Yes! Polar bears live on the Arctic sea ice, where they hunt for seals.'],
+  whale: ['ocean', 'Yes! Whales live in the ocean. They swim up to the top to breathe air.'], dolphin: ['ocean', 'Yes! Dolphins live in the ocean and breathe air through a blowhole.'],
+  zebra: ['grass', 'Yes! Zebras live on grassy plains in Africa, eating grass all day.'], giraffe: ['grass', 'Yes! Giraffes live on grassy plains in Africa and eat leaves from tall trees.'],
+  kangaroo: ['grass', 'Yes! Kangaroos live on grassy plains in Australia, and they hop to get around.'], elephant: ['grass', 'Yes! Many elephants live on grassy plains in Africa, close to water.'],
+  bison: ['grass', 'Yes! Bison live on grasslands called prairies.'], panda: ['forest', 'Yes! Giant pandas live in mountain forests in China and eat lots of bamboo.'],
+  llama: ['mountains', 'Yes! Llamas come from the Andes Mountains in South America.'] };
+const homesAsk = an => `Where does the ${ANIMAL_NAME[an] || an} live? Tap its home!`;
+SAY.homesIn = "Let's play Who Lives Here! Help each animal find its home.";
+SAY.homesNo = 'Hmm, not that one. Try another home!';
+SAY.homesDone = 'Five animals are home! You know where animals live!';
+function startHomes(){
+  ++seq; mode = 'homes'; toy.menu = null; $('#pill').textContent = 'Who lives here?'; $('#app').classList.add('game');
+  $('#quiz').hidden = false; $('#quiz').classList.add('homes'); qz = { kind: 'homes', n: 0, right: 0, cups: 0, lock: false, last: null }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextHome(true);
+}
+function nextHome(first){
+  const ids = Object.keys(HOME_OF).filter(a => a !== qz.last), an = ids[rnd() * ids.length | 0], right = HOME_OF[an][0];
+  const others = Object.keys(HOMES).filter(h => h !== right).sort(() => rnd() - .5).slice(0, 2), opts = [right, ...others].sort(() => rnd() - .5);
+  qz.last = an; qz.an = an; qz.lock = false; $('#qask').innerHTML = `<span class="homesAn">${ANIMAL_EM[an] || '🐾'}</span>`;
+  const tray = $('#qtray'); tray.innerHTML = '';
+  for (const h of opts) { const b = document.createElement('button'); b.className = 'pl home'; b.dataset.id = h; b.innerHTML = `<span class="hem">${HOMES[h][0]}</span><span>${HOMES[h][1]}</span>`; b.onclick = () => answerHome(b, h); tray.append(b); }
+  speak(first ? [SAY.homesIn, homesAsk(an)] : homesAsk(an));
+}
+function answerHome(b, h){
+  if (!qz || qz.lock) return;
+  if (h !== HOME_OF[qz.an][0]) { bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); speak(SAY.homesNo); return; }
+  qz.lock = true; chime(); b.classList.add('hint'); qz.right++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + (qz.cups ? ' ' : '') + '★'.repeat(qz.right) + '☆'.repeat(Math.max(0, 5 - qz.right));
+  const done = qz.right === 5; speak(done ? [HOME_OF[qz.an][1], SAY.homesDone] : HOME_OF[qz.an][1]); if (done) { burst(); award('homes'); }
+  setTimeout(() => { if (mode === 'homes' && qz) { if (done) { qz.right = 0; qz.cups++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextHome(); } }, done ? 9000 : 5500);
+}
+function endHomes(){ $('#quiz').hidden = true; $('#quiz').classList.remove('bigger', 'homes'); $('#app').classList.remove('game'); qz = null; mode = 'toy'; $('#pill').textContent = 'Explorer Earth'; nav(); layout(); }
 function endBigger(){ $('#quiz').hidden = true; $('#quiz').classList.remove('bigger'); $('#app').classList.remove('game'); qz = null; overview(); }
 function endQuiz(){ $('#quiz').hidden = true; $('#app').classList.remove('game'); qz = null; overview(); }
 function endParade(){ $('#parade').hidden = true; $('#app').classList.remove('game'); overview(); }
@@ -2606,6 +2645,7 @@ function goBack(){
   if (mode === 'phases') { closePhases(); return true; }
   if (mode === 'quiz') { endQuiz(); return true; }
   if (mode === 'bigger') { endBigger(); return true; }
+  if (mode === 'homes') { endHomes(); return true; }
   if (mode === 'parade') { endParade(); return true; }
   if (mode === 'toy') { const T = toy; if (T.fly) toyFlyStop(); else if (T.quiz) toyQuizEnd(); else if (T.hunt) { T.hunt = null; T.starMesh.count = T.starMesh.userData.ink.count = 0; $('#tstars').hidden = true; nav(); } else if (T.follow) toyStop(); else if (T.menu) { T.menu = null; nav(); } else if (T.home) { T.home = false; nav(); } else if (T.lmTour) { T.lmTour = false; T.picked = null; $('#pill').textContent = 'Explorer Earth'; nav(); } else toyToSpace(); return true; }
   if (mode === 'site') { leaveSite(wIdx); return true; }
@@ -2673,7 +2713,7 @@ function nav(){
     else if (T.quiz) acts.append(btn('🔊', 'Again', () => T.quiz.target && speak(findLine(T.quiz.target))), btn('💡', 'Hint', () => { const q = T.quiz; if (!q.target) return; const st = TOY_STATES.find(s => s.name === q.target); toyHighlight(st, 'rgba(255,209,102,.6)'); toyShowState(q.target); speak(findLine(q.target)); }, 'gold'), btn('⏭️', 'Skip', toyQuizNext), btn('✅', 'Done', toyQuizEnd, 'hero'));
     else if (T.home) acts.append(btn('🏡', 'Go inside', toyGoHome, 'hero'), btn('✅', 'Done', () => { T.home = false; $('#pill').textContent = 'Explorer Earth'; nav(); }));
     else if (T.lmTour) acts.append(btn('◀️', 'Back', () => toyLmTour(T.lmI - 1)), btn(LM[T.lmI].em, 'Visit', toyVisit, 'hero'), btn('▶️', 'Next', () => toyLmTour(T.lmI + 1), 'gold'), btn('✅', 'Done', () => { T.lmTour = false; T.picked = null; $('#pill').textContent = 'Explorer Earth'; nav(); }));
-    else if (T.menu === 'games') acts.append(btn('⭐', 'Star hunt', () => { T.menu = null; toyStars(); }, 'gold'), btn('🗺️', 'States', () => { T.menu = null; toyStatesGame(); }, 'gold'), btn('🎢', 'Rides', () => { T.menu = 'ride'; nav(); }, 'gold'), btn('↩️', 'Back', () => { T.menu = null; nav(); }));
+    else if (T.menu === 'games') acts.append(btn('⭐', 'Star hunt', () => { T.menu = null; toyStars(); }, 'gold'), btn('🗺️', 'States', () => { T.menu = null; toyStatesGame(); }, 'gold'), btn('🦒', 'Who lives here?', startHomes, 'gold'), btn('🎢', 'Rides', () => { T.menu = 'ride'; nav(); }, 'gold'), btn('↩️', 'Back', () => { T.menu = null; nav(); }));
     else if (T.follow) acts.append(btn('✋', 'Stop ride', toyStop, 'hero'), btn('🔀', 'Another', () => toyRide(T.follow.kind)));
     else if (T.menu === 'ride') acts.append(btn('🚗', 'Car', () => toyRide('car'), 'gold'), btn('✈️', 'Plane', () => toyRide('plane'), 'gold'), btn('⛵', 'Boat', () => toyRide('boat'), 'gold'), btn('↩️', 'Back', () => { T.menu = null; nav(); }));
     else if (T.menu === 'build') {
@@ -2700,6 +2740,7 @@ function nav(){
   if (mode === 'home') acts.append(btn('🚀', 'Back to space', launch, 'hero'), btn('📖', 'Bedtime story', bedtime), btn(night ? '☀️' : '🌙', night ? 'Make day' : 'Make night', toggleNight, 'gold'), btn('🔭', "Tonight's sky", tonight), btn('🔊', 'Tell me more', moreFact), btn('🛂', 'Passport', openPassport));
   if (mode === 'sky') acts.append(...(matchMedia('(pointer:fine)').matches ? [] : [skyTilt.on ? btn('✋', 'Stop pointing', () => skyPoint(false), 'hero') : btn('📱', 'Point my phone', () => skyPoint(true), 'hero')]), btn('🏡', 'House', () => { skyPoint(false, true); ++seq; homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); speak(HOME_FACTS[0]); }), btn('🔊', 'Tell me again', () => speak(skyLines(sky))), btn('🚀', 'Back to space', () => { skyPoint(false, true); homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); launch(); }, 'gold'));
   if (mode === 'quiz') acts.append(btn('🔊', 'Again', () => qz && speak(qz.order[qz.i % qz.order.length][1]), 'hero'), btn('🌌', 'All planets', endQuiz), btn('🔄', 'New game', startQuiz, 'gold'));
+  if (mode === 'homes') acts.append(btn('🔊', 'Again', () => qz && speak(homesAsk(qz.an)), 'hero'), btn('🌍', 'Back to Earth', endHomes));
   if (mode === 'bigger') acts.append(btn('🔊', 'Again', () => speak(SAY.biggerAsk), 'hero'), btn('🌌', 'All planets', endBigger), btn('📏', 'Sizes', () => { endBigger(); openSizes(); }, 'gold'));
   if (mode === 'parade') acts.append(btn('🌌', 'All planets', endParade), btn('🔄', 'Play again', startParade, 'gold'));
 }
@@ -4737,7 +4778,9 @@ const ANIMAL_EM = { kangaroo: '🦘', elephant: '🐘', giraffe: '🦒', panda: 
 const roadLine = (road, end) => `Road trip mission! Drive Interstate ${road.slice(2)} all the way to ${end}! Follow the green arrow from city to city.`;
 const missionLine = (m, car = !!(toy && toy.fly && toy.fly.kind === 'car')) => m.road ? roadLine(m.road, m.end) : m.lm ? `Mission: ${car ? 'drive' : 'fly'} to ${theName(m.lm)}! Follow the green arrow!` : `Mission: find the ${ANIMAL_NAME[m.an] || m.an}! Follow the green arrow!`;
 const todayKey = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
-function dailyTarget(){ const all = [...LM.map(l => ({ lm: l, lat: l.lat, lon: l.lon })), ...Object.entries(ANIMALS).map(([an, a]) => ({ an, lat: a[0], lon: a[1] }))], d = new Date(), n = d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate(); return all[(n * 7) % all.length]; }
+function dailyTarget(from){ const all = [...LM.map(l => ({ lm: l, lat: l.lat, lon: l.lon })), ...Object.entries(ANIMALS).map(([an, a]) => ({ an, lat: a[0], lon: a[1] }))], d = new Date(), n = d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate();
+  for (let k = 0; k < all.length; k++) { const m = all[(n * 7 + k) % all.length]; if (!from || featDir(m.lat, m.lon).angleTo(from) > .2) return m; }   // if today's pick is right under the plane, take the next one so the special mission is never skipped
+  return all[(n * 7) % all.length]; }
 const dailyDone = () => { try { return localStorage.getItem('ast-daily') === todayKey(); } catch { return false; } };
 SAY.dailyIn = "Here's today's special mission!";
 SAY.roadDone = "You drove the whole highway! What a road trip, Amelia!";
@@ -4754,7 +4797,7 @@ function roadMission(F){   // on an interstate in the car: drive it to the far e
 }
 function flyMission(){   // pick somewhere new, not too close, and point the way; the first one each day is the special daily mission
   if (toy.fly.kind === 'car' && !(toy.boat && toy.boat.visible)) { const m = roadMission(toy.fly); if (m) { toy.fly.mission = m; speak(missionLine(m)); flyHud(true); return; } }
-  if (!dailyDone() && !toy.fly.dailyOffered) { const m = dailyTarget(); if (featDir(m.lat, m.lon).angleTo(toy.fly.p) > .2) { toy.fly.dailyOffered = true; m.daily = true; toy.fly.mission = m; m.t = 0; speak([SAY.dailyIn, missionLine(m)]); flyHud(true); return; } }
+  if (!dailyDone() && !toy.fly.dailyOffered) { const m = dailyTarget(toy.fly.p); if (featDir(m.lat, m.lon).angleTo(toy.fly.p) > .2) { toy.fly.dailyOffered = true; m.daily = true; toy.fly.mission = m; m.t = 0; speak([SAY.dailyIn, missionLine(m)]); flyHud(true); return; } }
   const T = toy, F = T.fly, opts = [...LM.map(l => ({ lm: l, lat: l.lat, lon: l.lon })), ...Object.entries(ANIMALS).map(([an, a]) => ({ an, lat: a[0], lon: a[1] }))]
     .filter(o => featDir(o.lat, o.lon).angleTo(F.p) > .35 && (!F.mission || o !== F.mission));
   const ahead = opts.filter(o => { const d = featDir(o.lat, o.lon); return d.angleTo(F.p) < 1.4 && d.clone().addScaledVector(F.p, -d.dot(F.p)).normalize().dot(F.f) > .35; });   // somewhere in front, so the arrow points up, not behind
@@ -5885,7 +5928,7 @@ function drawEclipse(){
 const STAMPS = [
   ...P.map(p => ({ id: 'p:' + p.id, img: p.thumb, label: p.label })),
   { id: 'eclipse', em: '🌑', label: 'Eclipse' }, { id: 'home', em: '🏡', label: 'Home' }, { id: 'landing', em: '🪂', label: 'Landing' }, { id: 'launch', em: '🚀', label: 'Blast off' }, { id: 'sky', em: '🔭', label: "Tonight's sky" },
-  { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'bigger', em: '⚖️', label: 'Size expert' }, { id: 'highway', em: '🛣️', label: 'Highway hero' }, { id: 'europarocks', em: '🧊', label: 'Europa explorer' }, { id: 'phases', em: '🌗', label: 'Moon phases' }, { id: 'titanrocks', em: '🟠', label: 'Titan explorer' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
+  { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'bigger', em: '⚖️', label: 'Size expert' }, { id: 'highway', em: '🛣️', label: 'Highway hero' }, { id: 'europarocks', em: '🧊', label: 'Europa explorer' }, { id: 'phases', em: '🌗', label: 'Moon phases' }, { id: 'homes', em: '🦒', label: 'Animal homes' }, { id: 'titanrocks', em: '🟠', label: 'Titan explorer' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
   { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'sparkles', em: '✨', label: 'Sparkle finder' }, { id: 'placequiz', em: '🧠', label: 'Place quiz' }, { id: 'daily', em: '🌟', label: 'Daily mission' }, { id: 'moonwalk', em: '🧑‍🚀', label: 'Moonwalker' }, { id: 'sizes', em: '📏', label: 'Size explorer' }, { id: 'jumper', em: '🛹', label: 'Ramp jumper' }, { id: 'moonrocks', em: '🌕', label: 'Moon rock hunter' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
   { id: 'roadtrip', em: '🚗', label: 'Road tripper' }, { id: 'cityhopper', em: '🏙️', label: 'City hopper' }, { id: 'balloons', em: '🎈', label: 'Balloons' }, { id: 'aurora', em: '🌌', label: 'Northern lights' },
   ...LM.map(l => ({ id: 'l:' + l.id, em: l.em, label: l.name.replace('Pyramids of Giza', 'Pyramids').replace('Great Wall of China', 'Great Wall').replace('Sydney Opera House', 'Opera House').replace('Kennedy Space Center', 'Space Center').replace('Amazon Rainforest', 'Rainforest') })),
@@ -6171,7 +6214,7 @@ window.__toyGo = (lat, lon, lv) => toyFlyTo(lat, lon, lv);
 window.__pquiz = () => site && site.quiz ? { i: site.quiz.i, right: site.quiz.list[site.quiz.i].opts.find(o => o[2])[1], wrong: site.quiz.list[site.quiz.i].opts.find(o => !o[2])[1] } : null;
 window.__audioState = () => ({ ctx: ac && ac.state, music: !!mus, step: mus ? mus.step : 0, engine: eng ? +eng.og.gain.value.toFixed(4) : null, noise: eng ? +eng.ng.gain.value.toFixed(4) : null });
 window.__spots = () => site && site.spots ? site.spots.map(m => { const v = m.position.clone().project(camera); return [Math.round((v.x + 1) / 2 * W), Math.round((1 - v.y) / 2 * H), m.userData.got]; }) : null;
-window.__daily = () => ({ done: dailyDone(), target: (m => m.lm ? m.lm.id : m.an)(dailyTarget()) });
+window.__daily = () => ({ done: dailyDone(), target: (m => m.lm ? m.lm.id : m.an)(dailyTarget(toy && toy.fly && toy.fly.p)), daily: !!(toy && toy.fly && toy.fly.mission && toy.fly.mission.daily) });
 window.__mission = () => { const F = toy.fly; if (!F.mission) flyMission(); return F.mission.lm ? F.mission.lm.id : F.mission.an; };
 const flyNear = (F, d) => { const ax = F.p.clone().cross(d).normalize(), a = F.p.angleTo(d) - .04; F.p.applyAxisAngle(ax, a).normalize(); F.f.copy(d).addScaledVector(F.p, -d.dot(F.p)).normalize(); };   // test helper: just short of a spot, heading for it
 window.__flyGoal = () => { const F = toy.fly, m = F.mission; flyNear(F, featDir(m.lat, m.lon)); };
@@ -6193,6 +6236,8 @@ window.__startRoadMission = () => { const F = toy.fly; F.mission = null; const m
 window.__perf = () => { const f = (window.__ft || []).slice(-300).filter(x => x > 0 && x < 2), m = f.reduce((a, b) => a + b, 0) / Math.max(1, f.length), sorted = [...f].sort((a, b) => a - b), p95 = sorted[Math.floor(sorted.length * .95)] || 0, i = renderer.info; return { fps: +(1 / Math.max(1e-6, m)).toFixed(1), p95ms: +(p95 * 1000).toFixed(1), calls: i.render.calls, tris: i.render.triangles, geos: i.memory.geometries, texs: i.memory.textures, heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, mode, sceneMode }; };
 window.__phases = v => { if (v != null) $('#phslide').value = v; return { on: phx.on, last: phx.last, seen: phx.seen.size, done: !!phx.done, mode }; };
 window.__drawBreakdown = () => { const nm = new Map(toy ? [[toy.lms, 'landmarks'], [toy.planet, 'planet'], [toy.stars, 'stars'], ...Object.entries(toy).flatMap(([k, v]) => v && v.isObject3D ? [[v, k]] : Array.isArray(v) ? v.filter(x => x && x.isObject3D).map(x => [x, k + '[]']) : [])] : []), sc = sceneMode === 'toy' ? toy.s : sceneMode === 'site' && site ? site.sc : sceneMode === 'mars' ? marsScene : space, out = {}; for (const top of sc.children) { let n = 0; top.traverseVisible(o => { if (o.isMesh || o.isPoints || o.isSprite || o.isLine) n++; }); if (n) { const k = (nm.get(top) || top.name || top.type) + (top.isInstancedMesh ? '[inst]' : '') + (top.type === 'Group' && !nm.get(top) ? '#' + sc.children.indexOf(top) + ':' + top.children.length + 'ch:' + ((top.children[0] && top.children[0].geometry && top.children[0].geometry.type) || (top.children[0] && top.children[0].type) || '') : ''); out[k] = (out[k] || 0) + n; } } return Object.entries(out).sort((a, b) => b[1] - a[1]).slice(0, 25); };
+window.__homes = () => qz && qz.kind === 'homes' && { an: qz.an, right: qz.right, home: HOME_OF[qz.an][0], mode };
+window.__voicePick = l => voicePick(l);
 window.__camZoom = z => { if (toy) { if (z != null) toy.camZoom = z; return toy.camZoom || 1; } };
 window.__cloudSync = () => clouds.parent === earth.mesh;
 window.__wipeEarth = () => { const c = canvases.earth; c.getContext('2d').clearRect(0, 0, c.width, c.height); };
@@ -6221,8 +6266,10 @@ window.__allLines = () => {
   Object.values(SITE_SPOTS).flat().forEach(x => s.add(x)); Object.values(SIZE_SAY).forEach(x => s.add(x)); LM.forEach(L => { s.add(whichLine(L)); s.add(contLine(L, contOpts(L))); if (PLACE_Q[L.id]) s.add(PLACE_Q[L.id][0]); });
   LM.forEach(l => { s.add(l.name + '!'); s.add(missionLine({ lm: l }, false)); s.add(missionLine({ lm: l }, true)); }); Object.keys(ANIMALS).forEach(an => s.add(missionLine({ an })));   // said when your plane flies over it
   Object.entries(US_ROAD_CITIES).forEach(([r, n]) => { s.add(roadLine(r, n[0])); s.add(roadLine(r, n[n.length - 1])); });
+  Object.entries(HOME_OF).forEach(([a, [, l]]) => { s.add(l); s.add(homesAsk(a)); });
   [...PHASES.map(p => p[1]), ...EUROPA_ROCKS, ...TITAN_ROCKS, jumpLine(byId.europa), jumpLine(byId.titan), ...Object.values(TRIP_SAY), ...Object.values(ROAD_SAY), ...Object.values(BIOME_SAY), ...CITY_STOPS.map(c => c.say)].forEach(x => s.add(x)); Object.values(US_ROAD_CITIES).flat().forEach(n => { if (n) s.add('Welcome to ' + n + '!'); });   // road-trip narration
   DIRS.forEach(d => { s.add(moonWhere(d)); SKY_PLANETS.forEach(id => s.add(planetWhere(id, d))); });
+  for (const l of [...s]) { const d = deskLine(l); if (d !== l) s.add(d); }   // desktop versions of tap/swipe lines
   return [...s];
 };
 window.__voiceCheck = () => voiceReady.then(() => new Promise(r => { const a = new Audio(voiceSrc(SAY.blastoff)); a.onloadedmetadata = () => r({ n: VOICE.size, dur: a.duration }); a.onerror = () => r('error ' + (a.error && a.error.code)); }));
