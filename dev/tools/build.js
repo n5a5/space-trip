@@ -31,7 +31,7 @@ const tail = `
 if ('serviceWorker' in navigator) addEventListener('load', () => {
   const had = !!navigator.serviceWorker.controller, t = document.getElementById('updtoast');
   t.onclick = () => location.reload();
-  navigator.serviceWorker.addEventListener('controllerchange', () => { if (had) t.hidden = false; });
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (!had) return; const g = document.getElementById('go'); if (g && g.offsetParent) location.reload(); else t.hidden = false; });
   navigator.serviceWorker.register('sw.js').then(r => setInterval(() => r.update().catch(() => {}), 30 * 60 * 1000)).catch(() => {});
 });
 </script>
@@ -48,8 +48,19 @@ const ASSETS = ['./', ...files.filter(f => !/^(sw\.js|README\.md|\.nojekyll|\.gi
 fs.writeFileSync(path.join(ROOT, 'sw.js'), `// Offline cache for Amelia's Space Trip. Bump VERSION on every deploy.
 const VERSION = '${VERSION}';
 const ASSETS = ${JSON.stringify(ASSETS, null, 1)};
-self.addEventListener('install', e => e.waitUntil(caches.open(VERSION).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())));
-self.addEventListener('activate', e => e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim())));
+// install never fails as a whole: the page itself must arrive, the rest is cached file by file (a few at a time) and anything missed loads on first use
+const CORE = ['./', 'index.html'];
+self.addEventListener('install', e => e.waitUntil(caches.open(VERSION).then(async c => {
+  await c.addAll(CORE); const rest = ASSETS.filter(a => !CORE.includes(a)); let i = 0;
+  await Promise.all([...Array(6)].map(async () => { while (i < rest.length) { const a = rest[i++]; try { await c.add(a); } catch {} } }));
+}).then(() => self.skipWaiting())));
+// before dropping an old version, copy over any file the new one couldn't fetch (so offline play keeps working)
+const WANT = new Set(ASSETS.map(a => new URL(a, self.registration.scope).href));
+self.addEventListener('activate', e => e.waitUntil(caches.open(VERSION).then(async now => {
+  for (const k of (await caches.keys()).filter(k => k !== VERSION)) { const old = await caches.open(k);
+    for (const req of await old.keys()) if (WANT.has(req.url.split('?')[0]) && !(await now.match(req, { ignoreSearch: true }))) { const r = await old.match(req); if (r) await now.put(req, r); }
+    await caches.delete(k); }
+}).then(() => self.clients.claim())));
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   e.respondWith(caches.match(e.request, { ignoreSearch: true }).then(hit => hit || fetch(e.request).then(res => {

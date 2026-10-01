@@ -94,7 +94,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #qstars{text-align:center;font-size:26px;letter-spacing:4px;min-height:32px}
 #qtray{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:360px;width:100%;margin:0 auto}
 #qtray .pl img{width:84px;height:84px}
-#goalchip.road .ge{font-size:.62em;letter-spacing:-.02em}
+#goalchip.road .ge{font-size:.8em;letter-spacing:-.02em}
 #szgame{align-self:center;margin:6px auto 0}
 #quiz.bigger #qtray{grid-template-columns:1fr 1fr;max-width:400px;align-items:end}
 #quiz.bigger #qtray .pl{min-height:190px;justify-content:flex-end}
@@ -507,7 +507,7 @@ function pickVoice(){
 if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 // Every line is pre-recorded (Kokoro-82M, voice af_heart, the same voice as Princess Quest) and embedded below;
 // anything missing falls back to the phone's own text-to-speech.
-const APP_VERSION = 'space-v30';
+const APP_VERSION = 'space-v31';
 let VOICE = {};
 // grown-up settings, kept on this phone
 const prefs = { rate: 1, vol: 1, captions: true }; try { Object.assign(prefs, JSON.parse(localStorage.getItem('ast-prefs') || '{}')); } catch {}
@@ -4075,7 +4075,7 @@ function enterSite(L){
   nav(); layout();
   const I = site.info; goal.target.copy(I.target); goal.dist = I.dist; goal.az = I.az; goal.el = I.el;
   goal.min = I.dist * .35; goal.max = I.dist * 1.6; goal.azMin = -Infinity; goal.azMax = Infinity; goal.elMin = .02; goal.elMax = 1.2;
-  camera.far = Math.max(3000, (I.far || 3000) * 1.4); camera.updateProjectionMatrix();
+  camera.far = Math.max(3000, (I.far || 3000) * 1.4); camera.near = Math.max(.05, I.dist * .02); camera.updateProjectionMatrix();   // a near plane scaled to the scene keeps phone depth precision, so flat layers (streets, river, lawns) don't flicker
   snapRig(); rig.dist = I.dist * 1.6; rig.el = I.el + .25;
 }
 async function visitSite(L){
@@ -4086,7 +4086,7 @@ async function visitSite(L){
 }
 async function leaveSite(to){   // back to Explorer Earth, right at the landmark you were visiting
   const L = LM[(((to ?? wIdx) % LM.length) + LM.length) % LM.length]; ++seq; await whoosh(true);
-  $('#amcard').hidden = true; camera.far = 3000; camera.updateProjectionMatrix();
+  $('#amcard').hidden = true; camera.far = 3000; camera.near = .05; camera.updateProjectionMatrix();
   if (site) { disposeScene(site.sc); site.rt.dispose(); site = null; }
   sceneMode = 'space'; enterToy({ lat: L.lat, lon: L.lon, ratio: TOY_LEVELS[2] / TOY_R, roll: 0, stay: true, lm: L });
   await sleep(150); whoosh(false);
@@ -4096,7 +4096,7 @@ function siteSwap(i){   // straight from one landmark scene to the next
   whooshSfx(); Promise.all([whoosh(true), prepSite(L)]).then(() => { if (my !== seq) return; wIdx = LM.indexOf(L); if (toy) { toy.lmI = wIdx; } enterSite(L); sleep(200).then(() => whoosh(false)); });
 }
 async function siteToSpace(){
-  ++seq; await whoosh(true); $('#amcard').hidden = true; camera.far = 3000; camera.updateProjectionMatrix();
+  ++seq; await whoosh(true); $('#amcard').hidden = true; camera.far = 3000; camera.near = .05; camera.updateProjectionMatrix();
   if (site) { disposeScene(site.sc); site.rt.dispose(); site = null; }
   sceneMode = 'space'; manualCam = false; camera.up.set(0, 1, 0); overview(); await sleep(150); whoosh(false);
 }
@@ -4879,8 +4879,10 @@ function toyRamps(F, sea){
       const p = F.p.clone(), f = F.f.clone().applyAxisAngle(F.p, (Math.random() - .5) * .8), ax = p.clone().cross(f).normalize(); p.applyAxisAngle(ax, .08 + Math.random() * .22);
       const [la, lo] = T.ll(p); if (T.sea(la, lo)) { r.g.visible = false; r.p = p; r.used = true; continue; }
       r.p = p; r.used = false; r.g.visible = true; const tg = f.clone().applyAxisAngle(ax, .1).addScaledVector(p, -f.dot(p)).normalize(); r.g.position.copy(p).multiplyScalar(R + Math.max(.03, T.h(la, lo))); orientTo(r.g.quaternion, p, tg); r.g.scale.setScalar(1.3); }
-    if (!r.used && !F.air && !sea && r.p.angleTo(F.p) < .012) { r.used = true; F.air = { vy: 1.1 }; whooshSfx(); pop(); F.score += 10; flyHud(true); if ((T.jumps = (T.jumps || 0) + 1) <= 3) speak(SAY.rampJump); if (T.jumps === 5) award('jumper'); setTimeout(() => { r.g.visible = false; }, 800); }
+    const pp = F.prevP || F.p, seg = F.p.clone().sub(pp), sl = seg.lengthSq(), tt = sl > 1e-12 && sl < .01 ? clamp(r.p.clone().sub(pp).dot(seg) / sl, 0, 1) : 1, near = pp.clone().addScaledVector(seg, tt).normalize();   // swept test: a slow phone's big frame step can't skip over the ramp
+    if (!r.used && !F.air && !sea && r.p.angleTo(near) < .012) { r.used = true; F.air = { vy: 1.1 }; whooshSfx(); pop(); F.score += 10; flyHud(true); if ((T.jumps = (T.jumps || 0) + 1) <= 3) speak(SAY.rampJump); if (T.jumps === 5) award('jumper'); setTimeout(() => { r.g.visible = false; }, 800); }
   }
+  F.prevP = (F.prevP || new THREE.Vector3()).copy(F.p);   // for next frame's swept ramp test
 }
 function toyLand(){
   const T = toy, F = T.fly, L = F && F.near; if (!L) return;
@@ -6168,6 +6170,7 @@ function frame(now){
   else { bloom.threshold = 3 - 1.6 * nightT; bloom.strength = .3 + .35 * nightT; bloom.radius = .45; }
   renderer.setScissorTest(false); renderer.setViewport(0, 0, W, H);
   const hid = statesDeclutter();
+  if (sceneMode !== 'site' && camera.near !== .05) { camera.near = .05; camera.updateProjectionMatrix(); }   // whatever way she left a landmark scene, the normal near plane comes back
   if (quality.bloom) { renderPass.scene = scene; composer.render(dt); } else renderer.render(scene, camera);
   hid.forEach(o => { o.visible = true; });
   if (meltSnap) { meltSnap(); meltSnap = null; }
@@ -6322,7 +6325,7 @@ $('#gotoy').onclick = () => { audio()?.resume?.(); pickVoice(); $('#start').hidd
 if ('serviceWorker' in navigator) addEventListener('load', () => {
   const had = !!navigator.serviceWorker.controller, t = document.getElementById('updtoast');
   t.onclick = () => location.reload();
-  navigator.serviceWorker.addEventListener('controllerchange', () => { if (had) t.hidden = false; });
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (!had) return; const g = document.getElementById('go'); if (g && g.offsetParent) location.reload(); else t.hidden = false; });
   navigator.serviceWorker.register('sw.js').then(r => setInterval(() => r.update().catch(() => {}), 30 * 60 * 1000)).catch(() => {});
 });
 </script>
