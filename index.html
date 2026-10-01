@@ -362,7 +362,7 @@ const byId = Object.fromEntries(P.map(p => [p.id, p]));
 const ORDER = ['mercury','venus','earth','mars','jupiter','saturn','uranus','neptune'];
 const ORD = ['first','second','third','fourth','fifth','sixth','seventh','eighth'];
 const ORDN = ['1st','2nd','3rd','4th','5th','6th','7th','8th'];
-const NUM = ['zero','one','two','three','four','five','six','seven'];
+const NUM = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
 const HOME_FACTS = [
   "This is Amelia's house, on planet Earth. Earth is the third planet from the Sun.",
   "The Sun in our sky is the same star we visited in space. It looks small because it's very, very far away.",
@@ -496,7 +496,7 @@ function pickVoice(){
 if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 // Every line is pre-recorded (Kokoro-82M, voice af_heart, the same voice as Princess Quest) and embedded below;
 // anything missing falls back to the phone's own text-to-speech.
-const APP_VERSION = 'space-v26';
+const APP_VERSION = 'space-v27';
 let VOICE = {};
 // grown-up settings, kept on this phone
 const prefs = { rate: 1, vol: 1, captions: true }; try { Object.assign(prefs, JSON.parse(localStorage.getItem('ast-prefs') || '{}')); } catch {}
@@ -1033,7 +1033,7 @@ const iss = new THREE.Group(); let issAng = 0, issN = 0;
   iss.traverse(o => { if (o.isMesh) o.castShadow = false; });
 }
 space.add(iss);
-const issHit = new THREE.Mesh(new THREE.SphereGeometry(14, 8, 6), hitMat); iss.add(issHit);
+const issHit = new THREE.Mesh(new THREE.SphereGeometry(8, 8, 6), hitMat); iss.add(issHit);
 // sun corona: a camera-facing card with flickering rays
 const corona = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({
   uniforms: { t: { value: 0 }, fade: { value: 1 } },
@@ -2510,7 +2510,7 @@ function answer(b, id, ans){
   if (id === ans) {
     chime(); b.classList.add('hint'); qz.right++; qz.i++; qz.lock = true;
     $('#qstars').textContent = '★'.repeat(Math.min(5, qz.right)) + '☆'.repeat(Math.max(0, 5 - qz.right));
-    if (qz.right === 5) { burst(); award('quiz'); speak([SAY.quizYes, SAY.quizDone]); setTimeout(() => { if (qz) qz.lock = false; }, 2500); nav(); return; }
+    if (qz.right === 5) { burst(); award('quiz'); speak([SAY.quizYes, SAY.quizDone]); nav(); setTimeout(() => { if (qz && mode === 'quiz') { qz.lock = false; qz.right = 0; qz.tries = 0; $('#qstars').textContent = '☆☆☆☆☆'; nextRiddle(); } }, 5000); return; }   // then five more, so the pictures always match the riddle
     speak(SAY.quizYes); setTimeout(() => { if (qz) qz.lock = false; if (mode === 'quiz' && qz) nextRiddle(); }, 2200);
   } else {
     bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); qz.tries++;
@@ -2578,7 +2578,7 @@ function nav(){
     if (current.id === 'moon') acts.append(btn('🧑‍🚀', 'Walk on the Moon', () => enterMars('moon'), 'hero'));
     if (current === earth) acts.append(btn('🗺️', 'Explore Earth', () => enterToy(), 'hero'), btn('🌍', 'Around the world', () => enterToy(null, { tour: 0 }), 'gold'), btn('🏡', 'Fly home', flyHome));
   }
-  if (mode === 'eclipse') acts.append(btn('🌙', 'Back to Moon', closeEclipse, 'hero'));
+  if (mode === 'eclipse') acts.append(ecl.from && ecl.from.id === 'sun' ? btn('☀️', 'Back to Sun', closeEclipse, 'hero') : btn('🌙', 'Back to Moon', closeEclipse, 'hero'));
   if (mode === 'mars') acts.append(btn('🪐', 'Back to space', leaveMars, 'hero'));
   if (mode === 'toy') {
     const T = toy;
@@ -2687,7 +2687,8 @@ function tap(x, y){
     if (current === earth && mode !== 'world' && ray.intersectObject(pinHit, false).length) return flyHome();
     if (current === earth) { const lh = ray.intersectObjects(lmHits, false)[0]; if (lh) return enterToy(null, { tour: LM.indexOf(lh.object.userData.lm) }); }
     const ph = ray.intersectObjects(hits.filter(o => o.parent.visible), false)[0];
-    if (iss.visible && ray.intersectObject(issHit, false).length) { pop(); award('iss'); speak(SAY['iss' + (1 + (issN++ % 3))]); return; }
+    const ih = iss.visible && ray.intersectObject(issHit, false)[0];   // the ISS only takes the tap when it's in front of the planet
+    if (ih && (!ph || ih.distance < ph.distance)) { pop(); award('iss'); speak(SAY['iss' + (1 + (issN++ % 3))]); return; }
     if (!ph && ray.intersectObject(comet.hit, false).length) { pop(); award('comet'); return speak(SAY.comet); }
     if (!ph && mode === 'space' && ray.intersectObject(beltHit, false).length) { pop(); award('belt'); return speak(SAY.belt); }
     const h = ray.intersectObjects(hits.filter(o => o.parent.visible), false)[0]; if (!h) return;
@@ -4202,13 +4203,23 @@ function roadTripStep(F){   // driving across a state line: Luna says which stat
   speak(stateLine(F.where), true); roadStates.add(F.where); try { localStorage.setItem('ast-roadstates', JSON.stringify([...roadStates])); } catch {}
   if (roadStates.size >= 5) award('roadtrip');
 }
-function whereName(la, lo){   // the title while flying or driving: a famous place's area, else land nearby wins over sea at coasts
+function landNear(la, lo, maxR){   // [lat, lon, sea]: the point itself if it's land, else the nearest land within maxR degrees (the coarse land field calls some coasts sea)
+  const T = toy; if (!T.sea(la, lo)) return [la, lo, false];
+  for (let r = .6; r <= maxR + 1e-6; r += .6) for (let a = 0; a < 12; a++) { const la2 = la + Math.cos(a * Math.PI / 6) * r, lo2 = lo + Math.sin(a * Math.PI / 6) * r / Math.max(.2, Math.cos(la * DEG)); if (!T.sea(la2, lo2)) return [la2, lo2, false]; }
+  return [la, lo, true];
+}
+function whereName(la, lo, onLand){   // the title while flying or driving: a famous place's area, else land nearby wins over sea at coasts (and always while she drives the car on land)
   const p = featDir(la, lo), L = LM.find(l => featDir(l.lat, l.lon).angleTo(p) < .035); if (L) { la = L.lat; lo = L.lon; }
-  const T = toy; let sea = T.sea(la, lo);
-  if (sea) for (let a = 0; a < 8 && sea; a++) { const la2 = la + Math.cos(a * Math.PI / 4) * .6, lo2 = lo + Math.sin(a * Math.PI / 4) * .6 / Math.max(.2, Math.cos(la * DEG)); if (!T.sea(la2, lo2)) { sea = false; la = la2; lo = lo2; } }
+  let sea; [la, lo, sea] = landNear(la, lo, onLand ? 2.4 : .6);
   const k = regionAt(la, lo, sea); let st = !sea && k === 'northAmerica' ? stateAt(la, lo) : null;
   if (!st && !sea && k === 'northAmerica' && countryAt(la, lo) === 'United States') for (let r = .3; r <= .9 && !st; r += .3) for (let a = 0; a < 8 && !st; a++) st = stateAt(la + Math.cos(a * Math.PI / 4) * r, lo + Math.sin(a * Math.PI / 4) * r);   // coastal U.S. spots: the nearest state
-  return st ? st.name : (!sea && k !== 'antarctica' && countryAt(la, lo)) || REGION_NAME[k];
+  let c = !sea && k !== 'antarctica' ? countryAt(la, lo) : null;
+  if (!c && !sea && k !== 'antarctica' && !disputedAt(la, lo)) for (let r = .5; r <= 1 && !c; r += .5) for (let a = 0; a < 8 && !c; a++) c = countryAt(la + Math.cos(a * Math.PI / 4) * r, lo + Math.sin(a * Math.PI / 4) * r);   // coastal squares of the country grid can be sea: look next door
+  return st ? st.name : c || REGION_NAME[k];
+}
+function disputedAt(lat, lon){   // a disputed place (shown only as its continent): never borrow a neighbour's name for it
+  if (COUNTRY_FIX.some(([a, b, c, d, n]) => n === null && lat >= a && lat <= b && lon >= c && lon <= d)) return true;
+  countryAt(0, 0); const v = countryGrid[clamp(Math.floor((90 - lat) * 2), 0, 359) * 720 + clamp(Math.floor((lon + 180) * 2), 0, 719)]; return !!v && COUNTRY_DATA.names[v - 1] === '';
 }
 function countryAt(lat, lon){
   if (!countryGrid) { countryGrid = new Uint16Array(720 * 360); const r = COUNTRY_DATA.rle.split(',').map(Number); let o = 0; for (let i = 0; i < r.length; i += 2) { countryGrid.fill(r[i], o, o + r[i + 1]); o += r[i + 1]; } }
@@ -4849,8 +4860,8 @@ function updateFly(dt, t){
   if ((t * 2 | 0) % 3 === 0 && F.stars.some(st => st.got || st.pos.clone().normalize().angleTo(F.p) > .5)) flyStarsAround();
   if (!T.saidNight && T.sunDir && pos.clone().normalize().dot(T.sunDir) < -.2) { T.saidNight = true; setTimeout(() => { if (toy.fly && !toy.fly.near) speak(SAY.nightHere); }, 300); }
   // where am I? continent, ocean or U.S. state in the title, a map in the corner, and Luna says each new continent or ocean
-  if ((F.whereT = (F.whereT || 0) - dt) <= 0) { F.whereT = .5; const sea = T.sea(la, lo), k = regionAt(la, lo, sea), st = !sea && k === 'northAmerica' ? stateAt(la, lo) : null;
-    const wn = whereName(la, lo); if (!F.where) F.where = wn; if (wn !== F.whereNext) { F.whereNext = wn; F.whereHold = 0; } else if ((F.whereHold += .5) >= 1) F.where = wn; roadTripStep(F);   // a new name must hold for a second, so the title doesn't flicker at coasts
+  if ((F.whereT = (F.whereT || 0) - dt) <= 0) { F.whereT = .5; const onLand = F.kind === 'car' && !(T.boat && T.boat.visible), [lla, llo, sea] = onLand ? landNear(la, lo, 2.4) : [la, lo, T.sea(la, lo)], k = regionAt(lla, llo, sea), st = !sea && k === 'northAmerica' ? stateAt(lla, llo) : null;
+    const wn = whereName(la, lo, onLand); if (!F.where) F.where = wn; if (wn !== F.whereNext) { F.whereNext = wn; F.whereHold = 0; } else if ((F.whereHold += .5) >= 1) F.where = wn; roadTripStep(F);   // a new name must hold for a second, so the title doesn't flicker at coasts
     if (k !== F.region) { F.region = k; F.regionT = 0; } else if ((F.regionT += .5) === 1.5 && F.lastSaid !== k && performance.now() - (F.saidAt || 0) > 7000 && !F.near && !F.landed) { F.lastSaid = k; F.saidAt = performance.now(); speak(REGIONS[k][4]); }
     if (!F.near && !F.landed) $('#pill').textContent = '📍 ' + F.where; }
   miniMap(la, lo, t); riderStep(F, dt, t);
@@ -4927,13 +4938,15 @@ const REGIONS = {
   indian: [-20, 80, '🌊', 'Indian', "This is the Indian Ocean. Its water is warm, and lots of colorful fish live there."],
   arctic: [82, 0, '🌊', 'Arctic', "This is the Arctic Ocean, near the North Pole. Much of it is covered in ice."],
   southern: [-60, 60, '🌊', 'Southern', "This is the Southern Ocean, the cold ocean all around Antarctica."],
+  med: [35, 18, '🌊', 'Mediterranean', "This is the Mediterranean Sea. It sits between Europe and Africa."],
 };
 const REGION_NAME = { northAmerica: 'North America', southAmerica: 'South America', europe: 'Europe', africa: 'Africa', asia: 'Asia', australia: 'Australia', antarctica: 'Antarctica',
-  pacific: 'Pacific Ocean', atlantic: 'Atlantic Ocean', indian: 'Indian Ocean', arctic: 'Arctic Ocean', southern: 'Southern Ocean' };
+  pacific: 'Pacific Ocean', atlantic: 'Atlantic Ocean', indian: 'Indian Ocean', arctic: 'Arctic Ocean', southern: 'Southern Ocean', med: 'Mediterranean Sea' };
 function regionAt(lat, lon, isSea){   // a child-level guess at which continent or ocean a point is in
   if (lat < -60) return isSea ? 'southern' : 'antarctica';
   if (isSea) {
     if (lat > 66) return 'arctic'; if (lat < -50) return 'southern';
+    if (lat > 30 && lat < 46 && lon > -5.5 && lon < 36 && !(lon > 27 && lat > 40.5)) return 'med';   // the Mediterranean Sea (not the Black Sea)
     if (lon > 20 && lon < 120 && lat < 25 && !(lon > 100 && lat > 0)) return 'indian';
     if (lon > -70 && lon <= 20 && !(lon < -80)) return 'atlantic';
     if (lon > -100 && lon <= -70 && lat > 8) return 'atlantic';   // Caribbean and Gulf of Mexico
@@ -4988,8 +5001,8 @@ function toyExtras(){
   // --- continent and ocean labels (seen from far away) ---
   T.labels = [];
   for (const [k, r] of Object.entries(REGIONS)) {
-    const c = mkCanvas(512, 96), g = c.getContext('2d'), sea = k in { pacific: 1, atlantic: 1, indian: 1, arctic: 1, southern: 1 };
-    g.font = '800 54px Fredoka, Nunito, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+    const c = mkCanvas(512, 96), g = c.getContext('2d'), sea = k in { pacific: 1, atlantic: 1, indian: 1, arctic: 1, southern: 1, med: 1 };
+    g.font = '800 54px Fredoka, Nunito, system-ui, sans-serif'; { const w = g.measureText(REGION_NAME[k]).width; if (w > 470) g.font = `800 ${Math.floor(54 * 470 / w)}px Fredoka, Nunito, system-ui, sans-serif`; } g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
     g.lineWidth = 12; g.strokeStyle = '#241a3a'; g.strokeText(REGION_NAME[k], 256, 50); g.fillStyle = sea ? '#bfefff' : '#fff3b0'; g.fillText(REGION_NAME[k], 256, 50);
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex(c), transparent: true, depthWrite: false })); sp.scale.set(4.4, .83, 1);
     sp.position.copy(featDir(r[0], r[1])).multiplyScalar(R + 1.2); s.add(sp); T.labels.push(sp);
@@ -5041,7 +5054,7 @@ function toyExtras(){
   const bar = $('#tstrip'); bar.innerHTML = '';
   const add = (em, label, fn) => { const b = document.createElement('button'); b.className = 'th'; b.innerHTML = `<span class="em" aria-hidden="true">${em}</span><span>${label}</span>`; b.onclick = () => { audio()?.resume?.(); fn(); }; bar.append(b); };
   add('🏡', 'Home', () => toyHomeSpot());
-  for (const [k, r] of Object.entries(REGIONS)) if (!(k in { pacific: 1, atlantic: 1, indian: 1, arctic: 1, southern: 1 })) add(r[2], r[3], () => { T.home = false; T.lmTour = false; toyFlyTo(r[0], r[1], 1); speak(r[4]); $('#pill').textContent = REGION_NAME[k]; nav(); });
+  for (const [k, r] of Object.entries(REGIONS)) if (!(k in { pacific: 1, atlantic: 1, indian: 1, arctic: 1, southern: 1, med: 1 })) add(r[2], r[3], () => { T.home = false; T.lmTour = false; toyFlyTo(r[0], r[1], 1); speak(r[4]); $('#pill').textContent = REGION_NAME[k]; nav(); });
   for (const L of LM) { add(L.em, lmShort(L), () => toyLmTour(LM.indexOf(L))); bar.lastChild.dataset.lm = L.id; }
   T.touchT = 0; T.done = new Set();
 }
@@ -5413,7 +5426,8 @@ function buildMars(world = 'mars'){
   rover = new THREE.Group(); s.add(rover);
   roverBody = new THREE.Group(); rover.add(roverBody);
   roverAm = makeAmelia('astro'); roverAm.scale.setScalar(moonW ? 1.5 : .95); roverAm.position.set(0, moonW ? 0 : 1.2, moonW ? 0 : .3); roverAm.rotation.y = moonW ? Math.PI : .6; roverBody.add(roverAm);
-  if (moonW) { roverWheels = []; tracks.scale.setScalar(.45); return s; }
+  tracks.userData.k = moonW ? .45 : 1; if (moonW) tracks.material.color.set('#4d4a47');   // small grey boot prints on the Moon (sized per print, not by scaling the whole mesh)
+  if (moonW) { roverWheels = []; return s; }
   loadModel('models/perseverance.glb').then(g => {
     const m = g.scene; m.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
     m.rotation.y = Math.PI;   // the model's cameras face +z; the rover drives toward -z
@@ -5499,7 +5513,7 @@ function updateMars(dt, t){
     for (const sd of [-1, 1]) {
       const x = D.x - fx * 1.3 + sx * sd * 1.05, z = D.z - fz * 1.3 + sz * sd * 1.05, m = new THREE.Matrix4(), q = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, -D.yaw, 'YXZ'));
       q.setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)); const q2 = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -D.yaw); q2.multiply(q);
-      m.compose(new THREE.Vector3(x, groundH(x, z) + .03, z), q2, new THREE.Vector3(1, 1, 1)); tracks.setMatrixAt(tracks.userData.i % 2400, m); tracks.userData.i++;
+      m.compose(new THREE.Vector3(x, groundH(x, z) + .03, z), q2, new THREE.Vector3(tracks.userData.k || 1, 1, tracks.userData.k || 1)); tracks.setMatrixAt(tracks.userData.i % 2400, m); tracks.userData.i++;
       tracks.count = Math.min(2400, tracks.userData.i); tracks.instanceMatrix.needsUpdate = true;
     }
     if (Math.abs(D.v) > 1.5) puffDust(D.x - fx * 1.6, y + .3, D.z - fz * 1.6);
@@ -5587,13 +5601,13 @@ function updateLanding(dt, t){
 /* ---------- eclipse machine: slide the Moon across the Sun, seen from the backyard ---------- */
 const ecl = { on: false, raf: 0, said: false, stars: null };
 function openEclipse(){
-  ++seq; stopJump(); mode = 'eclipse'; nav(); layout(); $('#pill').textContent = 'Eclipse Machine';
+  ecl.from = current && current.id === 'sun' ? current : moon; ++seq; stopJump(); mode = 'eclipse'; nav(); layout(); $('#pill').textContent = 'Eclipse Machine';
   $('#eclipse').hidden = false; $('#eslide').value = 80; ecl.said = false; ecl.on = true;
   $('#eclipse').style.bottom = '0'; $('#top').style.zIndex = 4; $('#bottom').style.zIndex = 4;
   if (!ecl.stars) ecl.stars = Array.from({ length: 140 }, () => [Math.random(), Math.random() * .7, Math.random() * 1.6 + .4]);
   speak(SAY.eclIn); award('eclipse'); drawEclipse();
 }
-function closeEclipse(){ ecl.on = false; cancelAnimationFrame(ecl.raf); $('#eclipse').hidden = true; $('#top').style.zIndex = ''; $('#bottom').style.zIndex = ''; focus(moon, true); }
+function closeEclipse(){ ecl.on = false; cancelAnimationFrame(ecl.raf); $('#eclipse').hidden = true; $('#top').style.zIndex = ''; $('#bottom').style.zIndex = ''; focus(ecl.from || moon, true); }
 function drawEclipse(){
   if (!ecl.on) return;
   const c = $('#eclc'), dpr = Math.min(2, devicePixelRatio || 1), w = c.clientWidth, h = c.clientHeight;
@@ -5886,9 +5900,9 @@ function updateHome(dt, t){
     q.sp.material.opacity = .42 * (1 - q.life) * (1 - nt * .45); if (q.life >= 1) q.sp.visible = false;
   }
   for (const [o, r] of [[hSun, 2.6], [hMoon, 1.8]]) { const f = o.children[2]; tmp.copy(camera.position).sub(o.position).normalize(); f.position.copy(tmp).multiplyScalar(r * 1.05); }
-  const lit = sst(.35, .8, nt);
-  glassMat.emissive.setRGB(1, .74, .32).multiplyScalar(lit * 2.6);
-  bulbMat.emissiveIntensity = lit * 8; porchLight.intensity = lit * 30; streetLight.intensity = lit * 90;
+  const lit = sst(.35, .8, nt), dim = mode === 'sky' ? .3 : 1;   // stargazing: the house lights are turned down so the sky shows (no glare)
+  glassMat.emissive.setRGB(1, .74, .32).multiplyScalar(lit * 2.6 * dim);
+  bulbMat.emissiveIntensity = lit * 8 * dim; porchLight.intensity = lit * 30 * dim; streetLight.intensity = lit * 90 * dim;
   shooter.next -= dt;
   if (nt > .8 && shooter.next < 0 && shooter.t > 1) {
     shooter.next = 4 + Math.random() * 6; shooter.t = 0;
@@ -5939,6 +5953,10 @@ window.__rampAhead = () => { const F = toy.fly, r = toy.ramps && toy.ramps.find(
 window.__flyAlt = a => { toy.fly.alt = a; }; window.__cityHops = () => [...cityHops]; window.__cityStops = () => toy && toy.cityStops ? toy.cityStops.length : 0; window.__roadStates = () => [...roadStates]; window.__onRoad = (la, lo) => onInterstate(la, lo); window.__driveTo = (la, lo) => { const F = toy.fly, d = featDir(la, lo); F.p.copy(d); }; window.__arrowCheck = () => { const F = toy.fly, ar = toy.flyArrow; if (!F || !ar || !ar.visible) return null; ar.updateMatrixWorld(); const a = ar.localToWorld(new THREE.Vector3(0, 0, -.05)).project(camera), b = ar.localToWorld(new THREE.Vector3(0, 0, .15)).project(camera), scr = Math.atan2(-(b.y - a.y) * H, (b.x - a.x) * W) * 180 / Math.PI, chip = ((F.chipDeg % 360) + 540) % 360 - 180; return { scr: Math.round(scr), chip: Math.round(chip) }; }; window.__toyInv = () => ({ keys: Object.keys(toy).join(' '), kids: toy.s.children.map((o, i) => { const k = Object.entries(toy).find(([n, v]) => v === o || (Array.isArray(v) && v.includes(o))); return i + ':' + (k ? k[0] : '?') + ':' + o.type + (o.isInstancedMesh ? '#' + o.count : '') + (o.material && o.material.color ? '#' + o.material.color.getHexString() : ''); }).join(' ') }); window.__aurora = () => toy && toy.wild ? +Math.max(...toy.wild.aurora.map(a => a.m.visible ? a.m.material.opacity : 0)).toFixed(2) : null; window.__flyToLL = (la, lo) => flyNear(toy.fly, featDir(la, lo)); window.__pets = () => toy && toy.animals ? Object.keys(toy.animals).filter(k => toy.animals[k].userData.pet) : null; window.__camLL = () => toy.ll(camera.position.clone().normalize()).map(v => +v.toFixed(1)); window.__flyLL = () => toy.fly && toy.ll(toy.fly.p).map(v => +v.toFixed(1)); window.__wild = () => toy.wild ? [...toy.wild.seen] : null;
 window.__speak = (k) => speak(SAY[k]); window.__sayKeys = () => Object.keys(SAY);
 window.__marsFrame = () => { const who = roverAm || rover; if (!who) return null; const v = who.getWorldPosition(new THREE.Vector3()).project(camera); return { feet: Math.round((1 - v.y) / 2 * H), pad: Math.round($('#drive .pad').getBoundingClientRect().top) }; };
+window.__skyLook = (az, el) => { look.az = look.gaz = az; look.el = look.gel = el; };
+window.__tracksCheck = () => { if (!tracks || !tracks.count || !rover) return null; const m = new THREE.Matrix4(); tracks.getMatrixAt((tracks.userData.i - 1) % 2400, m); const p = new THREE.Vector3().setFromMatrixPosition(m).applyMatrix4(tracks.matrixWorld); return +p.distanceTo(rover.getWorldPosition(new THREE.Vector3())).toFixed(2); };
+window.__quizState = () => qz && { ans: qz.order[qz.i % qz.order.length][0], tray: [...document.querySelectorAll('#qtray .pl')].map(b => b.dataset.id), right: qz.right };
+window.__spaceState = () => ({ mode, current: current && current.id });
 window.__camZoom = z => { if (toy) { if (z != null) toy.camZoom = z; return toy.camZoom || 1; } };
 window.__cloudSync = () => clouds.parent === earth.mesh;
 window.__wipeEarth = () => { const c = canvases.earth; c.getContext('2d').clearRect(0, 0, c.width, c.height); };
@@ -5949,7 +5967,7 @@ window.__amPortrait = (w = 480, h = 800, az = 0, wave = false) => {   // test ho
   const cam = new THREE.PerspectiveCamera(26, w / h, .1, 20); cam.position.set(Math.sin(az) * 4.1, .78, Math.cos(az) * 4.1); cam.lookAt(0, .68, 0);
   if (wave) { pcAm.userData.anim.waveT = 5; animAmelia(pcAm, .3, 1); } else { pcAm.userData.anim.waveT = 0; pcAm.userData.anim.mode = 'idle'; animAmelia(pcAm, .01, 1); }
   r.render(pcScene, cam); const url = cv.toDataURL('image/png'); r.dispose(); return url; };
-window.__countryAt = (la, lo) => countryAt(la, lo); window.__whereName = (la, lo) => whereName(la, lo);
+window.__countryAt = (la, lo) => countryAt(la, lo); window.__whereName = (la, lo, onLand) => whereName(la, lo, onLand);
 window.__goalAng = () => { const F = toy.fly, m = F && F.mission; if (!m) return null; const gd = featDir(m.lat, m.lon), to = gd.clone().addScaledVector(F.p, -gd.dot(F.p)).normalize(), side = F.p.clone().cross(F.f).normalize(); return +Math.atan2(to.dot(side), to.dot(F.f)).toFixed(2); };
 window.__flyFlip = () => { toy.fly.f.negate(); };
 window.__flyTo = id => { const F = toy.fly, L = LM.find(l => l.id === id); flyNear(F, featDir(L.lat, L.lon)); };
@@ -5989,6 +6007,7 @@ function frame(now){
   else if (sceneMode === 'mars') { bloom.threshold = 1.6; bloom.strength = .5; bloom.radius = .5; }
   else if (sceneMode === 'toy') { bloom.threshold = .95; bloom.strength = .35; bloom.radius = .4; }
   else if (sceneMode === 'site') { const n = site ? site.night : 0; bloom.threshold = 3 - 1.8 * n; bloom.strength = .3 + .4 * n; bloom.radius = .5; }
+  else if (mode === 'sky') { bloom.threshold = 2.4; bloom.strength = .3; bloom.radius = .4; }
   else { bloom.threshold = 3 - 1.6 * nightT; bloom.strength = .3 + .35 * nightT; bloom.radius = .45; }
   renderer.setScissorTest(false); renderer.setViewport(0, 0, W, H);
   const hid = statesDeclutter();

@@ -1,0 +1,5 @@
+// Place names: driving on land near a coast never says an ocean; the Mediterranean is named; known spots name correctly.
+module.exports=async({pg,S,W})=>{await pg.click('#go');await W(2000);await pg.click('.th[data-id="earth"]');await W(2500);if(await pg.isVisible('.th[data-id="earth"]'))await pg.click('.th[data-id="earth"]');await W(11000);
+const cases=[[41,19,true,/Albania|Montenegro|Italy|Greece|Europe/],[41.9,12.5,true,/Italy/],[28.4,-80.6,true,/Florida/],[25.8,-80.2,true,/Florida/],[35,18,false,/Mediterranean/],[38,-40,false,/Atlantic/],[43.3,5.4,true,/France/],[37.9,23.7,true,/Greece/],[45,34,true,/^Europe$/],[24,-13,true,/^Africa$/],[34.5,75,true,/^Asia$/],[-51.7,-59,true,/America|Atlantic/]];   // Crimea, Western Sahara, Kashmir, Falklands: continent only
+const bad=[];for(const [a,o,land,re] of cases){const n=await pg.evaluate(([a,o,l])=>window.__whereName(a,o,l),[a,o,land]);console.log(a,o,land?'car':'fly','->',n);if(!re.test(n))bad.push(a+','+o+' '+n);}
+if(bad.length)throw new Error('wrong names: '+bad.join('; '));};
