@@ -197,6 +197,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 .stamp.has .lb{color:var(--ink)}
 #skycard{position:absolute;left:16px;right:16px;max-width:30em;margin:0 auto;padding:12px 14px;border-radius:18px;background:rgba(13,11,46,.82);border:2px solid rgba(183,156,255,.45);font:700 13px/1.45 var(--body);color:var(--ink);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 #skycard b{font:600 17px/1.2 var(--display);color:var(--gold)}
+#skycard{cursor:pointer;transition:padding .3s,background .3s}#skycard.mini{font-size:0;width:max-content;max-width:calc(100% - 32px);padding:5px 14px;background:rgba(13,11,46,.5)}#skycard.mini ul,#skycard.mini small{display:none}#skycard.mini b{font-size:14px}#skycard.mini b::after{content:' ▾';color:var(--muted)}
 #skycard ul{list-style:none;margin:6px 0 4px;padding:0;display:flex;flex-direction:column;gap:3px}
 #skycard small{color:var(--muted);font-weight:700;font-size:11px}
 @media (prefers-reduced-motion:reduce){#count.go{animation:none}#whoosh{transition:opacity .4s}#whoosh.on{transform:none}.slot .ring img,.pl.hint{animation:none}}
@@ -1118,7 +1119,7 @@ function lightsMat(sunPos){
 const lightShells = [];
 { const l = new THREE.Mesh(sphereGeo, lightsMat(new THREE.Vector3())); l.scale.setScalar(1.004); earth.mesh.add(l); lightShells.push(l); }
 const clouds = new THREE.Mesh(sphereGeo, std({ map: tex(cloudCanvas()), transparent: true, depthWrite: false, roughness: 1 }));
-clouds.scale.setScalar(1.025); earth.tiltG.add(clouds);
+clouds.scale.setScalar(1.025); earth.mesh.add(clouds);   // clouds ride on the Earth so they turn with it when she spins it (then drift slowly on their own)
 function lonLatVec(lon, lat, r = 1){
   const phi = (lon + 180) / 360 * Math.PI * 2, th = (90 - lat) * DEG;
   return new THREE.Vector3(-Math.cos(phi) * Math.sin(th) * r, Math.cos(th) * r, Math.sin(phi) * Math.sin(th) * r);
@@ -2231,7 +2232,7 @@ function tonight(){
   mode = 'sky'; manualCam = true;
   if (!night) toggleNightQuiet();
   $('#pill').textContent = "Tonight's Sky"; $('#inset').hidden = true;
-  const card = $('#skycard'); card.innerHTML = skyCard(sky); card.hidden = false;
+  const card = $('#skycard'); card.innerHTML = skyCard(sky); card.hidden = false; card.onclick = () => skyMini(!card.classList.contains('mini')); skyMini(false);
   nav(); layout();
   const first = sky.moon.state === 'up' ? sky.moon : sky.planets[0];
   look.az = 0; look.el = 12; look.gaz = first ? first.az : 135; look.gel = clamp(first ? first.alt + 6 : 35, 28, 70);
@@ -2255,10 +2256,15 @@ function skyOrient(e){
   skyTilt.got = true; look.gaz = (az + 360) % 360; look.gel = clamp(alt, -20, 88);
 }
 addEventListener('deviceorientationabsolute', skyOrient); addEventListener('deviceorientation', skyOrient);
+let skyMiniT = 0;
+function skyMini(on){   // the sky card shrinks to one small line so it doesn't hide the sky (at once while pointing, after a while otherwise); tapping it opens it again
+  const card = $('#skycard'); clearTimeout(skyMiniT); card.classList.toggle('mini', on);
+  if (!on) skyMiniT = setTimeout(() => { if (mode === 'sky') card.classList.add('mini'); }, skyTilt.on ? 6000 : 12000);
+}
 async function skyPoint(on, quiet){
   if (on) {
     try { if (window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission) { if (await DeviceOrientationEvent.requestPermission() !== 'granted') throw 0; } } catch { speak(SAY.skyNoSensor); return; }
-    skyTilt.on = true; skyTilt.got = false; speak(SAY.skyPoint); award('point'); stayAwake(true, 300000);
+    skyTilt.on = true; skyTilt.got = false; skyMini(true); speak(SAY.skyPoint); award('point'); stayAwake(true, 300000);
     setTimeout(() => { if (skyTilt.on && !skyTilt.got) { skyTilt.on = false; speak(SAY.skyNoSensor); nav(); } }, 2500);
   } else { skyTilt.on = false; if (!quiet) speak(skyLines(sky)); }
   nav();
@@ -2616,13 +2622,15 @@ function nav(){
 }
 
 const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
-const ptrs = new Map(); let down = null, moved = false, pinch = null;
+const ptrs = new Map(); let down = null, moved = false, pinch = null, pinchHold = false;
+const CAMZ_MIN = .75, CAMZ_MAX = 3.5;   // chase-camera zoom while flying or driving: pinch out (or scroll) to see more around her
 $('#tzin').onclick = () => { audio()?.resume?.(); toyZoom(1); }; $('#tzout').onclick = () => { audio()?.resume?.(); toyZoom(-1); };
 canvas.addEventListener('pointerdown', e => {
   if (mode === 'toy' && toy) toy.touchT = performance.now();
   canvas.setPointerCapture?.(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (ptrs.size === 1) { down = { x: e.clientX, y: e.clientY }; moved = false; }
-  if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), g: goal.dist }; moved = true; }
+  if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), g: goal.dist, z: (toy && toy.camZoom) || 1 }; moved = true; }
+  if (ptrs.size >= 2 && mode === 'toy' && toy && toy.fly) { pinchHold = true; toy.fly.sx = toy.fly.sy = 0; }
 });
 canvas.addEventListener('pointermove', e => {
   const prev = ptrs.get(e.pointerId); if (!prev) return;
@@ -2635,6 +2643,7 @@ canvas.addEventListener('pointermove', e => {
     }
     return;
   }
+  if (mode === 'toy' && toy && toy.fly && pinchHold) { if (ptrs.size === 2 && pinch) { const [a, b] = [...ptrs.values()], sp = Math.hypot(a.x - b.x, a.y - b.y); toy.camZoom = clamp(pinch.z * pinch.d / Math.max(20, sp), CAMZ_MIN, CAMZ_MAX); $('#flyhint').hidden = true; } return; }
   if (mode === 'toy' && toy && toy.fly) { if (ptrs.size >= 1) { moved = true; toy.fly.sx = clamp((e.clientX - down.x) / 70, -1, 1); toy.fly.sy = clamp((down.y - e.clientY) / 70, -1, 1); $('#flyhint').hidden = true; } return; }
   if (ptrs.size === 1) {
     if (Math.hypot(e.clientX - down.x, e.clientY - down.y) > 9) moved = true;
@@ -2650,10 +2659,11 @@ function up(e){
   const had = ptrs.has(e.pointerId); ptrs.delete(e.pointerId);
   if (mode === 'toy' && toy && toy.fly && ptrs.size === 0) { toy.fly.sx = toy.fly.sy = 0; }
   if (ptrs.size < 2) pinch = null;
+  if (ptrs.size === 0) pinchHold = false;
   if (had && !moved && ptrs.size === 0 && e.type === 'pointerup') tap(e.clientX, e.clientY);
 }
 canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
-canvas.addEventListener('wheel', e => { e.preventDefault(); goal.dist = clamp(goal.dist * (1 + e.deltaY * (mode === 'toy' ? .0025 : .001)), goal.min, goal.max); zoomIntoEarth(e.deltaY < 0); }, { passive: false });
+canvas.addEventListener('wheel', e => { e.preventDefault(); if (mode === 'toy' && toy && toy.fly) { toy.camZoom = clamp((toy.camZoom || 1) * (1 + e.deltaY * .0015), CAMZ_MIN, CAMZ_MAX); return; } goal.dist = clamp(goal.dist * (1 + e.deltaY * (mode === 'toy' ? .0025 : .001)), goal.min, goal.max); zoomIntoEarth(e.deltaY < 0); }, { passive: false });
 function tap(x, y){
   audio()?.resume?.();
   ndc.set(x / W * 2 - 1, -(y / H) * 2 + 1); ray.setFromCamera(ndc, camera);
@@ -3688,8 +3698,12 @@ function buildToy(){
   const s = new THREE.Scene(); s.background = new THREE.Color('#1c1a4d'); s.fog = new THREE.Fog('#1c1a4d', 1e4, 2e4);
   const R = TOY_R, V = () => new THREE.Vector3();
   // --- the painted comic map: land shapes, biome colours, shallow water, foam, ink coasts, little mountains, borders, U.S. states ---
-  const src = (earth.cartoonMat || earth.mesh.material).map.image, MW0 = src.width, MH0 = src.height;
-  const px = src.getContext('2d').getImageData(0, 0, MW0, MH0).data;
+  const eMat = earth.cartoonMat || earth.mesh.material, src = eMat.map.image, MW0 = src.width, MH0 = src.height;
+  let px = src.getContext('2d').getImageData(0, 0, MW0, MH0).data;
+  const TEST_LAND = [[39, -98], [15, 20], [-25, 134], [55, 90], [-10, -55]];   // Kansas, Chad, central Australia, Siberia, the Amazon
+  const isSeaPx = p => !(p[3] > 200) || (p[2] > p[1] + 25 && p[2] > p[0] + 60);
+  if (TEST_LAND.every(([la, lo]) => { const [x, y] = lonLatXY(lo, la), i = (Math.floor(y * MH0 / TH) * MW0 + Math.floor(x * MW0 / TW)) * 4; return isSeaPx(px.slice(i, i + 4)); })) {   // some phones wipe a 2D canvas (tab in the background, low memory): repaint the Earth before copying its land
+    const g0 = src.getContext('2d'); g0.clearRect(0, 0, MW0, MH0); g0.drawImage(planetCanvas('earth'), 0, 0, MW0, MH0); eMat.map.needsUpdate = true; px = g0.getImageData(0, 0, MW0, MH0).data; }
   const col = (lat, lon) => { const x = clamp(Math.floor((lon + 180) / 360 * MW0), 0, MW0 - 1), y = clamp(Math.floor((90 - lat) / 180 * MH0), 0, MH0 - 1), i = (y * MW0 + x) * 4; return [px[i], px[i + 1], px[i + 2]]; };
   const landPaths = toyLandPaths();
   const FW = 512, FH = 256, fc = mkCanvas(FW, FH, true), fx = fc.getContext('2d');   // a soft land field for heights
@@ -3719,6 +3733,10 @@ function buildToy(){
   g.save(); g.setTransform(SC, 0, 0, SC, 0, 0); g.strokeStyle = 'rgba(255,255,255,.95)'; g.lineWidth = 2.4; landPaths.forEach(p => g.stroke(p)); g.restore();       // foam
   g.save(); g.setTransform(SC, 0, 0, SC, 0, 0); const clip = new Path2D(); landPaths.forEach(p => clip.addPath(p)); g.clip(clip); g.setTransform(1, 0, 0, 1, 0, 0);
   g.drawImage(src, 0, 0, MAPW, MAPH);
+  const clipOK = (() => { const tc = mkCanvas(256, 128, true), tg = tc.getContext('2d'); tg.setTransform(256 / TW, 0, 0, 128 / TH, 0, 0); tg.clip(clip); tg.setTransform(1, 0, 0, 1, 0, 0); tg.fillStyle = '#0f0'; tg.fillRect(0, 0, 256, 128);   // test the land clip on a tiny canvas (reading back the big map mid-paint can stall some GPUs)
+    return TEST_LAND.some(([la, lo]) => { const [x, y] = lonLatXY(lo, la); return tg.getImageData(Math.floor(x / 4), Math.floor(y / 4), 1, 1).data[1] > 200; }); })();
+  if (!clipOK) {   // the land clip failed on this browser: mask the land with compositing instead
+    g.restore(); const mk = mkCanvas(MAPW, MAPH), mg = mk.getContext('2d'); mg.drawImage(src, 0, 0, MAPW, MAPH); mg.globalCompositeOperation = 'destination-in'; mg.setTransform(SC, 0, 0, SC, 0, 0); mg.fillStyle = '#000'; mg.fill(clip); g.drawImage(mk, 0, 0); g.save(); }
   for (let i = 0; i < 2600; i++) { const x = rnd() * MAPW, y = rnd() * MAPH, r = 6 + rnd() * 26; g.fillStyle = rnd() < .5 ? 'rgba(255,255,255,.07)' : 'rgba(0,60,20,.07)'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); }
   // deserts: sandy colour with soft, bumpy edges and dune streaks (Sahara, Arabia, Gobi, Australia, Kalahari, and smaller ones)
   { 
@@ -4332,7 +4350,7 @@ function updateFly(dt, t){
     u.badge.material.map = u.tex[bl.id]; u.badge.material.needsUpdate = true; u.badge.position.set(0, (F.kind === 'car' ? .9 : 1.5) + Math.sin(t * 3) * .08, 0); u.col.visible = !F.landed; u.col.scale.set(1, F.kind === 'car' ? .5 : 1, 1); u.col.material.opacity = (.25 + Math.sin(t * 4) * .1) * sst(.6, 2.2, camera.position.distanceTo(base)); u.badge.material.opacity = F.landed ? .85 : 1;
     if (F.landed) { dodge(base, .35, camera.position, F.kind === 'car' ? .42 : 1.1); T.lms.children.forEach(g => { if (g.userData.lm !== bl && g.position.distanceTo(base) < 2.2) g.scale.setScalar(.3); }); } }   // neighbours (London next to Paris) shrink so the landmark stands alone
   // chase camera: behind and above, looking ahead
-  const back = isCar ? (F.landed ? 1 : .95) : F.landed ? 1.1 + F.landT * .6 : 1.35, want = pos.clone().addScaledVector(F.f, -back).addScaledVector(F.p, isCar ? (F.landed ? .6 : .45) : F.landed ? .6 + F.landT * .4 : .55);
+  const cz = F.landed ? 1 : (T.camZoom || 1), back = (isCar ? (F.landed ? 1 : .95) : F.landed ? 1.1 + F.landT * .6 : 1.35) * cz, want = pos.clone().addScaledVector(F.f, -back).addScaledVector(F.p, (isCar ? (F.landed ? .6 : .45) : F.landed ? .6 + F.landT * .4 : .55) * (1 + (cz - 1) * 1.15));
   let look = null; if (F.landed && F.landT > .15) { const up = featDir(F.landed.lat, F.landed.lon), lm = up.clone().multiplyScalar(R + Math.max(.03, T.h(F.landed.lat, F.landed.lon))), side = F.f.clone().cross(up).normalize();
     const g = T.lms.children.find(o => o.userData.lm === F.landed), hh = g ? Math.max(.4, new THREE.Box3().setFromObject(g).getSize(new THREE.Vector3()).length() * .6) : 1;   // frame the whole landmark
     want.copy(lm).addScaledVector(up, hh * .9).addScaledVector(F.f, -hh * 2.9).addScaledVector(side, hh * .8); look = lm.addScaledVector(up, hh * .45); }
@@ -5151,7 +5169,7 @@ function updateSpace(dt, t){
     q.anchor.scale.setScalar(boost);
     q.anchor.position.set(par.anchor.position.x + Math.sin(q.ang) * q.d * boost, .3, par.anchor.position.z + Math.cos(q.ang) * q.d * boost);
   }
-  clouds.rotation.y += dt * (earthSpinGoal !== null ? .01 : .05);
+  clouds.rotation.y += dt * .012;
   if (earthSpinGoal !== null) earth.mesh.rotation.y += angDiff(earthSpinGoal, earth.mesh.rotation.y) * Math.min(1, dt * 2.4);
   const s = 1 + Math.sin(t * 5) * .12; pin.scale.setScalar(s);
   if (current && mode !== 'parade' && mode !== 'world') worldPos(current, goal.target);
@@ -5337,6 +5355,10 @@ window.__rampAhead = () => { const F = toy.fly, r = toy.ramps && toy.ramps.find(
 window.__flyAlt = a => { toy.fly.alt = a; }; window.__arrowCheck = () => { const F = toy.fly, ar = toy.flyArrow; if (!F || !ar || !ar.visible) return null; ar.updateMatrixWorld(); const a = ar.localToWorld(new THREE.Vector3(0, 0, -.05)).project(camera), b = ar.localToWorld(new THREE.Vector3(0, 0, .15)).project(camera), scr = Math.atan2(-(b.y - a.y) * H, (b.x - a.x) * W) * 180 / Math.PI, chip = ((F.chipDeg % 360) + 540) % 360 - 180; return { scr: Math.round(scr), chip: Math.round(chip) }; }; window.__toyInv = () => ({ keys: Object.keys(toy).join(' '), kids: toy.s.children.map((o, i) => { const k = Object.entries(toy).find(([n, v]) => v === o || (Array.isArray(v) && v.includes(o))); return i + ':' + (k ? k[0] : '?') + ':' + o.type + (o.isInstancedMesh ? '#' + o.count : '') + (o.material && o.material.color ? '#' + o.material.color.getHexString() : ''); }).join(' ') }); window.__aurora = () => toy && toy.wild ? +Math.max(...toy.wild.aurora.map(a => a.m.visible ? a.m.material.opacity : 0)).toFixed(2) : null; window.__flyToLL = (la, lo) => flyNear(toy.fly, featDir(la, lo)); window.__pets = () => toy && toy.animals ? Object.keys(toy.animals).filter(k => toy.animals[k].userData.pet) : null; window.__camLL = () => toy.ll(camera.position.clone().normalize()).map(v => +v.toFixed(1)); window.__flyLL = () => toy.fly && toy.ll(toy.fly.p).map(v => +v.toFixed(1)); window.__wild = () => toy.wild ? [...toy.wild.seen] : null;
 window.__speak = (k) => speak(SAY[k]); window.__sayKeys = () => Object.keys(SAY);
 window.__marsFrame = () => { const who = roverAm || rover; if (!who) return null; const v = who.getWorldPosition(new THREE.Vector3()).project(camera); return { feet: Math.round((1 - v.y) / 2 * H), pad: Math.round($('#drive .pad').getBoundingClientRect().top) }; };
+window.__camZoom = z => { if (toy) { if (z != null) toy.camZoom = z; return toy.camZoom || 1; } };
+window.__cloudSync = () => clouds.parent === earth.mesh;
+window.__wipeEarth = () => { const c = canvases.earth; c.getContext('2d').clearRect(0, 0, c.width, c.height); };
+window.__toyLandPx = (la, lo) => { if (!toy) return null; const [x, y] = lonLatXY(lo, la); return [...toy.mapBase.getContext('2d').getImageData(Math.floor(x * 2), Math.floor(y * 2), 1, 1).data]; };
 window.__girl2d = () => { const c = document.createElement('canvas'); c.width = 240; c.height = 260; const g = c.getContext('2d'); g.fillStyle = '#20183f'; g.fillRect(0, 0, 240, 260); drawGirl(g, 60, 230, 2, false, 1, false); drawGirl(g, 180, 230, 2, true, 1, false); return c.toDataURL(); };
 window.__amPortrait = (w = 480, h = 800, az = 0, wave = false) => {   // test hook: a big render of the postcard Amelia
   const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const r = new THREE.WebGLRenderer({ canvas: cv, antialias: true, preserveDrawingBuffer: true }); r.outputColorSpace = renderer.outputColorSpace; r.toneMapping = renderer.toneMapping;

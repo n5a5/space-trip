@@ -6,7 +6,14 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:   # three groups in parallel so the whole run stays well under the time limit
+        flows:
+          - "start places discover landing ramp high countries where landview audio pets drive mars blue camzoom"
+          - "planets sparkles daily sizes sound uturn moonframe coaststart earthtap memory arrow back home skycard"
+          - "explorer placequiz moon weather fly passport voice tapguard hover livingworld ride states chaos realclouds"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -17,9 +24,9 @@ jobs:
       - name: Serve the site
         run: (python3 -m http.server 8765 > /tmp/http.log 2>&1 &) && sleep 2
       - name: Run phone-size flows
-        run: mkdir -p dev/tests/out && node dev/tests/run.js start planets explorer places sparkles placequiz discover daily moon landing sizes weather ramp sound fly high uturn passport countries moonframe voice where coaststart tapguard landview earthtap hover audio memory livingworld pets arrow ride drive back states mars home chaos
+        run: mkdir -p dev/tests/out && node dev/tests/run.js ${{ matrix.flows }}
         env: { NODE_PATH: dev/node_modules }
       - name: Keep screenshots
         if: always()
         uses: actions/upload-artifact@v4
-        with: { name: screenshots, path: dev/tests/out, retention-days: 7 }
+        with: { name: "screenshots-${{ strategy.job-index }}", path: dev/tests/out, retention-days: 7 }
