@@ -94,6 +94,10 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #qstars{text-align:center;font-size:26px;letter-spacing:4px;min-height:32px}
 #qtray{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:360px;width:100%;margin:0 auto}
 #qtray .pl img{width:84px;height:84px}
+#szgame{align-self:center;margin:6px auto 0}
+#quiz.bigger #qtray{grid-template-columns:1fr 1fr;max-width:400px;align-items:end}
+#quiz.bigger #qtray .pl{min-height:190px;justify-content:flex-end}
+#quiz.bigger #qtray .pl img{width:130px;height:130px;transition:width 1.2s cubic-bezier(.3,1.4,.5,1),height 1.2s cubic-bezier(.3,1.4,.5,1)}
 #parade{position:absolute;left:0;right:0;display:flex;flex-direction:column;gap:14px;padding:12px 16px;background:rgba(13,11,46,.9);overflow:auto}
 #slots{display:flex;align-items:center;gap:4px;list-style:none;margin:0;padding:10px 6px 10px 0;border-radius:20px;background:rgba(255,255,255,.04)}
 #slots .sun{flex:0 0 26px;height:62px;border-radius:0 62px 62px 0;background:radial-gradient(circle at 0 50%,#fff3b0,#ffc93c 55%,#ff9f1c);box-shadow:0 0 18px #ffb703}
@@ -263,6 +267,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
   <section id="sizes" hidden aria-label="Planet sizes">
     <div class="phead"><div><h2>How big are they?</h2><p>Real sizes, side by side. <span class="phoneonly">Swipe →</span><span class="deskonly">Scroll or use ← → keys</span></p></div><button id="szclose" aria-label="Close sizes">✕</button></div>
     <div id="szrow"></div>
+    <button id="szgame" class="act gold"><span class="em" aria-hidden="true">⚖️</span>Which is bigger?</button>
   </section>
   <section id="passport" hidden aria-label="Sticker passport">
     <div class="phead"><div><h2>Amelia's Space Passport</h2><p id="pcount"></p></div><button id="pclose" aria-label="Close passport">✕</button></div>
@@ -500,7 +505,7 @@ function pickVoice(){
 if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 // Every line is pre-recorded (Kokoro-82M, voice af_heart, the same voice as Princess Quest) and embedded below;
 // anything missing falls back to the phone's own text-to-speech.
-const APP_VERSION = 'space-v28';
+const APP_VERSION = 'space-v29';
 let VOICE = {};
 // grown-up settings, kept on this phone
 const prefs = { rate: 1, vol: 1, captions: true }; try { Object.assign(prefs, JSON.parse(localStorage.getItem('ast-prefs') || '{}')); } catch {}
@@ -2512,6 +2517,12 @@ const RIDDLES = [
   ['moon', "I'm Earth's closest neighbor, and I look like a different shape on different nights. What am I?"],
 ];
 SAY.quizIn = "Let's play Space Riddles! Listen to the riddle, then tap the right one.";
+SAY.biggerIn = "Let's play Which is Bigger! The pictures are the same size, but the real worlds are not. Tap the one that is really bigger!";
+SAY.biggerAsk = "Which one is really bigger?";
+SAY.biggerYes = "Yes! That one is bigger. Look how big they really are!";
+SAY.biggerNo = "Good try! The other one is bigger. Look how big they really are!";
+SAY.biggerTitan = "Titan is a moon, but it's even bigger than the planet Mercury!";
+SAY.biggerDone = "Five right! You're a size expert!";
 SAY.quizYes = "Yes! You got it!"; SAY.quizNo = "Not that one. Listen again!";
 SAY.quizDone = "You solved five riddles! You're a space expert, Amelia!";
 let qz = null;
@@ -2547,6 +2558,33 @@ function answer(b, id, ans){
     speak([SAY.quizNo, qz.order[qz.i % qz.order.length][1]]);
   }
 }
+// Which is bigger? Two worlds shown the same size: she taps the one that is really bigger, then they grow or shrink to their true sizes
+const bigKm = () => ({ ...SIZE_KM, europa: 1561, titan: 2575 });   // radii in km from NASA, made when the game starts because SIZE_KM is defined further down
+function startBigger(){
+  $('#sizes').hidden = true; ++seq; stopJump(); mode = 'bigger'; current = null; $('#pill').textContent = 'Which is bigger?'; $('#app').classList.add('game');
+  $('#quiz').hidden = false; $('#quiz').classList.add('bigger'); qz = { kind: 'bigger', n: 0, right: 0, lock: false }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextBigger(true);
+}
+function nextBigger(first){
+  const K = bigKm(), ids = Object.keys(K); let a, b;
+  if (qz.n === 4) { a = 'titan'; b = 'mercury'; }   // the tricky one: a moon bigger than a planet
+  else do { a = ids[rnd() * ids.length | 0]; b = ids[rnd() * ids.length | 0]; } while (a === b || Math.max(K[a], K[b]) / Math.min(K[a], K[b]) < 1.12 || (a === 'sun' || b === 'sun') && rnd() < .7);
+  if (rnd() < .5) [a, b] = [b, a];
+  const big = K[a] > K[b] ? a : b, tray = $('#qtray'); tray.innerHTML = ''; qz.lock = false; qz.big = big; qz.pair = [a, b];
+  $('#qask').textContent = 'Which one is really bigger?';
+  for (const id of [a, b]) { const p = byId[id], el = document.createElement('button'); el.className = 'pl'; el.dataset.id = id; el.innerHTML = `<span>${p.label}</span>`; el.prepend(imgEl(p.thumb)); el.onclick = () => answerBigger(el, id); tray.append(el); }
+  speak(first ? SAY.biggerIn : SAY.biggerAsk);
+}
+function answerBigger(el, id){
+  if (!qz || qz.lock) return; qz.lock = true; qz.n++;
+  const K = bigKm(), ok = id === qz.big, [a, b] = qz.pair, k = Math.min(K[a], K[b]) / Math.max(K[a], K[b]);
+  document.querySelectorAll('#qtray .pl').forEach(x => { const im = x.querySelector('img'), sz = x.dataset.id === qz.big ? 150 : Math.max(8, 150 * k); im.style.width = im.style.height = sz + 'px'; if (x.dataset.id === qz.big) x.classList.add('hint'); });
+  const tricky = a === 'titan' && b === 'mercury' || a === 'mercury' && b === 'titan';
+  if (ok) { chime(); qz.right++; $('#qstars').textContent = '★'.repeat(Math.min(5, qz.right)) + '☆'.repeat(Math.max(0, 5 - qz.right)); speak(tricky ? [SAY.biggerYes, SAY.biggerTitan] : SAY.biggerYes); }
+  else { bloop(); speak(tricky ? [SAY.biggerNo, SAY.biggerTitan] : SAY.biggerNo); }
+  const done = ok && qz.right === 5; if (done) { burst(); award('bigger'); setTimeout(() => speak(SAY.biggerDone), 2600); }
+  setTimeout(() => { if (mode === 'bigger' && qz) { if (done) { qz.right = 0; $('#qstars').textContent = '☆☆☆☆☆'; } nextBigger(); } }, done ? 7500 : tricky ? 7000 : 4200);
+}
+function endBigger(){ $('#quiz').hidden = true; $('#quiz').classList.remove('bigger'); $('#app').classList.remove('game'); qz = null; overview(); }
 function endQuiz(){ $('#quiz').hidden = true; $('#app').classList.remove('game'); qz = null; overview(); }
 function endParade(){ $('#parade').hidden = true; $('#app').classList.remove('game'); overview(); }
 
@@ -2563,6 +2601,7 @@ function goBack(){
   if (mode === 'flying' || mode === 'launch' || mode === 'landing') return true;   // mid-trip: ignore
   if (mode === 'eclipse') { closeEclipse(); return true; }
   if (mode === 'quiz') { endQuiz(); return true; }
+  if (mode === 'bigger') { endBigger(); return true; }
   if (mode === 'parade') { endParade(); return true; }
   if (mode === 'toy') { const T = toy; if (T.fly) toyFlyStop(); else if (T.quiz) toyQuizEnd(); else if (T.hunt) { T.hunt = null; T.starMesh.count = T.starMesh.userData.ink.count = 0; $('#tstars').hidden = true; nav(); } else if (T.follow) toyStop(); else if (T.menu) { T.menu = null; nav(); } else if (T.home) { T.home = false; nav(); } else if (T.lmTour) { T.lmTour = false; T.picked = null; $('#pill').textContent = 'Explorer Earth'; nav(); } else toyToSpace(); return true; }
   if (mode === 'site') { leaveSite(wIdx); return true; }
@@ -2609,13 +2648,14 @@ function nav(){
     if (current === moon || current.id === 'sun') acts.append(btn('🌑', 'Eclipse', openEclipse, 'hero'));
     if (current.id === 'mars') acts.append(btn('🚗', 'Drive on Mars', () => enterMars('mars'), 'hero'));
     if (current.id === 'moon') acts.append(btn('🧑‍🚀', 'Walk on the Moon', () => enterMars('moon'), 'hero'));
+    if (current.id === 'europa' || current.id === 'titan') acts.append(btn('🧑‍🚀', 'Walk on ' + current.label, () => enterMars(current.id), 'hero'));
     if (current === earth) acts.append(btn('🗺️', 'Explore Earth', () => enterToy(), 'hero'), btn('🌍', 'Around the world', () => enterToy(null, { tour: 0 }), 'gold'), btn('🏡', 'Fly home', flyHome));
   }
   if (mode === 'eclipse') acts.append(ecl.from && ecl.from.id === 'sun' ? btn('☀️', 'Back to Sun', closeEclipse, 'hero') : btn('🌙', 'Back to Moon', closeEclipse, 'hero'));
   if (mode === 'mars') {
-    if (marsWorld === 'moon') acts.append(btn('🦘', 'Jump!', moonJump, 'hero'), btn('🚩', 'Plant my flag', plantFlag, 'gold'));
+    if (marsWorld !== 'mars') acts.append(btn('🦘', 'Jump!', moonJump, 'hero')); if (marsWorld === 'moon') acts.append(btn('🚩', 'Plant my flag', plantFlag, 'gold'));
     if (marsFound >= marsRocks.length && marsRocks.length) acts.append(btn('🔄', 'New rocks', hideNewRocks, 'gold'));
-    acts.append(btn('🪐', 'Back to space', leaveMars, marsWorld === 'moon' ? '' : 'hero')); }
+    acts.append(btn('🪐', 'Back to space', leaveMars, marsWorld === 'mars' ? 'hero' : '')); }
   if (mode === 'toy') {
     const T = toy;
     if (T.fly) { const F = T.fly;
@@ -2653,6 +2693,7 @@ function nav(){
   if (mode === 'home') acts.append(btn('🚀', 'Back to space', launch, 'hero'), btn('📖', 'Bedtime story', bedtime), btn(night ? '☀️' : '🌙', night ? 'Make day' : 'Make night', toggleNight, 'gold'), btn('🔭', "Tonight's sky", tonight), btn('🔊', 'Tell me more', moreFact), btn('🛂', 'Passport', openPassport));
   if (mode === 'sky') acts.append(...(matchMedia('(pointer:fine)').matches ? [] : [skyTilt.on ? btn('✋', 'Stop pointing', () => skyPoint(false), 'hero') : btn('📱', 'Point my phone', () => skyPoint(true), 'hero')]), btn('🏡', 'House', () => { skyPoint(false, true); ++seq; homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); speak(HOME_FACTS[0]); }), btn('🔊', 'Tell me again', () => speak(skyLines(sky))), btn('🚀', 'Back to space', () => { skyPoint(false, true); homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); launch(); }, 'gold'));
   if (mode === 'quiz') acts.append(btn('🌌', 'All planets', endQuiz), btn('🔄', 'New game', startQuiz, 'gold'));
+  if (mode === 'bigger') acts.append(btn('🌌', 'All planets', endBigger), btn('📏', 'Sizes', () => { endBigger(); openSizes(); }, 'gold'));
   if (mode === 'parade') acts.append(btn('🌌', 'All planets', endParade), btn('🔄', 'Play again', startParade, 'gold'));
 }
 {
@@ -4673,14 +4714,26 @@ function toyRide(kind){
 /* ---------- ✈️ Fly it yourself: Amelia's own plane, gold rings, stars to grab, and famous places to land at ---------- */
 const ANIMAL_NAME = { polarBear: 'polar bear' };
 const ANIMAL_EM = { kangaroo: '🦘', elephant: '🐘', giraffe: '🦒', panda: '🐼', polarBear: '🐻‍❄️', whale: '🐋', dolphin: '🐬', llama: '🦙', eagle: '🦅', camel: '🐪', zebra: '🦓', bison: '🦬', volcano: '🌋' };
-const missionLine = m => m.lm ? `Mission: fly to ${theName(m.lm)}! Follow the green arrow!` : `Mission: find the ${ANIMAL_NAME[m.an] || m.an}! Follow the green arrow!`;
+const roadLine = (road, end) => `Road trip mission! Drive Interstate ${road.slice(2)} all the way to ${end}! Follow the green arrow from city to city.`;
+const missionLine = m => m.road ? roadLine(m.road, m.end) : m.lm ? `Mission: fly to ${theName(m.lm)}! Follow the green arrow!` : `Mission: find the ${ANIMAL_NAME[m.an] || m.an}! Follow the green arrow!`;
 const todayKey = () => { const d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); };
 function dailyTarget(){ const all = [...LM.map(l => ({ lm: l, lat: l.lat, lon: l.lon })), ...Object.entries(ANIMALS).map(([an, a]) => ({ an, lat: a[0], lon: a[1] }))], d = new Date(), n = d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate(); return all[(n * 7) % all.length]; }
 const dailyDone = () => { try { return localStorage.getItem('ast-daily') === todayKey(); } catch { return false; } };
 SAY.dailyIn = "Here's today's special mission!";
+SAY.roadDone = "You drove the whole highway! What a road trip, Amelia!";
 SAY.toyTry = "Tap Fly or Drive to go on an adventure!";
 SAY.dailyDone = "You did today's special mission! Come back tomorrow for a new one!";
+function roadMission(F){   // on an interstate in the car: drive it to the far end, city by city
+  const [la, lo] = toy.ll(F.p), road = onInterstate(la, lo); if (!road || (F.roadsDone = F.roadsDone || new Set()).has(road)) return null;
+  const w = US_INTERSTATES[road], names = US_ROAD_CITIES[road]; let k = 0, best = 1e9; w.forEach((q, i) => { const d = Math.hypot(q[0] - la, (q[1] - lo) * Math.cos(la * DEG)); if (d < best) { best = d; k = i; } });
+  const fwd = i => { const q = w[i], d = featDir(q[0], q[1]); return d.clone().addScaledVector(F.p, -d.dot(F.p)).normalize().dot(F.f); };
+  let dir = k >= w.length - 1 ? -1 : k <= 0 ? 1 : fwd(k + 1) >= fwd(k - 1) ? 1 : -1;   // the way she's facing
+  if ((dir > 0 ? w.length - 1 - k : k) < 2) dir = -dir;   // too close to that end: go the other way
+  const idx = []; for (let i = k + dir; i >= 0 && i < w.length; i += dir) idx.push(i); if (idx.length < 2) return null;
+  const end = names[idx[idx.length - 1]], m = { road, idx, i: 0, n: idx.length, end, lat: w[idx[0]][0], lon: w[idx[0]][1], t: 0 }; return end ? m : null;
+}
 function flyMission(){   // pick somewhere new, not too close, and point the way; the first one each day is the special daily mission
+  if (toy.fly.kind === 'car' && !(toy.boat && toy.boat.visible)) { const m = roadMission(toy.fly); if (m) { toy.fly.mission = m; speak(missionLine(m)); flyHud(true); return; } }
   if (!dailyDone() && !toy.fly.dailyOffered) { const m = dailyTarget(); if (featDir(m.lat, m.lon).angleTo(toy.fly.p) > .2) { toy.fly.dailyOffered = true; m.daily = true; toy.fly.mission = m; m.t = 0; speak([SAY.dailyIn, missionLine(m)]); flyHud(true); return; } }
   const T = toy, F = T.fly, opts = [...LM.map(l => ({ lm: l, lat: l.lat, lon: l.lon })), ...Object.entries(ANIMALS).map(([an, a]) => ({ an, lat: a[0], lon: a[1] }))]
     .filter(o => featDir(o.lat, o.lon).angleTo(F.p) > .35 && (!F.mission || o !== F.mission));
@@ -4902,7 +4955,7 @@ function updateFly(dt, t){
     if (!F.near && !F.landed) $('#pill').textContent = '📍 ' + F.where; }
   miniMap(la, lo, t); riderStep(F, dt, t);
   { const gc = $('#goalchip'), m = F.mission; gc.hidden = !m || !!F.landed;   // the goal's picture, with an arrow that turns toward it on screen
-    if (m) { gc.querySelector('.ge').textContent = m.lm ? m.lm.em : ANIMAL_EM[m.an] || '🎯'; gc.style.borderColor = m.daily ? '#ffd166' : '#4ade80';
+    if (m) { gc.querySelector('.ge').textContent = m.road ? `🛣️${m.i + 1}/${m.n}` : m.lm ? m.lm.em : ANIMAL_EM[m.an] || '🎯'; gc.style.borderColor = m.daily ? '#ffd166' : '#4ade80';
       const gd = featDir(m.lat, m.lon), to = gd.clone().addScaledVector(F.p, -gd.dot(F.p)).normalize(), side = F.p.clone().cross(F.f).normalize();
       const ang = Math.atan2(-to.dot(side), to.dot(F.f)); let deg = (-Math.PI / 2 + ang) * 180 / Math.PI; const prev = F.chipDeg ?? deg; deg += Math.round((prev - deg) / 360) * 360; F.chipDeg = deg; gc.querySelector('.ga').style.transform = `rotate(${deg}deg)`;   // keep the angle continuous, so it never spins the long way round when the goal passes behind   // ➤ points right at 0°: straight ahead is up
       const dist = gd.angleTo(F.p), band = dist < .2 ? 3 : dist < .4 ? 2 : dist < .8 ? 1 : 0; if (band > (m.band || 0)) { m.band = band; tone(660 + band * 220, .18, 'sine', .08); }
@@ -4923,10 +4976,12 @@ function updateFly(dt, t){
   if (ar.visible) {
     const goalDir = featDir(F.mission.lat, F.mission.lon), to = goalDir.clone().addScaledVector(F.p, -goalDir.dot(F.p)).normalize();
     ar.position.copy(pos).addScaledVector(F.f, .45).addScaledVector(F.p, .2 + Math.sin(t * 5) * .015); orientTo(ar.quaternion, F.p, to);
-    if (goalDir.angleTo(F.p) < .07) { const m = F.mission; F.mission = null; F.missionT = 0; F.missions = (F.missions || 0) + 1; F.score += 50; chime(); flyHud(true);
+    if (F.mission.road && goalDir.angleTo(F.p) < .04 && F.mission.i < F.mission.n - 1) { const m = F.mission, w = US_INTERSTATES[m.road]; m.i++; [m.lat, m.lon] = w[m.idx[m.i]]; m.band = 0; m.t = 0; F.score += 20; chime(); flyHud(true); }   // a city on the way: on to the next
+    else if (goalDir.angleTo(F.p) < (F.mission.road ? .04 : .07)) { const m = F.mission; F.mission = null; F.missionT = 0; F.missions = (F.missions || 0) + 1; F.score += 50; chime(); flyHud(true);
       { const v = F.kind === 'car' ? (T.boat.visible ? T.boat : T.car) : T.flyer; if (v && v.userData.am) waveAmelia(v.userData.am, 3); }   // she cheers at every finished mission
       if (m.an) { const k = m.an; (ANIMAL_SFX[k] || pop)(); if (k === 'volcano') toyErupt(); const md = F.kind === 'car' ? SAY.missionDoneCar : SAY.missionDone; speak([md, ANIMALS[k][2]]); } else speak(F.kind === 'car' ? SAY.missionDoneCar : SAY.missionDone);
       if (m.daily) { try { localStorage.setItem('ast-daily', todayKey()); } catch {} award('daily'); setTimeout(() => speak(SAY.dailyDone), 7000); }
+      if (m.road) { F.roadsDone.add(m.road); award('highway'); burst(); setTimeout(() => speak(SAY.roadDone), 2600); }
       if (F.missions % 3 === 0) award('missions'); if (m.lm) F.saidNear.add(m.lm.id); flyConfetti(pos); }
   }
   // a gold light beam and a bobbing badge mark the famous place you're near (or landed at)
@@ -5371,7 +5426,7 @@ function moonH(x, z){
 }
 let marsWorld = 'mars', _greyTex = null;
 const greyTex = () => _greyTex || (_greyTex = canvasTex(512, 512, (g, w, h) => { g.fillStyle = '#8a8a8e'; g.fillRect(0, 0, w, h); speckle(g, w, h, 30000, ['#6e6e72', '#a0a0a4', '#58585c', '#b4b4b8'], 1, 3, .25, .7); }, 3));
-const groundH = (x, z) => marsWorld === 'moon' ? moonH(x, z) : marsH(x, z);
+const groundH = (x, z) => marsWorld === 'moon' || marsWorld === 'europa' ? moonH(x, z) : marsH(x, z);
 const MOON_ROCKS = [
   "The Moon has no air, so astronauts wear space suits to breathe.",
   "On the Moon, you weigh about six times less than on Earth. You can jump super high!",
@@ -5385,6 +5440,29 @@ const MOON_ROCKS = [
   "Astronauts once drove a moon buggy, called the lunar rover, across the Moon!",
 ];
 SAY.moonIn = "Welcome to the Moon! Amelia is bouncing along in her space suit. Find all the glowing moon rocks!";
+const EUROPA_ROCKS = [
+  "Europa is one of Jupiter's moons, and it's a little smaller than our Moon.",
+  "Scientists think the ocean under Europa's ice may hold about twice as much water as all of Earth's oceans!",
+  "The reddish-brown stripes are long cracks in Europa's ice.",
+  "It's super cold here, much colder than the coldest place on Earth.",
+  "A spacecraft called Europa Clipper is on its way here to study Europa.",
+];
+const TITAN_ROCKS = [
+  "Titan is Saturn's biggest moon. It's even bigger than the planet Mercury!",
+  "Titan has a thick, hazy sky. That's why everything looks orange here.",
+  "Titan has lakes, but they aren't water. They're filled with a very cold liquid called methane.",
+  "On Titan it rains, but the raindrops are methane, not water.",
+  "In 2005, a probe named Huygens landed on Titan. A flying drone called Dragonfly will come here next!",
+];
+SAY.europaIn = "Welcome to Europa, an icy moon of Jupiter! Look how huge Jupiter is in the sky! Find the glowing rocks.";
+SAY.titanIn = "Welcome to Titan, Saturn's biggest moon! The sky is thick and orange. Find the glowing rocks.";
+SAY.europaDone = "You found all of Europa's glowing rocks! Brrr, what an icy adventure!";
+SAY.titanDone = "You found all of Titan's glowing rocks! What a hazy, orange adventure!";
+const WALKS = {   // the worlds she can walk on, and how each one looks
+  moon: { pill: 'Walk on the Moon', facts: () => MOON_ROCKS, inL: () => SAY.moonIn, doneL: () => SAY.moonDone, stamp: 'moonrocks', walkStamp: 'moonwalk', bg: '#000000', fog: ['#000000', 400, 1300], hemi: ['#c8d0e0', '#303038', .55], mound: '#6c6c72', rock: '#77777c', dust: '#b8b8bc', prints: '#4d4a47', big: 'earth', bigAt: [-160, 95, -620], bigR: 60 },
+  europa: { pill: 'Walk on Europa', facts: () => EUROPA_ROCKS, inL: () => SAY.europaIn, doneL: () => SAY.europaDone, stamp: 'europarocks', walkStamp: 'p:europa', bg: '#000000', fog: ['#000000', 400, 1300], hemi: ['#d6e6ff', '#3a4250', .7], mound: '#c9d6e2', rock: '#b7c4d0', dust: '#e6eef6', prints: '#8d9aa8', big: 'jupiter', bigAt: [-60, 150, -760], bigR: 230 },
+  titan: { pill: 'Walk on Titan', facts: () => TITAN_ROCKS, inL: () => SAY.titanIn, doneL: () => SAY.titanDone, stamp: 'titanrocks', walkStamp: 'p:titan', bg: '#c48a42', fog: ['#c48a42', 40, 420], hemi: ['#f0c27a', '#4a3018', .95], mound: '#8a5a30', rock: '#6a4426', dust: '#d9a35e', prints: '#4a3018', lake: true },
+};
 SAY.moonDone = "You found all the moon rocks! Great moonwalking, Amelia!";
 SAY.moonFlag = "Amelia planted her flag on the Moon! The Apollo astronauts planted flags here too.";
 SAY.newRocks = "New glowing rocks are hiding! Let's find them!";
@@ -5392,14 +5470,15 @@ const MARS_CRATERS = [[60, -50, 22], [-80, -120, 34], [140, 90, 16], [-40, 110, 
 let marsShift = 0; const _v2 = new THREE.Vector3();
 let marsScene = null, rover = null, roverBody = null, roverAm = null, marsRocks = [], marsFound = 0, drv = null, tracks = null, dustP = null;
 const drive = { x: 0, z: 0, yaw: 0, v: 0, steer: 0, gas: 0 };
+const iceTex = () => canvasTex(512, 512, (g, w, h) => { g.fillStyle = '#f2f7fc'; g.fillRect(0, 0, w, h); speckle(g, w, h, 16000, ['#dfe9f3', '#ffffff', '#cfdbe8', '#e9eef5'], 1, 3, .25, .6); }, 3);   // bright, faintly blue ice
 function buildMars(world = 'mars'){
-  marsWorld = world; const moonW = world === 'moon';
+  marsWorld = world; const moonW = world !== 'mars', WK = WALKS[world];   // moonW: she walks (Moon, Europa, Titan) instead of driving the rover
   const s = new THREE.Scene();
-  s.background = new THREE.Color(moonW ? '#000000' : '#c99c6e');
-  s.fog = moonW ? new THREE.Fog('#000000', 400, 1300) : new THREE.Fog('#d6a877', 90, 700);
+  s.background = new THREE.Color(moonW ? WK.bg : '#c99c6e');
+  s.fog = moonW ? new THREE.Fog(...WK.fog) : new THREE.Fog('#d6a877', 90, 700);
   const sun = new THREE.DirectionalLight('#fff0dc', 3); sun.position.set(-60, 90, 40); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
   Object.assign(sun.shadow.camera, { left: -25, right: 25, top: 25, bottom: -25, near: 1, far: 300 }); sun.shadow.bias = -.0006; s.add(sun, sun.target); s.userData.sun = sun;
-  s.add(moonW ? new THREE.HemisphereLight('#c8d0e0', '#303038', .55) : new THREE.HemisphereLight('#f3d2ae', '#6b3a22', .9));
+  s.add(moonW ? new THREE.HemisphereLight(...WK.hemi) : new THREE.HemisphereLight('#f3d2ae', '#6b3a22', .9));
   // sky dome: butterscotch, paler near the sun
   const skyM = new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
     uniforms: { sd: { value: sun.position.clone().normalize() } },
@@ -5411,60 +5490,68 @@ function buildMars(world = 'mars'){
       #include <colorspace_fragment>
     }` });
   if (!moonW) s.add(new THREE.Mesh(new THREE.SphereGeometry(1500, 32, 16), skyM));
-  else {   // black sky full of stars, and the Earth hanging overhead
+  else if (!WK.big) s.add(new THREE.Mesh(new THREE.SphereGeometry(1500, 32, 16), new THREE.MeshBasicMaterial({ color: WK.bg, side: THREE.BackSide, fog: false, depthWrite: false })));   // Titan: a thick orange sky, no stars
+  else {   // black sky full of stars, and Earth (from the Moon) or giant Jupiter (from Europa) hanging overhead
     s.add(starfield(1600, 1200, 2.4, true));
-    const em = new THREE.Mesh(new THREE.SphereGeometry(60, 48, 32), new THREE.MeshBasicMaterial({ map: (earth.cartoonMat || earth.mesh.material).map, fog: false }));
-    em.position.set(-160, 95, -620); em.rotation.y = 2.2; s.add(em);
-    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: new THREE.Color(.5, .8, 1.6), blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); halo.scale.setScalar(170); halo.position.copy(em.position); s.add(halo); }
+    const bp = byId[WK.big], em = new THREE.Mesh(new THREE.SphereGeometry(WK.bigR, 48, 32), new THREE.MeshBasicMaterial({ map: (bp.cartoonMat || bp.mesh.material).map, fog: false }));
+    em.position.set(...WK.bigAt); em.rotation.y = 2.2; if (WK.big === 'jupiter') em.rotation.z = .05; s.add(em);
+    const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: WK.big === 'jupiter' ? new THREE.Color(1.4, 1.1, .8) : new THREE.Color(.5, .8, 1.6), blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); halo.scale.setScalar(WK.bigR * 2.85); halo.position.copy(em.position); s.add(halo); }
   const redTex = canvasTex(512, 512, (g, w, h) => {
     g.fillStyle = '#b0643a'; g.fillRect(0, 0, w, h);
     speckle(g, w, h, 30000, ['#8c4a2a', '#c9784a', '#6e3a22', '#d99464'], 1, 3, .25, .7);
     for (let i = 0; i < 250; i++) { g.fillStyle = ['#5a301c', '#7a4428', '#9a5a36'][i % 3]; g.beginPath(); g.ellipse(Math.random() * w, Math.random() * h, 2 + Math.random() * 6, 2 + Math.random() * 4, Math.random() * 3, 0, 7); g.fill(); }
   }, 3);
   const t = terrainMesh(1400, 280, groundH, (x, y, z, ny, c) => {
-    const k = fbm2(x / 40, z / 40); if (moonW) { const g = .5 + k * .25 - (fbm2(x / 160, z / 160) > .55 ? .14 : 0); c.setRGB(g, g, g * 1.03); } else c.setRGB(.78 + k * .2, .45 + k * .12, .28 + k * .06);
+    const k = fbm2(x / 40, z / 40);
+    if (world === 'europa') { const g = .8 + k * .15, crack = sst(.78, .86, ridged2(x / 22, z / 22)) * .85; c.setRGB(g * .93, g * .97, g * 1.02).lerp(new THREE.Color('#a8603e'), crack); }   // white-blue ice with reddish-brown cracks
+    else if (world === 'titan') { const g = .66 + k * .2; c.setRGB(g * .88, g * .6, g * .34); }   // dark orange-brown dunes
+    else if (moonW) { const g = .5 + k * .25 - (fbm2(x / 160, z / 160) > .55 ? .14 : 0); c.setRGB(g, g, g * 1.03); } else c.setRGB(.78 + k * .2, .45 + k * .12, .28 + k * .06);
     if (ny < .85) c.multiplyScalar(.78); if (y < -2) c.multiplyScalar(.9);
-  }, moonW ? greyTex() : redTex);
+  }, world === 'europa' ? iceTex() : moonW ? greyTex() : redTex);
   t.material.bumpScale = 3; s.add(t);
   // Olympus Mons: a vast, gentle shield volcano on the horizon
   if (!moonW) { const om = new THREE.Mesh(new THREE.CylinderGeometry(60, 700, 110, 64, 6), std({ color: '#a8643e', roughness: 1, flatShading: false }));
   om.position.set(250, 20, -1150); s.add(om); }
   if (!moonW) { const cal = new THREE.Mesh(new THREE.CylinderGeometry(45, 60, 6, 48), std({ color: '#7a4428', roughness: 1 })); cal.position.set(250, 76, -1150); s.add(cal); }
   for (const [x, z, r, h] of [[-600, -900, 260, 70], [700, -700, 300, 55], [-900, 300, 280, 80], [900, 400, 240, 60]]) {
-    const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 24, 4), std({ color: moonW ? '#6c6c72' : '#9c5a36', roughness: 1 })); m.position.set(x, h / 2 - 8, z); s.add(m);
+    const m = new THREE.Mesh(new THREE.ConeGeometry(r, h, 24, 4), std({ color: moonW ? WK.mound : '#9c5a36', roughness: 1 })); m.position.set(x, h / 2 - 8, z); s.add(m);
   }
   // scattered rocks
   const rockG = new THREE.DodecahedronGeometry(1, 1);
   { const p = rockG.attributes.position; for (let i = 0; i < p.count; i++) { const v = new THREE.Vector3().fromBufferAttribute(p, i); v.multiplyScalar(.75 + hash2(i, 7) * .5); p.setXYZ(i, v.x, v.y * .7, v.z); } rockG.computeVertexNormals(); }
-  const rocks = new THREE.InstancedMesh(rockG, std({ color: moonW ? '#77777c' : '#6e3c24', map: moonW ? greyTex() : redTex, roughness: 1, flatShading: true }), 1400), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
+  const rocks = new THREE.InstancedMesh(rockG, std({ color: moonW ? WK.rock : '#6e3c24', map: moonW ? greyTex() : redTex, roughness: 1, flatShading: true }), 1400), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler();
   for (let i = 0; i < 1400; i++) {
     const x = (rnd() - .5) * 600, z = (rnd() - .5) * 600; if (Math.hypot(x, z) < 8) continue;
     const sz = .08 + Math.pow(rnd(), 4) * 1.6;
     rocks.setMatrixAt(i, m4.compose(new THREE.Vector3(x, groundH(x, z) + sz * .2, z), q.setFromEuler(e.set(rnd() * 3, rnd() * 3, rnd() * 3)), new THREE.Vector3(sz, sz, sz)));
   }
   rocks.castShadow = rocks.receiveShadow = true; s.add(rocks);
+  if (moonW && WK.lake) {   // a dark, glassy methane lake ahead of her
+    const lx = 40, lz = -150, ly = groundH(lx, lz) + .4, lake = new THREE.Mesh(new THREE.CircleGeometry(70, 64), std({ color: '#2b211a', roughness: .08, metalness: .3 }));
+    lake.rotation.x = -Math.PI / 2; lake.position.set(lx, ly, lz); lake.scale.y = .6; s.add(lake); }
   // glowing rocks to collect
   marsRocks = []; marsFound = 0;
-  for (let i = 0; i < 10; i++) {
-    const a = i / 10 * Math.PI * 2 + rnd() * .4, r = 22 + (i % 5) * 16 + rnd() * 10, x = Math.sin(a) * r, z = -Math.cos(a) * r;
+  const NR = moonW ? WK.facts().length : 10;
+  for (let i = 0; i < NR; i++) {
+    const a = i / NR * Math.PI * 2 + rnd() * .4, r = 22 + (i % 5) * 16 + rnd() * 10, x = Math.sin(a) * r, z = -Math.cos(a) * r;
     const g = new THREE.Group(); g.position.set(x, groundH(x, z) + .5, z);
     const gem = new THREE.Mesh(new THREE.IcosahedronGeometry(.5, 0), std({ color: '#7de2d1', emissive: '#35c9b5', emissiveIntensity: 2.2, roughness: .3, flatShading: true })); g.add(gem);
     const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, color: new THREE.Color(.6, 2.2, 2), blending: THREE.AdditiveBlending, depthWrite: false })); glow.scale.setScalar(4); g.add(glow);
     const beam = new THREE.Mesh(new THREE.CylinderGeometry(.08, .35, 14, 12, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(.5, 2, 1.8), transparent: true, opacity: .25, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
     beam.position.y = 7; g.add(beam);
-    s.add(g); marsRocks.push({ g, gem, fact: (moonW ? MOON_ROCKS : MARS_ROCKS)[i], found: false });
+    s.add(g); marsRocks.push({ g, gem, fact: (moonW ? WK.facts() : MARS_ROCKS)[i], found: false });
   }
   // wheel tracks (instanced dark stripes) and dust
   tracks = new THREE.InstancedMesh(new THREE.PlaneGeometry(.45, .5), new THREE.MeshStandardMaterial({ color: '#5a2e1a', transparent: true, opacity: .55, roughness: 1, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }), 2400);
   tracks.count = 0; tracks.userData.i = 0; tracks.frustumCulled = false; s.add(tracks);
-  dustP = { pts: [], mat: new THREE.SpriteMaterial({ map: softTex, color: moonW ? '#b8b8bc' : '#d9a577', transparent: true, depthWrite: false, opacity: 0 }) };
+  dustP = { pts: [], mat: new THREE.SpriteMaterial({ map: softTex, color: moonW ? WK.dust : '#d9a577', transparent: true, depthWrite: false, opacity: 0 }) };
   for (let i = 0; i < 60; i++) { const sp = new THREE.Sprite(dustP.mat.clone()); sp.visible = false; s.add(sp); dustP.pts.push({ sp, life: 1, v: new THREE.Vector3() }); }
   dustP.i = 0;
   // the rover (loaded lazily) with Amelia riding on the deck
   rover = new THREE.Group(); s.add(rover);
   roverBody = new THREE.Group(); rover.add(roverBody);
   roverAm = makeAmelia('astro'); roverAm.scale.setScalar(moonW ? 1.5 : .95); roverAm.position.set(0, moonW ? 0 : 1.2, moonW ? 0 : .3); roverAm.rotation.y = moonW ? Math.PI : .6; roverBody.add(roverAm);
-  tracks.userData.k = moonW ? .45 : 1; if (moonW) tracks.material.color.set('#4d4a47');   // small grey boot prints on the Moon (sized per print, not by scaling the whole mesh)
+  tracks.userData.k = moonW ? .45 : 1; if (moonW) tracks.material.color.set(WK.prints);   // small grey boot prints on the Moon (sized per print, not by scaling the whole mesh)
   if (moonW) { roverWheels = []; return s; }
   loadModel('models/perseverance.glb').then(g => {
     const m = g.scene; m.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
@@ -5474,26 +5561,26 @@ function buildMars(world = 'mars'){
   return s;
 }
 function enterMars(world = 'mars'){
-  award(world === 'moon' ? 'moonwalk' : 'drive');
+  award(world === 'mars' ? 'drive' : WALKS[world].walkStamp);
   ++seq; stopJump();
   if (!marsScene || marsWorld !== world) { if (marsScene) disposeScene(marsScene); marsScene = buildMars(world); }
   Object.assign(drive, { x: 0, z: 0, yaw: 0, v: 0, steer: 0, gas: 0 });
   sceneMode = 'mars'; mode = 'mars'; current = null; manualCam = true; camera.up.set(0, 1, 0); camera.far = 2400; camera.updateProjectionMatrix();
-  $('#pill').textContent = world === 'moon' ? 'Walk on the Moon' : 'Drive on Mars'; $('#inset').hidden = true; $('#drive').hidden = false; updRockCount();
+  $('#pill').textContent = world === 'mars' ? 'Drive on Mars' : WALKS[world].pill; $('#inset').hidden = true; $('#drive').hidden = false; updRockCount();
   nav(); layout();
-  speak(world === 'moon' ? SAY.moonIn : SAY.marsIn);
+  speak(world === 'mars' ? SAY.marsIn : WALKS[world].inL());
 }
 function moonJump(){   // a big slow Moon hop: about six times higher than on Earth, floating down
-  if (!drive || drive.jumpT > 0) return; drive.jumpT = 2.6; whooshSfx(); if (!drive.saidJump) { drive.saidJump = true; speak(jumpLine(byId.moon)); }
+  if (!drive || drive.jumpT > 0) return; drive.jumpT = 2.6; whooshSfx(); if (!drive.saidJump) { drive.saidJump = true; speak(jumpLine(byId[marsWorld])); }
 }
 function plantFlag(){   // a pink flag with her initial where she stands (one flag; planting again moves it)
   if (!drive || !marsScene) return; let f = marsScene.userData.flag;
-  if (!f) { f = new THREE.Group(); const pole = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 4.2, 8), std({ color: '#d9dde3', metalness: .6, roughness: .3 })); pole.position.y = 2.1; f.add(pole);
+  if (!f) { f = new THREE.Group(); const pole = new THREE.Mesh(new THREE.CylinderGeometry(.06, .06, 3.1, 8), std({ color: '#d9dde3', metalness: .6, roughness: .3 })); pole.position.y = 1.55; f.add(pole);
     const c = mkCanvas(128, 84), g = c.getContext('2d'); g.fillStyle = '#ff7eb6'; g.fillRect(0, 0, 128, 84); g.fillStyle = '#fff'; g.font = '800 60px Fredoka, Nunito, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('A', 64, 46);
     for (let i = 0; i < 9; i++) { g.beginPath(); g.arc(10 + i * 14, 8, 3, 0, 7); g.fill(); }
-    const cloth = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.45), new THREE.MeshStandardMaterial({ map: tex(c), side: THREE.DoubleSide, roughness: .8, emissive: '#3a1028' })); cloth.position.set(1.12, 3.4, 0); f.add(cloth);
+    const cloth = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.45), new THREE.MeshStandardMaterial({ map: tex(c), side: THREE.DoubleSide, roughness: .8, emissive: '#3a1028' })); cloth.position.set(1.12, 2.35, 0); f.add(cloth);
     marsScene.add(f); marsScene.userData.flag = f; }
-  const D = drive, fx = Math.sin(D.yaw || 0), fz = -Math.cos(D.yaw || 0), x = D.x + fx * 1.5 - fz * 2.6, z = D.z + fz * 1.5 + fx * 2.6; f.position.set(x, groundH(x, z), z); f.rotation.y = -(D.yaw || 0) + .4;   // beside her and a little ahead, so the camera sees it
+  const D = drive, fx = Math.sin(D.yaw || 0), fz = -Math.cos(D.yaw || 0), x = D.x + fx * 3 - fz * 1.7, z = D.z + fz * 3 + fx * 1.7; f.position.set(x, groundH(x, z), z); f.rotation.y = -(D.yaw || 0) + .4;   // beside her and a little ahead, so the camera sees it
   pop(); burst(); speak(SAY.moonFlag);
 }
 function hideNewRocks(){   // after all ten: hide them again in new spots around her (the same facts, a new hunt)
@@ -5558,10 +5645,10 @@ function updateMars(dt, t){
   rover.position.set(D.x, y, D.z); rover.rotation.set(0, -D.yaw, 0, 'YXZ');
   const pitch = Math.atan2(hF - hB, 2.8), roll = Math.atan2(hR - hL, 2.2);
   roverBody.rotation.x += (pitch - roverBody.rotation.x) * Math.min(1, dt * 6); roverBody.rotation.z += (-roll - roverBody.rotation.z) * Math.min(1, dt * 6);
-  if (marsWorld === 'moon') { D.hop = (D.hop || 0) + dt * (Math.abs(D.v) > .3 ? 2.2 : 0); roverBody.position.y = Math.max(Math.abs(Math.sin(D.hop)) * 1.6 * Math.min(1, Math.abs(D.v) / 2), D.jumpT > 0 ? Math.sin(Math.PI * (1 - (D.jumpT = Math.max(0, D.jumpT - dt)) / 2.6)) * 7 : 0); roverBody.rotation.x = 0; roverBody.rotation.z = 0; }   // big slow bounces: the Moon's gravity is weak
+  if (marsWorld !== 'mars') { D.hop = (D.hop || 0) + dt * (Math.abs(D.v) > .3 ? 2.2 : 0); roverBody.position.y = Math.max(Math.abs(Math.sin(D.hop)) * 1.6 * Math.min(1, Math.abs(D.v) / 2), D.jumpT > 0 ? Math.sin(Math.PI * (1 - (D.jumpT = Math.max(0, D.jumpT - dt)) / 2.6)) * 7 : 0); roverBody.rotation.x = 0; roverBody.rotation.z = 0; }   // big slow bounces: the Moon's gravity is weak
   else roverBody.position.y = Math.sin(t * 18) * .012 * Math.min(1, Math.abs(D.v) / 3);
   if (roverWheels.length) { const ws = new THREE.Vector3(); roverWheels[0].getWorldScale(ws); const a = D.v * dt / Math.max(.05, roverWheels.r * ws.y); roverWheels.forEach(w => w.rotation.x += a); }
-  roverAm.userData.anim.mode = marsWorld === 'moon' ? (Math.abs(D.v) > .3 ? 'walk' : roverAm.userData.anim.mode === 'walk' ? 'idle' : roverAm.userData.anim.mode) : Math.abs(D.v) > .3 ? 'idle' : roverAm.userData.anim.mode; animAmelia(roverAm, dt, t);
+  roverAm.userData.anim.mode = marsWorld !== 'mars' ? (Math.abs(D.v) > .3 ? 'walk' : roverAm.userData.anim.mode === 'walk' ? 'idle' : roverAm.userData.anim.mode) : Math.abs(D.v) > .3 ? 'idle' : roverAm.userData.anim.mode; animAmelia(roverAm, dt, t);
   if (Math.abs(D.v) < .2 && roverAm.userData.anim.waveT <= 0 && Math.sin(t * .5) > .995) waveAmelia(roverAm, 1.5);
   // tracks and dust
   D.trk = (D.trk || 0) + Math.abs(D.v) * dt;
@@ -5581,15 +5668,15 @@ function updateMars(dt, t){
     k.gem.rotation.y += dt * 1.5; k.gem.position.y = Math.sin(t * 2 + k.g.position.x) * .15;
     if (Math.hypot(k.g.position.x - D.x, k.g.position.z - D.z) < 2.6) {
       k.found = true; marsFound++; updRockCount(); chime();
-      speak(marsFound === marsRocks.length ? [k.fact, marsWorld === 'moon' ? SAY.moonDone : SAY.marsDone] : k.fact);
-      if (marsFound === marsRocks.length) { burst(); award(marsWorld === 'moon' ? 'moonrocks' : 'mars'); nav(); }
+      speak(marsFound === marsRocks.length ? [k.fact, marsWorld === 'mars' ? SAY.marsDone : WALKS[marsWorld].doneL()] : k.fact);
+      if (marsFound === marsRocks.length) { burst(); award(marsWorld === 'mars' ? 'mars' : WALKS[marsWorld].stamp); nav(); }
     }
   }
   // chase camera
-  const cd = 9 + Math.abs(D.v) * .4, ch = 4.2;
-  const jy = marsWorld === 'moon' && roverBody ? roverBody.position.y * .85 : 0;   // the camera rises with her Moon hops so she stays in view
+  const cd = (marsWorld === 'mars' ? 9 : 7.5) + Math.abs(D.v) * .4, ch = marsWorld === 'mars' ? 4.2 : 2.3;   // walking worlds: a lower, closer camera, so the sky shows
+  const jy = marsWorld !== 'mars' && roverBody ? roverBody.position.y * .85 : 0;   // the camera rises with her Moon hops so she stays in view
   _v.set(D.x - fx * cd, 0, D.z - fz * cd); _v.y = Math.max(groundH(_v.x, _v.z) + 1.5, y + ch + jy);
-  camera.position.lerp(_v, Math.min(1, dt * 3)); camera.lookAt(D.x + fx * 3, y + 1.4 + jy, D.z + fz * 3);
+  camera.position.lerp(_v, Math.min(1, dt * 3)); const la = marsWorld === 'mars' ? 3 : 14, lh = marsWorld === 'mars' ? 1.4 : 3.6; camera.lookAt(D.x + fx * la, y + lh + jy, D.z + fz * la);   // walking worlds: look further ahead, so the sky (Earth, Jupiter) shows above her
   { const pad = $('#drive .pad'), top = pad && pad.getBoundingClientRect().top, who = roverAm || rover;   // keep her (or the rover) in the clear space above the GO pad on any screen height
     if (top > 0 && who) { camera.updateMatrixWorld(); const v = who.getWorldPosition(_v2).project(camera), y0 = (1 - v.y) / 2 * H, want = Math.min(H * .6, top - 70), s = clamp(y0 + marsShift - want, 0, H * .35);   // y0 already includes last frame's shift
       marsShift += (s - marsShift) * Math.min(1, dt * 4); camera.setViewOffset(W, H + 2 * shift, 0, 2 * shift + marsShift, W, H); } }
@@ -5717,7 +5804,7 @@ function drawEclipse(){
 const STAMPS = [
   ...P.map(p => ({ id: 'p:' + p.id, img: p.thumb, label: p.label })),
   { id: 'eclipse', em: '🌑', label: 'Eclipse' }, { id: 'home', em: '🏡', label: 'Home' }, { id: 'landing', em: '🪂', label: 'Landing' }, { id: 'launch', em: '🚀', label: 'Blast off' }, { id: 'sky', em: '🔭', label: "Tonight's sky" },
-  { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
+  { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'bigger', em: '⚖️', label: 'Size expert' }, { id: 'highway', em: '🛣️', label: 'Highway hero' }, { id: 'europarocks', em: '🧊', label: 'Europa explorer' }, { id: 'titanrocks', em: '🟠', label: 'Titan explorer' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
   { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'sparkles', em: '✨', label: 'Sparkle finder' }, { id: 'placequiz', em: '🧠', label: 'Place quiz' }, { id: 'daily', em: '🌟', label: 'Daily mission' }, { id: 'moonwalk', em: '🧑‍🚀', label: 'Moonwalker' }, { id: 'sizes', em: '📏', label: 'Size explorer' }, { id: 'jumper', em: '🛹', label: 'Ramp jumper' }, { id: 'moonrocks', em: '🌕', label: 'Moon rock hunter' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
   { id: 'roadtrip', em: '🚗', label: 'Road tripper' }, { id: 'cityhopper', em: '🏙️', label: 'City hopper' }, { id: 'balloons', em: '🎈', label: 'Balloons' }, { id: 'aurora', em: '🌌', label: 'Northern lights' },
   ...LM.map(l => ({ id: 'l:' + l.id, em: l.em, label: l.name.replace('Pyramids of Giza', 'Pyramids').replace('Great Wall of China', 'Great Wall').replace('Sydney Opera House', 'Opera House').replace('Kennedy Space Center', 'Space Center').replace('Amazon Rainforest', 'Rainforest') })),
@@ -5783,6 +5870,7 @@ function openSizes(){
   $('#sizes').hidden = false; row.scrollLeft = 0; speak(SAY.sizesIn); pop();
 }
 $('#szclose') && ($('#szclose').onclick = () => { $('#sizes').hidden = true; });
+$('#szgame').onclick = () => { audio()?.resume?.(); startBigger(); };
 function openPassport(){
   drawPassportMap();
   const g = $('#pgrid'); g.innerHTML = '';
@@ -6018,6 +6106,9 @@ window.__spaceState = () => ({ mode, current: current && current.id });
 window.__launch = () => ({ phase: L.phase, y: +L.y.toFixed(1), v: +L.v.toFixed(2), thrust: L.thrust, hold: L.hold, mode });
 window.__moon = () => drive && { jumpT: +(drive.jumpT || 0).toFixed(2), y: roverBody ? +roverBody.position.y.toFixed(2) : null, flag: !!(marsScene && marsScene.userData.flag), found: marsFound, n: marsRocks.length };
 window.__moonFindAll = () => { marsRocks.forEach(k => { k.g.position.set(drive.x, k.g.position.y, drive.z); }); };
+window.__bigger = () => qz && qz.kind === 'bigger' && { big: qz.big, pair: qz.pair, n: qz.n, right: qz.right, mode };
+window.__roadMission = () => { const m = toy && toy.fly && toy.fly.mission; return m && m.road ? { road: m.road, i: m.i, n: m.n, end: m.end, lat: m.lat, lon: m.lon } : null; };
+window.__startRoadMission = () => { const F = toy.fly; F.mission = null; const m = roadMission(F); if (m) { F.mission = m; speak(missionLine(m)); } return !!m; };
 window.__camZoom = z => { if (toy) { if (z != null) toy.camZoom = z; return toy.camZoom || 1; } };
 window.__cloudSync = () => clouds.parent === earth.mesh;
 window.__wipeEarth = () => { const c = canvases.earth; c.getContext('2d').clearRect(0, 0, c.width, c.height); };
@@ -6045,7 +6136,8 @@ window.__allLines = () => {
   ORDER.forEach((id, i) => { s.add(paradeYes(i)); s.add(paradeNo(id, false)); s.add(paradeNo(id, true)); });
   Object.values(SITE_SPOTS).flat().forEach(x => s.add(x)); Object.values(SIZE_SAY).forEach(x => s.add(x)); LM.forEach(L => { s.add(whichLine(L)); s.add(contLine(L, contOpts(L))); if (PLACE_Q[L.id]) s.add(PLACE_Q[L.id][0]); });
   LM.forEach(l => { s.add(l.name + '!'); s.add(missionLine({ lm: l })); }); Object.keys(ANIMALS).forEach(an => s.add(missionLine({ an })));   // said when your plane flies over it
-  [...Object.values(TRIP_SAY), ...Object.values(ROAD_SAY), ...Object.values(BIOME_SAY), ...CITY_STOPS.map(c => c.say)].forEach(x => s.add(x)); Object.values(US_ROAD_CITIES).flat().forEach(n => { if (n) s.add('Welcome to ' + n + '!'); });   // road-trip narration
+  Object.entries(US_ROAD_CITIES).forEach(([r, n]) => { s.add(roadLine(r, n[0])); s.add(roadLine(r, n[n.length - 1])); });
+  [...EUROPA_ROCKS, ...TITAN_ROCKS, jumpLine(byId.europa), jumpLine(byId.titan), ...Object.values(TRIP_SAY), ...Object.values(ROAD_SAY), ...Object.values(BIOME_SAY), ...CITY_STOPS.map(c => c.say)].forEach(x => s.add(x)); Object.values(US_ROAD_CITIES).flat().forEach(n => { if (n) s.add('Welcome to ' + n + '!'); });   // road-trip narration
   DIRS.forEach(d => { s.add(moonWhere(d)); SKY_PLANETS.forEach(id => s.add(planetWhere(id, d))); });
   return [...s];
 };
