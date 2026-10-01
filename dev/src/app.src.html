@@ -178,6 +178,16 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
   #dgo{width:80px;height:80px}
   #drive{left:auto;right:24px;align-items:flex-end}
 }
+@media (orientation:landscape) and (max-height:520px){
+  #drive{left:auto;right:16px;align-items:flex-end;bottom:calc(env(safe-area-inset-bottom,0px) + 92px)}
+  #quiz{justify-content:flex-start;gap:8px}
+  #qtray{grid-template-columns:repeat(4,1fr);max-width:640px;gap:10px}
+  #qtray .pl img{width:60px;height:60px}
+  #qask{font-size:18px}
+  #qstars{min-height:0;font-size:20px}
+  #tzoom{top:76px;gap:8px}
+  #tzoom button{width:48px;height:48px;font-size:28px}
+}
 @media (pointer:fine) and (min-width:1100px) and (min-height:700px){
   #caption{font-size:16px;max-width:40em}
   .th{width:76px;font-size:13px} .th img{width:56px;height:56px}
@@ -4802,6 +4812,9 @@ function toyFly(kind = 'plane'){
       let best = -1, ba = 0; for (let a = 0; a < 8; a++) { const ang = a * Math.PI / 4, n = [.5, 1, 1.5, 2].filter(d => !T.sea(...T.ll(at(p, f, ang, d)))).length; if (n > best) { best = n; ba = ang; } }
       f.applyAxisAngle(p, ba).normalize(); if (best >= 4) break;
       p.copy(at(p, f, 0, .5)).normalize(); f.addScaledVector(p, -f.dot(p)).normalize(); }
+    const L = LM.find(l => featDir(l.lat, l.lon).angleTo(p) < 1.3 * DEG);   // starting right on a landmark: back off onto land so it doesn't fill the camera
+    if (L) { const c = featDir(L.lat, L.lon), tg = new THREE.Vector3(0, 1, 0).cross(c).normalize();
+      outer: for (const d of [1.6, 1.2]) for (let a = 0; a < 16; a++) { const q = at(c, tg, a * Math.PI / 8, d); if (!T.sea(...T.ll(q))) { p.copy(q).normalize(); f.copy(c).addScaledVector(p, -c.dot(p)).normalize().negate(); break outer; } } }   // face away: the landmark is behind her and ducks out of the camera's way
   }
   const ringPool = T.flyRings || (T.flyRings = [...Array(5)].map(() => { const m = new THREE.Mesh(new THREE.TorusGeometry(.17, .028, 10, 32), toyToon('#ffd166', { emissive: '#ff9f1c', emissiveIntensity: .5 })); inkChild(m, .012); T.s.add(m); return m; }));
   const starPool = T.flyStars || (T.flyStars = (() => { const m = new THREE.InstancedMesh(T.starMesh.geometry, T.starMesh.material, 16); m.frustumCulled = false; T.s.add(m); return m; })());
@@ -4852,7 +4865,8 @@ function lmHeight(g){   // a landmark model's height at scale 1 (measured once, 
 function dodge(pos, r, from, lmS = .42){   // clears a capsule from the camera (from) to the vehicle (pos); landmarks right at the vehicle stay (they're where we're going)
   const T = toy, M = new THREE.Matrix4(), S = new THREE.Matrix4(), r2 = r * r, A = from || pos, AB = pos.clone().sub(A), L2 = Math.max(1e-6, AB.lengthSq()), tmp = new THREE.Vector3();
   const segD2 = (x, y, z) => { tmp.set(x, y, z).sub(A); const u = clamp(tmp.dot(AB) / L2, 0, 1); return tmp.addScaledVector(AB, -u).lengthSq(); };
-  T.lms.children.forEach(g => { const near = g.position.distanceTo(pos) < .6, q = segD2(g.position.x, g.position.y, g.position.z), k = near ? 1 : Math.max(.001, sst(r2 * .4, r2 * 3, q)); g.scale.setScalar(lmS * k); g.visible = k > .01; });
+  const along = v => tmp.copy(v).sub(A).dot(AB) / L2;   // 0 at the camera, 1 at the vehicle
+  T.lms.children.forEach(g => { const near = g.position.distanceTo(pos) < .6 && along(g.position) > .92, q = segD2(g.position.x, g.position.y, g.position.z), k = near ? 1 : Math.max(.001, sst(r2 * .4, r2 * 3, q)); g.scale.setScalar(lmS * k); g.visible = k > .01; });
   if (!T.dodge) T.dodge = T.dodgeMeshes.map(m => { const P = new Float32Array(m.count * 3), v = new THREE.Vector3(); for (let i = 0; i < m.count; i++) { m.getMatrixAt(i, M); v.setFromMatrixPosition(M); P.set([v.x, v.y, v.z], i * 3); } return { m, P, orig: new Map() }; });
   for (const d of T.dodge) { let dirty = false;
     for (let i = 0, n = d.P.length / 3; i < n; i++) {
@@ -5685,7 +5699,7 @@ function updateMars(dt, t){
   const jy = marsWorld !== 'mars' && roverBody ? roverBody.position.y * .85 : 0;   // the camera rises with her Moon hops so she stays in view
   _v.set(D.x - fx * cd, 0, D.z - fz * cd); _v.y = Math.max(groundH(_v.x, _v.z) + 1.5, y + ch + jy);
   camera.position.lerp(_v, Math.min(1, dt * 3)); const la = marsWorld === 'mars' ? 3 : 14, lh = marsWorld === 'mars' ? 1.4 : 3.6; camera.lookAt(D.x + fx * la, y + lh + jy, D.z + fz * la);   // walking worlds: look further ahead, so the sky (Earth, Jupiter) shows above her
-  { const pad = $('#drive .pad'), top = pad && pad.getBoundingClientRect().top, who = roverAm || rover;   // keep her (or the rover) in the clear space above the GO pad on any screen height
+  { const pad = $('#drive .pad'), pr = pad && pad.getBoundingClientRect(), top = pr && pr.left > W * .5 ? H : pr && pr.top, who = roverAm || rover;   // a pad at the side (landscape, desktop) doesn't push her up   // keep her (or the rover) in the clear space above the GO pad on any screen height
     if (top > 0 && who) { camera.updateMatrixWorld(); const v = who.getWorldPosition(_v2).project(camera), y0 = (1 - v.y) / 2 * H, want = Math.min(H * .6, top - 70), s = clamp(y0 + marsShift - want, 0, H * .35);   // y0 already includes last frame's shift
       marsShift += (s - marsShift) * Math.min(1, dt * 4); camera.setViewOffset(W, H + 2 * shift, 0, 2 * shift + marsShift, W, H); } }
   const sun = marsScene.userData.sun; sun.position.set(D.x - 60, 90, D.z + 40); sun.target.position.set(D.x, 0, D.z);
