@@ -27,9 +27,12 @@ html,body{height:100%;overflow:hidden;background:var(--space);color:var(--ink);f
 #pill{max-width:calc(100vw - 124px)} #pill.long{font-size:clamp(17px,4.6vw,24px)}
 #top{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 0;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
 #pill{font:600 clamp(22px,6vw,30px)/1.1 var(--display);letter-spacing:.01em;padding:8px 20px 9px;border-radius:999px;background:rgba(13,11,46,.72);border:2px solid rgba(183,156,255,.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);text-align:center;max-width:100%}
-#caption{margin:0 52px;font:700 13px/1.35 var(--body);color:var(--muted);text-align:center;max-width:34em;padding:4px 12px;border-radius:12px;background:rgba(13,11,46,.55);transition:opacity .4s}
+#caption{margin:0 52px;font:700 13px/1.35 var(--body);color:#ece9ff;text-align:center;max-width:34em;padding:4px 12px;border-radius:12px;background:rgba(13,11,46,.84);transition:opacity .4s}
 #caption:empty{opacity:0}
 #app.game #caption,#app.skymode #caption{display:none}
+#qcap{margin:2px auto 0;max-width:420px;font:700 15px/1.35 var(--body);color:#ece9ff;text-align:center;background:rgba(13,11,46,.84);border-radius:12px;padding:6px 12px}
+#qcap:empty{display:none}
+@media (max-height:700px){#qtray{gap:8px}#qtray .pl img{width:58px;height:58px}#quiz.homes #qtray .pl,#quiz.isp #qtray .pl{min-height:92px}#quiz.homes .homesAn{font-size:72px}}
 
 #bottom{position:absolute;left:0;right:0;bottom:0;padding:18px 0 calc(env(safe-area-inset-bottom,0px) + 12px);background:linear-gradient(to top,rgba(13,11,46,.96) 55%,rgba(13,11,46,0));display:flex;flex-direction:column;gap:10px}
 #strip{display:flex;gap:6px;overflow-x:auto;padding:2px 16px 4px;scroll-snap-type:x proximity;scrollbar-width:none}
@@ -91,6 +94,8 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 @keyframes ispIn{to{opacity:1}}
 #quiz.isp #qtray{grid-template-columns:repeat(3,1fr);max-width:440px}
 #quiz.isp #qtray .pl{min-height:104px;justify-content:center;gap:4px}
+#kbaim{position:fixed;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 3px #7de2d1;pointer-events:none;z-index:3}
+#kbaim::after{content:'';position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff}
 #goalchip.road .ge{font-size:.8em;letter-spacing:-.02em}
 #szgame{align-self:center;margin:6px auto 0}
 #quiz.homes #qtray{grid-template-columns:repeat(3,1fr);max-width:440px;align-items:stretch}
@@ -120,7 +125,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 @keyframes wig{20%{transform:translateX(-7px) rotate(-5deg)}50%{transform:translateX(6px) rotate(4deg)}80%{transform:translateX(-3px)}}
 @keyframes pop{from{transform:scale(.2)}to{transform:scale(1)}}
 @keyframes glow{to{transform:scale(1.07)}}
-#actions .act.armed{background:#ff5a5f;color:#fff;border-color:#fff;animation:armp .4s ease-in-out infinite alternate}@keyframes armp{from{box-shadow:0 0 0 0 rgba(255,90,95,.7)}to{box-shadow:0 0 0 9px rgba(255,90,95,.25)}}
+#actions .act.armed{background:#ff5a5f;color:#2b0b24;border-color:#fff;animation:armp .4s ease-in-out infinite alternate}@keyframes armp{from{box-shadow:0 0 0 0 rgba(255,90,95,.7)}to{box-shadow:0 0 0 9px rgba(255,90,95,.25)}}
 
 #whoosh{position:absolute;inset:-20%;pointer-events:none;opacity:0;transform:scale(.4);
   background:
@@ -155,9 +160,9 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #eclipse{position:absolute;inset:0;z-index:3;background:#000}
 #phases{position:absolute;inset:0;z-index:3;background:#0d0b2e}
 #phc{position:absolute;inset:0;width:100%;height:100%}
-#phslide{position:absolute;left:24px;right:24px;bottom:calc(env(safe-area-inset-bottom,0px) + 118px);width:calc(100% - 48px);height:44px;accent-color:#ffd166}
+#phslide{position:absolute;left:24px;right:24px;bottom:calc(env(safe-area-inset-bottom,0px) + 118px);width:calc(100% - 48px);height:48px;accent-color:#ffd166}
 #eclc{position:absolute;inset:0;width:100%;height:100%}
-#eslide{position:absolute;left:24px;right:24px;bottom:calc(env(safe-area-inset-bottom,0px) + 118px);width:calc(100% - 48px);height:44px;accent-color:#ffd166}
+#eslide{position:absolute;left:24px;right:24px;bottom:calc(env(safe-area-inset-bottom,0px) + 118px);width:calc(100% - 48px);height:48px;accent-color:#ffd166}
 #ehint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 168px);text-align:center;font:600 20px/1 var(--display);color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6)}
 #toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 70px);transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:8px 16px 8px 8px;border-radius:999px;background:#fff6d6;color:#3a2600;font:700 14px/1.2 var(--body);box-shadow:0 8px 24px rgba(0,0,0,.35);border:3px solid var(--gold);pointer-events:none;z-index:5}
 #toast b{font:600 16px/1 var(--display);color:#b3541e}
@@ -169,7 +174,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #sizes .phead{display:flex;justify-content:space-between;align-items:flex-start;padding:0 16px}#sizes h2{margin:0;font:700 26px/1.1 var(--display);color:var(--gold)}#sizes p{margin:4px 0 0;font:700 14px/1 var(--body);color:var(--muted)}
 #szclose{flex:0 0 auto;width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:rgba(255,255,255,.1);color:var(--ink);font:700 22px/1 var(--body)}
 #szrow{flex:1;display:flex;align-items:center;gap:26px;overflow-x:auto;overflow-y:hidden;padding:0 40px 0 0;scrollbar-width:none}
-#szrow .sz{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;color:var(--ink);font:800 15px/1 var(--body);cursor:pointer}
+#szrow .sz{min-height:48px;min-width:48px;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:8px;background:none;border:0;color:var(--ink);font:800 15px/1 var(--body);cursor:pointer}
 #szrow .sz img{display:block}#szrow .sun{flex:0 0 auto;width:120px;height:900px;border-radius:0 450px 450px 0;background:radial-gradient(circle at -300px 50%,#fff7c2 40%,#ffb703 75%,#ff7a00 100%);box-shadow:0 0 60px #ffb70388;display:flex;align-items:center;justify-content:flex-end;padding-right:10px;font:800 15px/1 var(--body);color:#5a2a00;cursor:pointer;border:0}
 #passport{position:absolute;inset:0;z-index:6;overflow:auto;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 20px);background:radial-gradient(ellipse at 50% 0%,#3a2f8f,#140f3d 70%)}
 #passport .phead,#grown .phead{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
@@ -219,7 +224,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 .gbtn{padding:12px 16px;border-radius:14px;border:2px solid rgba(183,156,255,.5);background:rgba(255,255,255,.08);color:var(--ink);font:800 16px/1 var(--body);cursor:pointer;text-align:left}
 .gbtn.danger{border-color:rgba(255,126,182,.6)}.gbtn.sure{background:#ff7eb6;color:#2b0b24}
 .gver{color:var(--muted);font-size:13px}
-.linkbtn{margin-top:10px;background:none;border:0;color:var(--muted);font:700 14px/1 var(--body);text-decoration:underline;cursor:pointer}
+.linkbtn{margin-top:4px;padding:14px 12px;min-height:48px;background:none;border:0;color:var(--muted);font:700 14px/1 var(--body);text-decoration:underline;cursor:pointer}
 #pmap{display:block;width:100%;max-width:min(720px,80vh);margin:0 auto 14px;border-radius:16px;border:2px solid rgba(255,209,102,.6);background:#2a7fd4}
 .deskonly{display:none}
 #pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:10px}
@@ -235,7 +240,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #skycard{cursor:pointer;transition:padding .3s,background .3s}#skycard.mini{font-size:0;width:max-content;max-width:calc(100% - 32px);padding:5px 14px;background:rgba(13,11,46,.5)}#skycard.mini ul,#skycard.mini small{display:none}#skycard.mini b{font-size:14px}#skycard.mini b::after{content:' ▾';color:var(--muted)}
 #skycard ul{list-style:none;margin:6px 0 4px;padding:0;display:flex;flex-direction:column;gap:3px}
 #skycard small{color:var(--muted);font-weight:700;font-size:11px}
-@media (prefers-reduced-motion:reduce){#count.go{animation:none}#whoosh{transition:opacity .4s}#whoosh.on{transform:none}.slot .ring img,.pl.hint{animation:none}}
+@media (prefers-reduced-motion:reduce){#count.go{animation:none}#whoosh{transition:opacity .4s}#whoosh.on{transform:none}.slot .ring img,.pl.hint{animation:none}#flyhint,#actions .act.armed,.pulse{animation:none}}
 </style>
 
 <div id="app">
@@ -248,7 +253,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
   <header id="top"><div id="pill">Our Solar System</div><div id="caption"></div></header>
   <button id="backbtn" hidden aria-label="Back">◀</button>
   <button id="mutebtn" aria-label="Mute sound" aria-pressed="false">🔊</button>
-  <section id="quiz" hidden><div id="qstars"></div><div id="qask"></div><div id="qtray"></div></section>
+  <section id="quiz" hidden><div id="qstars"></div><div id="qask"></div><div id="qtray"></div><p id="qcap" aria-live="polite"></p></section>
   <section id="parade" hidden>
     <ol id="slots"></ol>
     <div id="ask"></div>
@@ -309,7 +314,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 </div>
 
 <script>
-window.addEventListener('error',()=>{const e=document.getElementById('err');if(e&&!window.__ok){e.hidden=false;e.textContent='The 3D engine did not load. Check the internet connection and reload the page.'}});
+window.addEventListener('error',()=>{const e=document.getElementById('err');if(e&&!window.__ok){e.hidden=false;e.textContent='The 3D engine did not load. Please reload the page.'}});
 </script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
 <script type="module">
@@ -326,6 +331,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 window.__ok = true;
+await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));   // paint the splash first; the 3D set-up below takes a few seconds on slow phones
 
 /* ---------- data ---------- */
 const LAND = __LAND__; // land outlines, [lon*2, lat*2, ...] per ring (Natural Earth 110m via world-atlas)
@@ -559,14 +565,15 @@ const DESK_CAP = [[/Drag your finger to steer/g, 'Use the arrow keys to steer'],
 const deskLine = l => DESK_CAP.reduce((a, [r, w]) => a.replace(r, w), l);   // the same line with mouse words
 const voicePick = l => { if (!matchMedia('(pointer:fine)').matches) return l; const d = deskLine(l); return d !== l && VOICE.has && VOICE.has(voiceHash(d)) ? d : l; };   // desktop says click and scroll, when that recording exists
 const speaking = () => (!vEl.paused && !vEl.ended) || (canSpeak && speechSynthesis.speaking);
-function hush(){ ++vToken; try { vEl.pause(); } catch {} if (canSpeak) try { speechSynthesis.cancel(); } catch {} clearTimeout(capTimer); $('#caption').textContent = ''; }   // leaving a game: its question must not keep talking
+function hush(){ ++vToken; try { vEl.pause(); } catch {} if (canSpeak) try { speechSynthesis.cancel(); } catch {} clearTimeout(capTimer); $('#caption').textContent = ''; if ($('#qcap')) $('#qcap').textContent = ''; }   // leaving a game: its question must not keep talking
 function speak(lines, soft = false){   // soft: a by-the-way line that waits its turn (skipped if someone is already talking)
   lines = [].concat(lines).filter(l => typeof l === 'string' && l);   // never let a missing line stop the app
   if (!lines.length || (soft && speaking())) return;
   lines = lines.map(voicePick);
   lines = [].concat(lines); const my = ++vToken, all = lines.join(' ');
   const cap = $('#caption'); cap.textContent = prefs.captions || prefs.muted ? (matchMedia('(pointer:fine)').matches ? DESK_CAP.reduce((a, [r, w]) => a.replace(r, w), all) : all) : ''; clearTimeout(capTimer);
-  capTimer = setTimeout(() => { cap.textContent = ''; }, 2500 + all.length * 70);
+  const qc = $('#qcap'); if (qc) qc.textContent = prefs.muted ? cap.textContent : '';   // muted, in a game: the words show under the answers instead of over the game
+  capTimer = setTimeout(() => { cap.textContent = ''; if (qc) qc.textContent = ''; }, 2500 + all.length * 70);
   try { vEl.pause(); } catch {}
   if (canSpeak) try { speechSynthesis.cancel(); } catch {}
   let i = 0;
@@ -1960,7 +1967,7 @@ function fitDist(R, margin, elev = 0){
   return Math.max(dW, dH);
 }
 function applyRig(dt){
-  const k = 1 - Math.exp(-dt * 2.6);
+  const k = 1 - Math.exp(-dt * (RM.matches ? 9 : 2.6));   // reduced motion: arrive quickly instead of a long flight
   rig.target.lerp(goal.target, k); rig.dist += (goal.dist - rig.dist) * k;
   rig.az += angDiff(goal.az, rig.az) * k; rig.el += (goal.el - rig.el) * k;
   const ce = Math.cos(rig.el);
@@ -2469,7 +2476,9 @@ function drawJump(g, dt){
   g.fillText(j.p.id === 'earth' ? 'Jump on Earth' : `Jump on ${j.p.say ? 'the ' + j.p.label : j.p.label}`, W / 2, panelTop + 34);
   if (j.done > 3.2) jump = null;
 }
+const RM = matchMedia('(prefers-reduced-motion: reduce)');
 function burst(){
+  if (RM.matches) return;   // reduced motion: no confetti
   const cols = ['#ffd166','#ff7eb6','#7de2d1','#b79cff','#ffffff'];
   confetti = Array.from({ length: 140 }, () => ({ x: W / 2, y: H * .45, vx: (Math.random() - .5) * 700, vy: -300 - Math.random() * 500, r: 4 + Math.random() * 5, c: cols[Math.random() * 5 | 0], a: Math.random() * 6, life: 0 }));
   runFx();
@@ -2717,7 +2726,12 @@ function homeToSpace(){
   const my = ++seq; whoosh(true).then(() => { if (my !== seq) return; resetAmelia(); sceneMode = 'space'; $('#inset').hidden = true; manualCam = false; camera.up.set(0, 1, 0);
     pin.visible = true; focus(earth, true); worldPos(earth, rig.target); rig.dist = 3; sleep(150).then(() => whoosh(false)); });
 }
+{ const ret = new Map();
+  for (const [pid, cid] of [['#grown', '#gclose'], ['#passport', '#pclose'], ['#sizes', '#szclose']]) { const el = $(pid); if (!el) continue;
+    new MutationObserver(() => { if (!el.hidden) { ret.set(pid, document.activeElement); setTimeout(() => $(cid) && $(cid).focus(), 30); } else { const r = ret.get(pid); if (r && r.isConnected && r.focus) r.focus(); } }).observe(el, { attributes: true, attributeFilter: ['hidden'] }); } }
+let lastBackT = 0;
 function goBack(){
+  { const now = performance.now(); if (mode === 'toy' && toy && !toy.fly && now - lastBackT < 700) return true; lastBackT = now; }   // a quick double Back after stopping a drive stays in Explorer Earth
   if (!$('#grown').hidden) { $('#grown').hidden = true; return true; }
   if (!$('#sizes').hidden) { $('#sizes').hidden = true; return true; }
   if (!$('#passport').hidden) { $('#passport').hidden = true; return true; }
@@ -2887,6 +2901,9 @@ function up(e){
 }
 canvas.addEventListener('pointerup', up); canvas.addEventListener('pointercancel', up);
 canvas.addEventListener('wheel', e => { e.preventDefault(); if (mode === 'toy' && toy && toy.fly) { toy.camZoom = clamp((toy.camZoom || 1) * (1 + e.deltaY * .0015), CAMZ_MIN, CAMZ_MAX); return; } goal.dist = clamp(goal.dist * (1 + e.deltaY * (mode === 'toy' ? .0025 : .001)), goal.min, goal.max); zoomIntoEarth(e.deltaY < 0); }, { passive: false });
+let kbOn = false;
+function kbAim(on){ kbOn = on; let c = $('#kbaim'); if (!c && on) { c = document.createElement('div'); c.id = 'kbaim'; c.setAttribute('aria-hidden', 'true'); document.body.append(c); } if (c) c.hidden = !on || !(mode === 'toy' || mode === 'site'); }
+addEventListener('pointerdown', () => { if (kbOn) kbAim(false); }, true);   // touch or mouse again: the keyboard crosshair goes away
 function tap(x, y){
   audio()?.resume?.();
   ndc.set(x / W * 2 - 1, -(y / H) * 2 + 1); ray.setFromCamera(ndc, camera);
@@ -4747,7 +4764,7 @@ function updateToy(dt, t){
     const d = camera.position.clone().normalize(); rig.az = goal.az = Math.atan2(d.x, d.z); rig.el = goal.el = Math.asin(d.y); rig.dist = goal.dist = camera.position.length();
     toySunLight(); return;
   }
-  const k = 1 - Math.exp(-dt * 2.6);
+  const k = 1 - Math.exp(-dt * (RM.matches ? 9 : 2.6));
   rig.dist += (goal.dist - rig.dist) * k; rig.az += angDiff(goal.az, rig.az) * k; rig.el += (goal.el - rig.el) * k;
   // map camera: always looks straight at the chosen spot, tilting back gently as you get close
   rig.el = clamp(rig.el, -1.45, 1.45);
@@ -5131,10 +5148,11 @@ function updateFly(dt, t){
       if ((m.t += dt) > 30 && !F.near) { m.t = 0; speak(missionLine(m), true); } } }
   // famous places: close and low enough to land
   if (!F.landed) {
-    let near = null, best = .085; const onScreen = L => { const v = featDir(L.lat, L.lon).multiplyScalar(R + .4).project(camera); return v.z < 1 && Math.abs(v.x) < .95 && v.y < .95 && v.y > -1.5; };   // its top in view, or just under the plane when flying high
+    F.age = (F.age || 0) + dt; let near = null, best = F.kind === 'car' ? .03 : .085; const onScreen = L => { const v = featDir(L.lat, L.lon).multiplyScalar(R + .4).project(camera); return v.z < 1 && Math.abs(v.x) < .95 && v.y < .95 && v.y > -1.5; };   // its top in view, or just under the plane when flying high
     for (const L of LM) { const a = featDir(L.lat, L.lon).angleTo(F.p); if (a < best && onScreen(L)) { best = a; near = L; } }
-    if (near) F.nearT = 5; else if (F.near && (F.nearT -= dt) > 0) near = F.near;   // the Land button stays a while after you pass, so small fingers can catch it
-    if (near !== F.near) { F.near = near; if (near) { $('#pill').textContent = near.name; if (!F.saidNear.has(near.id)) { F.saidNear.add(near.id); speak([near.name + '!', F.kind === 'car' ? SAY.driveNear : SAY.flyNear]); } } else $('#pill').textContent = '📍 ' + (F.where || ''); nav(); }
+    if (near) F.nearT = F.kind === 'car' ? 2.5 : 5; else if (F.near && (F.nearT -= dt) > 0) near = F.near;   // the Land button stays a while after you pass, so small fingers can catch it
+    if (near !== F.near) { F.near = near; if (near) { $('#pill').textContent = near.name; } else $('#pill').textContent = '📍 ' + (F.where || ''); nav(); }
+    if (F.near && F.age > 4 && !F.saidNear.has(F.near.id)) { F.saidNear.add(F.near.id); speak([F.near.name + '!', F.kind === 'car' ? SAY.driveNear : SAY.flyNear]); }   // after the first instructions have been heard
   }
   // mission: a green arrow in front of the plane points toward the goal
   if (!F.mission && !F.landed && (F.missionT = (F.missionT || 0) + dt) > 12) { F.missionT = 0; flyMission(); }
@@ -5916,12 +5934,13 @@ function updateLanding(dt, t){
 const ecl = { on: false, raf: 0, said: false, stars: null };
 function openEclipse(){
   ecl.from = current && current.id === 'sun' ? current : moon; ++seq; stopJump(); mode = 'eclipse'; nav(); layout(); $('#pill').textContent = 'Eclipse Machine';
-  $('#eclipse').hidden = false; $('#eslide').value = 80; ecl.said = false; ecl.on = true;
+  $('#eclipse').hidden = false; $('#eslide').value = 80; ecl.said = false; ecl.on = true; $('#backbtn').style.zIndex = 5; $('#mutebtn').style.zIndex = 5;
   $('#eclipse').style.bottom = '0'; $('#top').style.zIndex = 4; $('#bottom').style.zIndex = 4;
   if (!ecl.stars) ecl.stars = Array.from({ length: 140 }, () => [Math.random(), Math.random() * .7, Math.random() * 1.6 + .4]);
   speak(SAY.eclIn); award('eclipse'); drawEclipse();
 }
 // Moon phase machine: slide the Moon around the Earth; the Sun lights half of it; below, how much of the lit half we see from Earth
+const PHASE_NAME = ['New Moon', 'Waxing crescent', 'First quarter', 'Waxing gibbous', 'Full Moon', 'Waning gibbous', 'Last quarter', 'Waning crescent'];
 const PHASES = [['new', "New Moon. The Moon's lit side faces away from us, so it looks dark."], ['waxc', 'Waxing crescent. A thin sliver of light is growing.'],
   ['fq', 'First quarter. Half of the Moon looks lit up.'], ['waxg', 'Waxing gibbous. Almost full, and still growing!'], ['full', 'Full Moon! The whole side facing us is lit by the Sun.'],
   ['wang', 'Waning gibbous. Now the light is shrinking.'], ['lq', 'Last quarter. The other half is lit now.'], ['wanc', 'Waning crescent. Just a thin sliver is left before the new Moon.']];
@@ -5933,6 +5952,8 @@ function openPhases(){
   $('#phases').hidden = false; $('#phslide').value = 40; phx.seen = new Set(); phx.last = -1; phx.done = false; phx.on = true; $('#top').style.zIndex = 4; $('#bottom').style.zIndex = 4; $('#backbtn').style.zIndex = 5; $('#mutebtn').style.zIndex = 5;
   speak(SAY.phasesIn); drawPhases();
 }
+for (const [id, step] of [['#phslide', 125], ['#eslide', 50]]) $(id).addEventListener('keydown', e => {   // keyboard: one press = one phase (or a clear eclipse step)
+  const d = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key]; if (!d) return; e.preventDefault(); const el = e.target; el.value = String(((+el.value + d * step) % 1000 + 1000) % 1000); el.dispatchEvent(new Event('input', { bubbles: true })); });
 function closePhases(){ hush(); clearTimeout(phx.nameT); phx.on = false; cancelAnimationFrame(phx.raf); $('#phases').hidden = true; $('#top').style.zIndex = ''; $('#bottom').style.zIndex = ''; $('#backbtn').style.zIndex = ''; $('#mutebtn').style.zIndex = ''; focus(phx.from || moon, true); }
 function moonShape(g, cx, cy, r, e){   // the Moon as seen from Earth at elongation e, which is 0 at new Moon and PI at full; waxing is lit on the right in the northern sky
   const k = Math.cos(e), side = Math.sin(e) >= 0 ? 1 : -1;
@@ -5946,7 +5967,9 @@ function drawPhases(){
   const c = $('#phc'), dpr = Math.min(2, devicePixelRatio || 1), w = c.clientWidth, h = c.clientHeight;
   if (c.width !== w * dpr) { c.width = w * dpr; c.height = h * dpr; }
   const g = c.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
-  const e = $('#phslide').value / 1000 * Math.PI * 2, top = 90, botBar = 190, avail = h - top - botBar, dy = top + avail * .3, Ro = Math.min(w * .3, avail * .22), ex = w * .55;
+  const e = $('#phslide').value / 1000 * Math.PI * 2, cr = c.getBoundingClientRect(), land = w > h * 1.15;
+  const top = $('#pill').getBoundingClientRect().bottom - cr.top + 70, bot = $('#phslide').getBoundingClientRect().top - cr.top - 14, avail = Math.max(120, bot - top);   // below the title and its caption, above the slider
+  const dy = land ? top + avail * .44 : top + avail * .3, Ro = land ? Math.min(w * .19, avail * .42) : Math.min(w * .3, avail * .22), ex = land ? w * .32 : w * .55;   // sideways phones: orbit on the left, the Moon we see on the right
   const sg = g.createRadialGradient(-w * .06, dy, Ro * .8, -w * .06, dy, Ro * 3.2); sg.addColorStop(0, 'rgba(255,214,102,.5)'); sg.addColorStop(1, 'rgba(255,214,102,0)'); g.fillStyle = sg; g.beginPath(); g.arc(-w * .06, dy, Ro * 3.2, 0, 7); g.fill();   // soft sunlight from the left
   g.fillStyle = '#ffd166'; g.beginPath(); g.arc(-w * .06, dy, Ro * .9, 0, 7); g.fill();
   g.strokeStyle = 'rgba(255,255,255,.18)'; g.setLineDash([4, 6]); g.beginPath(); g.arc(ex, dy, Ro, 0, 7); g.stroke(); g.setLineDash([]);
@@ -5954,13 +5977,14 @@ function drawPhases(){
   const a = Math.PI + e, mx = ex + Ro * Math.cos(a), my = dy - Ro * Math.sin(a), mr = Ro * .16;   // the Moon on its path; its sunny half always faces the Sun (left)
   g.fillStyle = '#2b2a3a'; g.beginPath(); g.arc(mx, my, mr, 0, 7); g.fill(); g.fillStyle = '#f4f0dc'; g.beginPath(); g.arc(mx, my, mr, Math.PI / 2, Math.PI * 1.5); g.fill();
   g.strokeStyle = '#ffd166'; g.lineWidth = 2; g.beginPath(); g.moveTo(ex, dy); g.lineTo(mx, my); g.stroke();   // the way we look from Earth
-  const bigR = Math.min(w * .22, avail * .17), by = top + avail * .8; moonShape(g, w / 2, by, bigR, e);   // what we see from Earth
+  const bigR = land ? Math.min(w * .14, avail * .34) : Math.min(w * .22, avail * .17), bx = land ? w * .76 : w / 2, by = land ? dy : top + avail * .8; moonShape(g, bx, by, bigR, e);   // what we see from Earth
   const deg = (e * 180 / Math.PI + 22.5) % 360, i = Math.floor(deg / 45) % 8;
-  if (i !== phx.last) { phx.last = i; clearTimeout(phx.nameT); phx.nameT = setTimeout(() => { if (!phx.on || phx.last !== i) return; phx.seen.add(i); speak(PHASES[i][1]);   // she rests on a phase: say its name, then it counts
+  g.fillStyle = '#ece9ff'; g.font = '700 17px Nunito, sans-serif'; g.textAlign = 'center'; g.fillText(PHASE_NAME[i], bx, land ? by - bigR - 12 : by + bigR + 24);   // the phase name under the Moon, for grown-ups reading along
+  if (i !== phx.last) { phx.last = i; $('#phslide').setAttribute('aria-valuetext', PHASE_NAME[i]); clearTimeout(phx.nameT); phx.nameT = setTimeout(() => { if (!phx.on || phx.last !== i) return; phx.seen.add(i); speak(PHASES[i][1]);   // she rests on a phase: say its name, then it counts
     if (phx.seen.size === 8 && !phx.done) { phx.done = true; award('phases'); burst(); const my = seq; setTimeout(() => { if (phx.on && my === seq) speak(SAY.phasesDone); }, 3500); } }, 450); }
   phx.raf = requestAnimationFrame(drawPhases);
 }
-function closeEclipse(){ ecl.on = false; cancelAnimationFrame(ecl.raf); $('#eclipse').hidden = true; $('#top').style.zIndex = ''; $('#bottom').style.zIndex = ''; focus(ecl.from || moon, true); }
+function closeEclipse(){ hush(); $('#backbtn').style.zIndex = ''; $('#mutebtn').style.zIndex = ''; ecl.on = false; cancelAnimationFrame(ecl.raf); $('#eclipse').hidden = true; $('#top').style.zIndex = ''; $('#bottom').style.zIndex = ''; focus(ecl.from || moon, true); }
 function drawEclipse(){
   if (!ecl.on) return;
   const c = $('#eclc'), dpr = Math.min(2, devicePixelRatio || 1), w = c.clientWidth, h = c.clientHeight;
@@ -6509,6 +6533,12 @@ addEventListener('keydown', e => {
   if (e.key === 'Escape' && !$('#grown').hidden) { $('#grown').hidden = true; return; }
   if (!$('#sizes').hidden && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { $('#szrow').scrollBy({ left: e.key === 'ArrowRight' ? 320 : -320, behavior: 'smooth' }); e.preventDefault(); return; }
   if (mode === 'toy' && toy && toy.lmTour && !toy.fly && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { toyLmTour(toy.lmI + (e.key === 'ArrowRight' ? 1 : -1)); e.preventDefault(); return; }
+  if ((mode === 'toy' && toy && !toy.fly && !toy.follow) || mode === 'site') {   // keyboard play on the globe and at landmarks: arrows turn, + and - zoom, Enter taps what's under the crosshair
+    const k = arrowKey(e), turn = { ArrowLeft: [-.22, 0], ArrowRight: [.22, 0], ArrowUp: [0, .12], ArrowDown: [0, -.12] }[k];
+    if (turn) { goal.az += turn[0]; goal.el = clamp(goal.el + turn[1], goal.elMin ?? -1.2, goal.elMax ?? 1.3); kbAim(true); e.preventDefault(); return; }
+    if ((e.key === '+' || e.key === '=' || e.key === '-') && mode === 'toy') { $(e.key === '-' ? '#tzout' : '#tzin')?.click(); kbAim(true); e.preventDefault(); return; }
+    if ((e.key === 'Enter' || e.key === ' ') && kbOn && !document.activeElement?.closest?.('button')) { tap(W / 2, H / 2); e.preventDefault(); return; }
+  }
   if (e.key === 'm' || e.key === 'M') { setMute(!prefs.muted); return; }
   if ((e.key === 'p' || e.key === 'P') && !$('#start')?.offsetParent) { $('#passport').hidden ? openPassport() : ($('#passport').hidden = true); return; }
   if (e.key === 'Enter' || e.key === ' ') { const b = document.activeElement?.closest?.('button') ? null : $('#actions .act.hero:not([hidden])'); if (b) { b.click(); e.preventDefault(); } }

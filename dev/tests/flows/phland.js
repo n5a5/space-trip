@@ -1,0 +1,5 @@
+// Moon phases on a sideways phone and a small phone: the orbit sits below the title and caption, the big Moon beside it with its name; Back and mute stay reachable.
+module.exports=async({pg,S,W})=>{const act=t=>pg.evaluate(t=>{const b=[...document.querySelectorAll('#actions .act')].find(b=>b.textContent.includes(t));b&&b.click();return !!b;},t);
+await pg.click('#go');await W(2500);await pg.click('.th[data-id="moon"]');await W(5000);if(!(await act('Moon phases')))throw new Error('no Moon phases');await W(3000);await S('phl_'+(process.env.VW||412));
+const r=await pg.evaluate(()=>{const top=e=>{const x=document.querySelector(e);return x&&!x.hidden&&getComputedStyle(x).display!=='none'?x.getBoundingClientRect():null;};const b=top('#backbtn'),m=top('#mutebtn');const hitB=b&&document.elementFromPoint(b.x+b.width/2,b.y+b.height/2);const hitM=m&&document.elementFromPoint(m.x+m.width/2,m.y+m.height/2);return {back:!!hitB&&hitB.closest('#backbtn')!==null,mute:!!hitM&&hitM.closest('#mutebtn')!==null};});
+console.log('reachable',JSON.stringify(r));if(!r.back||!r.mute)throw new Error('Back or mute hidden under the phase machine');};

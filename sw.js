@@ -1,5 +1,5 @@
 // Offline cache for Amelia's Space Trip. Bump VERSION on every deploy.
-const VERSION = 'space-v37';
+const VERSION = 'space-v38';
 const ASSETS = [
  "./",
  "fonts/OFL-Fredoka.txt",
