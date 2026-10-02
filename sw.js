@@ -1,5 +1,5 @@
 // Offline cache for Amelia's Space Trip. Bump VERSION on every deploy.
-const VERSION = 'space-v40';
+const VERSION = 'space-v41';
 const ASSETS = [
  "./",
  "fonts/OFL-Fredoka.txt",
@@ -131,6 +131,7 @@ const ASSETS = [
  "voice/0c54ac2b.ogg",
  "voice/0c920a22.ogg",
  "voice/0cbdbf78.ogg",
+ "voice/0ce2d9e5.ogg",
  "voice/0ce41291.ogg",
  "voice/0d037605.ogg",
  "voice/0d3616b4.ogg",
@@ -538,7 +539,6 @@ const ASSETS = [
  "voice/5a40fe9e.ogg",
  "voice/5a413b91.ogg",
  "voice/5a674684.ogg",
- "voice/5a8420f5.ogg",
  "voice/5af30f2f.ogg",
  "voice/5b012e34.ogg",
  "voice/5b066b2e.ogg",
@@ -559,7 +559,6 @@ const ASSETS = [
  "voice/5cbb8eec.ogg",
  "voice/5cf122f1.ogg",
  "voice/5d9a75c0.ogg",
- "voice/5dd77402.ogg",
  "voice/5e1106e1.ogg",
  "voice/5e47bbb0.ogg",
  "voice/5e49d6aa.ogg",
@@ -747,6 +746,7 @@ const ASSETS = [
  "voice/7d68cf59.ogg",
  "voice/7d872d4f.ogg",
  "voice/7da9e81e.ogg",
+ "voice/7dad3879.ogg",
  "voice/7dd06390.ogg",
  "voice/7e1fe85b.ogg",
  "voice/7e624f4e.ogg",
@@ -868,6 +868,7 @@ const ASSETS = [
  "voice/9596883a.ogg",
  "voice/95a2abf3.ogg",
  "voice/95a82a49.ogg",
+ "voice/95af8a3c.ogg",
  "voice/95dc490e.ogg",
  "voice/9612300e.ogg",
  "voice/962c7595.ogg",
@@ -1309,6 +1310,7 @@ const ASSETS = [
  "voice/e002b981.ogg",
  "voice/e0172962.ogg",
  "voice/e0220873.ogg",
+ "voice/e0889e62.ogg",
  "voice/e0b0fd0f.ogg",
  "voice/e0b678d3.ogg",
  "voice/e1079c17.ogg",

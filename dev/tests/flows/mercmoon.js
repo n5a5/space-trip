@@ -1,0 +1,8 @@
+// Mercury looks warm, not like our grey Moon; a planet that looks close to the one she is visiting shrinks out of the way.
+module.exports=async({pg,S,W})=>{await pg.click('#go');await W(3000);
+const tone=async id=>{const c=await pg.evaluate(i=>window.__scr(i),id);const b=await pg.screenshot({clip:{x:Math.round(c.x-8),y:Math.round(c.y+55),width:16,height:16}});return pg.evaluate(async a=>{const bm=await createImageBitmap(new Blob([new Uint8Array(a)],{type:'image/png'}));const cv=new OffscreenCanvas(bm.width,bm.height),x=cv.getContext('2d');x.drawImage(bm,0,0);const d=x.getImageData(0,0,cv.width,cv.height).data;let r=0,g=0,bl=0,n=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];bl+=d[i+2];n++}return {r:r/n,g:g/n,b:bl/n,warm:(r-bl)/n}},[...b])};
+const focus=async id=>{await pg.evaluate(i=>document.querySelector(`#strip .th[data-id="${i}"]`).click(),id);await W(6000);};
+for(const id of ['venus','earth','jupiter','mercury']){await focus(id);await S('mm_'+id);let c=[];for(let t=0;t<6;t++){c=await pg.evaluate(()=>window.__crowd());if(!c.length)break;await W(1500);}console.log(id,'crowding',JSON.stringify(c));if(c.length)throw new Error('neighbours crowd '+id+': '+c.map(o=>o.id).join(','));}
+const m=await tone('mercury');console.log('mercury',JSON.stringify(m));
+await focus('earth');await pg.evaluate(()=>document.querySelector('#strip .th[data-id="moon"]').click());await W(6000);await S('mm_moon');const o=await tone('moon');console.log('moon',JSON.stringify(o));
+if(!(m.warm>o.warm+15))throw new Error('Mercury not warmer than the Moon: '+m.warm.toFixed(1)+' vs '+o.warm.toFixed(1));};

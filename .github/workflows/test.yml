@@ -9,11 +9,12 @@ jobs:
     timeout-minutes: 40
     strategy:
       fail-fast: false
-      matrix:   # three groups in parallel so the whole run stays well under the time limit
+      matrix:   # four groups in parallel so the whole run stays well under the time limit
         flows:
           - "start places discover landing ramp high countries where landview audio pets drive mars blue camzoom roadtrip wherefix launchfly bigger minimap drawbudget homes deskvoice kbglobe mutedcap college pqshare"
           - "planets sparkles daily sizes sound uturn moonframe coaststart earthtap memory arrow back home skycard allsites skyglare moonplay roadmission kscstart voicegaps"
           - "explorer placequiz moon weather fly passport voice tapguard hover livingworld ride states chaos realclouds spacefix focusbtns walkworlds nextworld phases pluto homesfair phland reading"
+          - "mercmoon seas polar walkstart flyksc hudclear marsdesk flyafterdrive"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

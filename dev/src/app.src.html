@@ -34,7 +34,7 @@ html,body{height:100%;overflow:hidden;background:var(--space);color:var(--ink);f
 #qcap:empty{display:none}
 @media (max-height:700px){#qtray{gap:8px}#qtray .pl img{width:58px;height:58px}#quiz.homes #qtray .pl,#quiz.isp #qtray .pl{min-height:92px}#quiz.homes .homesAn{font-size:72px}}
 
-#bottom{position:absolute;left:0;right:0;bottom:0;padding:18px 0 calc(env(safe-area-inset-bottom,0px) + 12px);background:linear-gradient(to top,rgba(13,11,46,.96) 55%,rgba(13,11,46,0));display:flex;flex-direction:column;gap:10px}
+#bottom{position:absolute;left:0;right:0;bottom:0;padding:18px 0 calc(env(safe-area-inset-bottom,0px) + var(--vvb,0px) + 12px);background:linear-gradient(to top,rgba(13,11,46,.96) 55%,rgba(13,11,46,0));display:flex;flex-direction:column;gap:10px}
 #strip{display:flex;gap:6px;overflow-x:auto;padding:2px 16px 4px;scroll-snap-type:x proximity;scrollbar-width:none}
 #strip::-webkit-scrollbar,#wstrip::-webkit-scrollbar{display:none}
 #wstrip,#tstrip{background:linear-gradient(rgba(13,11,46,0),rgba(13,11,46,.85) 30%);-webkit-mask-image:linear-gradient(to right,#000 88%,transparent);mask-image:linear-gradient(to right,#000 88%,transparent);display:flex;gap:6px;overflow-x:auto;padding:2px 16px 4px;scrollbar-width:none}
@@ -48,11 +48,11 @@ html,body{height:100%;overflow:hidden;background:var(--space);color:var(--ink);f
 #flyhud.bump{transform:scale(1.25)}
 #stamppop{position:fixed;left:50%;top:38%;width:150px;height:150px;margin-left:-75px;border-radius:50%;background:#fff;border:8px dashed #e63946;display:grid;place-items:center;font-size:84px;box-shadow:0 8px 30px #0008;pointer-events:none;animation:stampin .5s cubic-bezier(.3,1.7,.5,1)}
 @keyframes stampin{from{transform:scale(3) rotate(-30deg);opacity:0}to{transform:scale(1) rotate(-12deg);opacity:1}}
-#goalchip{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:4px 14px;border-radius:999px;background:rgba(13,11,46,.72);border:3px solid #4ade80;pointer-events:none}
-@media (max-width:700px){#goalchip{bottom:calc(env(safe-area-inset-bottom,0px) + 168px)}}   
+#goalchip{position:fixed;right:12px;top:calc(var(--toph,96px) + 8px);display:flex;align-items:center;gap:6px;padding:4px 14px;border-radius:999px;background:rgba(13,11,46,.72);border:3px solid #4ade80;pointer-events:none}
+   
 #goalchip .ge{font-size:40px;line-height:1}#goalchip .ga{font-size:34px;color:#4ade80;display:inline-block}
 #minimap{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 84px);width:140px;height:70px;border-radius:10px;border:2px solid rgba(255,255,255,.85);box-shadow:0 2px 10px #0006;pointer-events:auto;cursor:pointer}
-#flyhint{position:fixed;left:50%;top:44%;transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:rgba(13,11,46,.7);font:800 20px/1 var(--body);color:#fff;pointer-events:none;animation:flyhint 1.6s ease-in-out infinite}
+#flyhint{white-space:nowrap;position:fixed;left:50%;top:calc(var(--toph,96px) + 76px);transform:translateX(-50%);padding:10px 18px;border-radius:999px;background:rgba(13,11,46,.7);font:800 20px/1 var(--body);color:#fff;pointer-events:none;animation:flyhint 1.6s ease-in-out infinite}
 @keyframes flyhint{0%,100%{margin-left:-40px}50%{margin-left:40px}}
 #tstars{position:fixed;left:12px;bottom:calc(env(safe-area-inset-bottom,0px) + 190px);padding:6px 12px;border-radius:999px;background:rgba(13,11,46,.75);border:2px solid rgba(255,209,102,.8);font:800 16px/1 var(--body);color:var(--ink)}
 #wstrip .th .em{font-size:32px;line-height:44px;height:44px}
@@ -60,7 +60,7 @@ html,body{height:100%;overflow:hidden;background:var(--space);color:var(--ink);f
 .th img{width:44px;height:44px;object-fit:contain;pointer-events:none}
 .th[aria-pressed="true"]{border-color:var(--gold);background:rgba(255,209,102,.12);color:var(--ink)}
 #actions{display:flex;justify-content:center;gap:6px 6px;padding:0 10px;flex-wrap:wrap}
-.dkeys{font:800 14px/1 var(--body);color:#fff;background:rgba(13,11,46,.7);padding:6px 10px;border-radius:999px;pointer-events:none}
+.dkeys{position:absolute;bottom:calc(100% + 10px);right:0;white-space:nowrap;font:800 14px/1 var(--body);color:#fff;background:rgba(13,11,46,.7);padding:6px 10px;border-radius:999px;pointer-events:none}
 .act.bigpic{min-width:104px;min-height:112px} .act.bigpic .em{font-size:60px;line-height:64px}
 .act{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex:0 0 auto;min-width:70px;min-height:62px;padding:7px 8px;white-space:nowrap;border-radius:22px;background:var(--space-2);border:2px solid rgba(183,156,255,.45);color:var(--ink);font:800 12px/1 var(--body);cursor:pointer;transition:transform .12s}
 .act .em{font-size:30px;line-height:1}
@@ -138,7 +138,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #quiz.homes #qtray{grid-template-columns:repeat(3,1fr);max-width:440px;align-items:stretch}
 #quiz.homes #qtray .pl{min-height:120px;justify-content:center;gap:4px}
 .hem{font-size:52px;line-height:1.1}
-.homesAn{font-size:96px;line-height:1}
+.homesAn{font-size:96px;line-height:1}.pbw{filter:grayscale(1) brightness(1.9)}
 #quiz.bigger #qtray{grid-template-columns:1fr 1fr;max-width:400px;align-items:end}
 #quiz.bigger #qtray .pl{min-height:190px;justify-content:flex-end}
 #quiz.bigger #qtray .pl img{width:130px;height:130px;transition:width 1.2s cubic-bezier(.3,1.4,.5,1),height 1.2s cubic-bezier(.3,1.4,.5,1)}
@@ -187,8 +187,8 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #count.go{animation:cd .9s ease-out both}
 @keyframes cd{0%{transform:scale(2.2);opacity:0}18%{transform:scale(1);opacity:1}88%{transform:scale(.92);opacity:1}100%{transform:scale(.85);opacity:.4}}
 #drive{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 104px);display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding:0 16px}
-#rockct{position:fixed;left:12px;top:calc(env(safe-area-inset-top,0px) + 76px);padding:6px 12px;border-radius:999px;background:rgba(13,11,46,.75);border:2px solid rgba(125,226,209,.6);font:800 16px/1 var(--body);color:var(--ink)}
-#drive .pad{display:flex;gap:14px;align-items:center}
+#rockct{position:fixed;left:12px;top:max(calc(env(safe-area-inset-top,0px) + 76px),calc(var(--toph,0px) + 6px));padding:6px 12px;border-radius:999px;background:rgba(13,11,46,.75);border:2px solid rgba(125,226,209,.6);font:800 16px/1 var(--body);color:var(--ink)}
+#drive .pad{position:relative;display:flex;gap:14px;align-items:center}
 #drive button{pointer-events:auto;touch-action:none;border:3px solid rgba(255,255,255,.8);color:#2b1d00;font:700 26px/1 var(--display);cursor:pointer;user-select:none;-webkit-user-select:none}
 #dl,#dr{width:74px;height:74px;border-radius:50%;background:rgba(255,209,102,.92)}
 #dgo{width:104px;height:104px;border-radius:50%;background:#7de2d1;font-size:30px}
@@ -227,7 +227,8 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 .gnote2{font:600 13px/1.35 var(--body);color:var(--muted);margin:10px 0 0}
 /* desktop and laptop: mouse and keyboard, wide screens */
 @media (hover:hover) and (pointer:fine){
-  #minimap{width:280px;height:140px}
+  #minimap{width:min(280px,34vw);height:min(140px,17vw)}
+  #bottom{padding-bottom:calc(var(--vvb,0px) + 22px)}
   .act:hover,.th:hover,.pl:hover{transform:translateY(-2px);filter:brightness(1.12)} .act,.th,.pl{transition:transform .12s,filter .12s}
   #gl{cursor:grab} #gl:active{cursor:grabbing}
   #strip,#wstrip,#tstrip{justify-content:safe center}
@@ -491,7 +492,7 @@ const SAY = {
   statesHere: "Here it is! Let's try another one.",
   hi: "Hi Amelia! This is our solar system. The Sun is in the middle, and eight planets go around and around it. Tap a planet to visit!",
   zoom: "Let's zoom down to Earth, to Florida, all the way to Amelia's house!",
-  homeIntro: "Here's Amelia's house, on planet Earth! Tap the rocket when you're ready to blast off!",
+  homeIntro: "Here's Amelia's house, on planet Earth! When you're ready to blast off, tap Back to space!",
   night: "Earth spins, and our home turns away from the Sun. Now it's nighttime! Sometimes we can see the Moon at night.",
   day: "Earth keeps spinning, and our home turns back toward the Sun. Good morning! It's daytime again.",
   moonTap: "That's the Moon! Sometimes we can see it at night, and sometimes even in the daytime.",
@@ -529,7 +530,7 @@ const SAY = {
   world: "Let's fly around the world and visit amazing places! Our first stop is right here in Florida.",
   belt: "Those are asteroids! They're space rocks that go around the Sun, between Mars and Jupiter.",
 };
-const LM_SHORT = { ksc: 'Rockets', liberty: 'Liberty', canyon: 'Canyon', amazon: 'Rainforest', penguins: 'Antarctica', bigben: 'Big Ben', eiffel: 'Eiffel', colosseum: 'Colosseum', pyramids: 'Pyramids', taj: 'Taj Mahal', everest: 'Everest', wall: 'Great Wall', opera: 'Opera House', college: 'Colleges', home: 'House' };
+const LM_SHORT = { ksc: 'Rockets', liberty: 'Liberty', canyon: 'Canyon', amazon: 'Rainforest', penguins: 'Penguins', bigben: 'Big Ben', eiffel: 'Eiffel', colosseum: 'Colosseum', pyramids: 'Pyramids', taj: 'Taj Mahal', everest: 'Everest', wall: 'Great Wall', opera: 'Opera House', college: 'Colleges', home: 'House' };
 const lmShort = L => LM_SHORT[L.id] || L.name;
 const LM = [
   { id: 'ksc', name: 'Kennedy Space Center', em: '🚀', lat: 28.57, lon: -80.65, say: "This is Kennedy Space Center in Florida, not far from Amelia's house! Astronauts blast off to space from right here." },
@@ -627,7 +628,7 @@ function speak(lines, soft = false){   // soft: a by-the-way line that waits its
   if (prefs.muted) return;   // muted: captions only
   const next = () => {
     if (my !== vToken || i >= lines.length) return;
-    const t = lines[i++], src = voiceSrc(t), go = () => setTimeout(next, 220), fallback = e => { if (my === vToken && !(e && e.name === 'AbortError')) tts(t, go); };   // an interrupted clip stays quiet; only a missing one uses the phone's voice
+    const t = lines[i++], src = voiceSrc(t), go = () => setTimeout(next, 220), fallback = e => { if (fb || my !== vToken || (e && e.name === 'AbortError')) return; fb = true; tts(t, go); }; let fb = false;   // an interrupted clip stays quiet; only a missing one uses the phone's voice
     if (!src) return tts(t, go);
     vEl.onended = go; vEl.onerror = () => fallback(); vEl.src = src; vEl.playbackRate = prefs.rate; vEl.volume = prefs.vol;
     vEl.play().catch(fallback);
@@ -730,8 +731,8 @@ function planetCanvas(id){
   switch (id) {
     case 'sun': fill('#ffb62e'); dots(g, 140, 'rgba(255,130,10,.5)', 10, 34); dots(g, 90, 'rgba(255,240,150,.6)', 6, 20); warp(c, 30, 16, 11); break;
     case 'mercury':
-      fill('#a39b96'); shade(c, .5, 21, [4, 8, 16]);
-      dots(g, 70, '#8c847f', 5, 26, 30, 480, '#d3cbc5'); dots(g, 90, 'rgba(120,112,108,.6)', 2, 6);
+      fill('#b39a82'); shade(c, .5, 21, [4, 8, 16]);   // warm grey-brown, never the Moon's cool grey
+      dots(g, 70, '#977f6c', 5, 26, 30, 480, '#dccab4'); dots(g, 90, 'rgba(128,106,88,.6)', 2, 6);
       shade(c, .22, 22, [32, 64]); break;
     case 'venus':
       bands(g, ['#f6d796','#eab665','#f7dea6','#e2a655','#f3cf86','#e8b464','#f7dea6','#edc27a'], 18, 3);
@@ -1943,7 +1944,7 @@ async function loadReal(){
     earth: new THREE.MeshPhongMaterial({ map: day, normalMap: nrm, normalScale: new THREE.Vector2(.9, .9), specularMap: spec, specular: new THREE.Color(.06, .07, .08), shininess: 90 }),
     moon: std({ map: moonT, bumpMap: moonT, bumpScale: 1.6, roughness: 1 }),
     europa: std({ map: eur, roughness: .6 }), titan: std({ map: tit, color: '#ffd9a0', emissive: '#3a2008', roughness: .9 }),
-    mercury: std({ map: merc, bumpMap: merc, bumpScale: 1.6, roughness: 1 }),
+    mercury: std({ map: merc, bumpMap: merc, bumpScale: 1.6, roughness: 1, color: '#eebf92' }),   // warm tint so Mercury never reads as our grey Moon
     mars: std({ map: mars, bumpMap: mars, bumpScale: .9, roughness: 1 }),
     jupiter: std({ map: jup, roughness: .85 }), saturn: satShadow(std({ map: sat, roughness: .85 }), 'planet'), neptune: std({ map: nep, roughness: .8 }),
     venus: std({ map: ven, roughness: .9 }), uranus: std({ map: ura, roughness: .8 }),
@@ -2334,7 +2335,7 @@ const EYE = new THREE.Vector3(2.6, 1.6, 15.5);
 const skyDir = (az, alt, r = 1) => new THREE.Vector3(Math.cos(alt * DEG) * Math.sin(az * DEG) * r, Math.sin(alt * DEG) * r, -Math.cos(alt * DEG) * Math.cos(az * DEG) * r);
 const look = { az: 0, el: 12, gaz: 0, gel: 12 };
 function buildSky(ev){
-  if (skyObjs) home.remove(skyObjs);
+  if (skyObjs) { skyObjs.traverse(o => { if (o.material) { o.material.map?.dispose(); o.material.dispose(); } if (o.geometry && !o.geometry.userData?.shared) o.geometry.dispose?.(); }); home.remove(skyObjs); }
   skyObjs = new THREE.Group(); home.add(skyObjs); const R = 140;
   for (const [t, az] of [['N', 0], ['E', 90], ['S', 180], ['W', 270]]) { const s = textSprite(t, '#c3b9f0', 4); s.position.copy(EYE).add(skyDir(az, 4, R)); skyObjs.add(s); }
   const onTop = o => { o.material.depthTest = false; o.renderOrder = 10; };
@@ -2441,7 +2442,7 @@ function toggleNight(){
 /* ---------- jump ---------- */
 const fx = $('#fx'), fg = fx.getContext('2d');
 let jump = null, confetti = null, fxRaf = 0;
-const GROUND = { europa:'#e9dcc6', titan:'#c98a3c', mercury:'#a39c98', venus:'#d9a45a', earth:'#6cc25f', mars:'#cf5a31', jupiter:'#e6c79c', saturn:'#ecd9a8', uranus:'#aeeaf0', neptune:'#5a86ee', moon:'#c9c9d2' };
+const GROUND = { europa:'#e9dcc6', titan:'#c98a3c', mercury:'#ab9480', venus:'#d9a45a', earth:'#6cc25f', mars:'#cf5a31', jupiter:'#e6c79c', saturn:'#ecd9a8', uranus:'#aeeaf0', neptune:'#5a86ee', moon:'#c9c9d2' };
 const GAS = ['jupiter','saturn','uranus','neptune'];
 function jumpLine(p){
   if (p.id === 'earth') return "This is how high you can jump at home on Earth. Boing!";
@@ -2578,7 +2579,7 @@ function pick(b, p){
     else speak(paradeYes(said));
   } else {
     bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); pMiss++;
-    if (pMiss >= 2) { document.querySelector(`.pl[data-id="${ORDER[pStep]}"]`).classList.add('hint'); speak(paradeNo(p.id, true)); }
+    if (pMiss >= 2) { document.querySelector(`#parade .pl[data-id="${ORDER[pStep]}"]`)?.classList.add('hint'); speak(paradeNo(p.id, true)); }
     else speak(paradeNo(p.id, false));
   }
 }
@@ -2655,8 +2656,8 @@ function answer(b, id, ans){
   if (id === ans) {
     chime(); b.classList.add('hint'); qz.right++; qz.i++; qz.lock = true;
     $('#qstars').textContent = '🏆'.repeat(qz.cups || 0) + (qz.cups ? ' ' : '') + '★'.repeat(Math.min(5, qz.right)) + '☆'.repeat(Math.max(0, 5 - qz.right));
-    if (qz.right === 5) { burst(); award('quiz'); speak([SAY.quizYes, SAY.quizDone]); nav(); setTimeout(() => { if (qz && mode === 'quiz') { qz.lock = false; qz.right = 0; qz.tries = 0; qz.cups = (qz.cups || 0) + 1; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; nextRiddle(); } }, 5000); return; }   // then five more, so the pictures always match the riddle
-    speak(SAY.quizYes); setTimeout(() => { if (qz) qz.lock = false; if (mode === 'quiz' && qz) nextRiddle(); }, 2200);
+    if (qz.right === 5) { burst(); award('quiz'); speak([SAY.quizYes, SAY.quizDone]); nav(); const q0 = qz; setTimeout(() => { if (qz && qz === q0 && mode === 'quiz') { qz.lock = false; qz.right = 0; qz.tries = 0; qz.cups = (qz.cups || 0) + 1; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; nextRiddle(); } }, 5000); return; }   // then five more, so the pictures always match the riddle
+    speak(SAY.quizYes); const q0 = qz; setTimeout(() => { if (qz !== q0) return; if (qz) qz.lock = false; if (mode === 'quiz' && qz) nextRiddle(); }, 2200);
   } else {
     bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); qz.tries++;
     if (qz.tries >= 2) document.querySelector(`#qtray .pl[data-id="${ans}"]`)?.classList.add('hint');
@@ -2686,8 +2687,8 @@ function answerBigger(el, id){
   const tricky = a === 'titan' && b === 'mercury' || a === 'mercury' && b === 'titan';
   if (ok) { chime(); qz.right++; $('#qstars').textContent = '🏆'.repeat(qz.cups || 0) + (qz.cups ? ' ' : '') + '★'.repeat(Math.min(5, qz.right)) + '☆'.repeat(Math.max(0, 5 - qz.right)); speak(tricky ? [SAY.biggerYes, SAY.biggerTitan] : SAY.biggerYes); }
   else { bloop(); speak(tricky ? [SAY.biggerNo, SAY.biggerTitan] : SAY.biggerNo); }
-  const done = ok && qz.right === 5; if (done) { burst(); award('bigger'); setTimeout(() => speak(SAY.biggerDone), 2600); }
-  setTimeout(() => { if (mode === 'bigger' && qz) { if (done) { qz.right = 0; qz.cups = (qz.cups || 0) + 1; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextBigger(); } }, done ? 7500 : tricky ? 7000 : 4200);
+  const done = ok && qz.right === 5; if (done) { burst(); award('bigger'); const my = seq; setTimeout(() => { if (my === seq && mode === 'bigger') speak(SAY.biggerDone); }, 2600); }
+  const q0 = qz; setTimeout(() => { if (mode === 'bigger' && qz && qz === q0) { if (done) { qz.right = 0; qz.cups = (qz.cups || 0) + 1; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextBigger(); } }, done ? 7500 : tricky ? 7000 : 4200);
 }
 // Who lives here? An animal, three homes to choose from; the right home tells one true thing about why it lives there (NGSS K-ESS3-1)
 const HOMES = { desert: ['🏜️', 'Desert'], ocean: ['🌊', 'Ocean'], ice: ['🧊', 'Ice'], grass: ['🌾', 'Grassland'], forest: ['🌳', 'Forest'], mountains: ['⛰️', 'Mountains'] };
@@ -2709,7 +2710,7 @@ function startHomes(){
 function nextHome(first){
   const ids = Object.keys(HOME_OF).filter(a => a !== qz.last), an = ids[Math.random() * ids.length | 0], right = HOME_OF[an][0];
   const others = Object.keys(HOMES).filter(h => h !== right && !(HOME_ALSO[an] || []).includes(h)).sort(() => Math.random() - .5).slice(0, 2), opts = [right, ...others].sort(() => Math.random() - .5);
-  qz.last = an; qz.an = an; qz.lock = false; $('#qask').innerHTML = `<span class="homesAn">${ANIMAL_EM[an] || '🐾'}</span>`;
+  qz.last = an; qz.an = an; qz.lock = false; $('#qask').innerHTML = '<span class="homesAn"></span>'; { const e = $('#qask .homesAn'); e.textContent = animalEm(an, e) || '🐾'; }
   const tray = $('#qtray'); tray.innerHTML = '';
   for (const h of opts) { const b = document.createElement('button'); b.className = 'pl home'; b.dataset.id = h; b.innerHTML = `<span class="hem">${HOMES[h][0]}</span><span>${HOMES[h][1]}</span>`; b.onclick = () => answerHome(b, h); tray.append(b); }
   speak(first ? [SAY.homesIn, homesAsk(an)] : homesAsk(an));
@@ -3031,12 +3032,12 @@ function nav(){
   if (mode === 'site' && site && site.quiz) { const Q = site.quiz, q = Q.list[Q.i];
     q.opts.forEach(o => { const b = btn(o[0], o[1], () => placeQuizAnswer(o), ''); b.classList.add('bigpic'); acts.append(b); });
     acts.append(btn('🔊', 'Again', () => speak(q.say)), btn('✋', 'Stop', () => { site.quiz = null; nav(); })); }
-  else if (mode === 'site') { acts.append(...(site && site.spots && site.spots.length && site.spots.every(m => m.userData.got) && !site.quizDone ? [btn('🧠', 'Quiz', placeQuiz, 'hero')] : [])); if (LM[wIdx].id === 'college') acts.append(btn('🔬', 'Number Lab', startLab, 'hero'), btn('📚', 'Reading Room', startRead, 'hero')); acts.append(btn('🧭', 'Map', () => leaveSite(wIdx)), btn('🔊', 'Tell me', () => speak(ANIMAL_SAY[LM[wIdx].id] ? [LM[wIdx].say, ANIMAL_SAY[LM[wIdx].id]] : LM[wIdx].say)), btn('▶️', 'Next place', () => siteSwap(wIdx + 1), 'hero'), btn('🌌', 'Planets', siteToSpace)); }
+  else if (mode === 'site') { acts.append(...(site && site.spots && site.spots.length && site.spots.every(m => m.userData.got) && !site.quizDone && PLACE_Q[LM[wIdx].id] ? [btn('🧠', 'Quiz', placeQuiz, 'hero')] : [])); if (LM[wIdx].id === 'college') acts.append(btn('🔬', 'Number Lab', startLab, 'hero'), btn('📚', 'Reading Room', startRead, 'hero')); acts.append(btn('🧭', 'Map', () => leaveSite(wIdx)), btn('🔊', 'Tell me', () => speak(ANIMAL_SAY[LM[wIdx].id] ? [LM[wIdx].say, ANIMAL_SAY[LM[wIdx].id]] : LM[wIdx].say)), btn('▶️', 'Next place', () => siteSwap(wIdx + 1), 'hero'), btn('🌌', 'Planets', siteToSpace)); }
   if (mode === 'world') {
     acts.append(btn('◀️', 'Back', () => goLandmark(wIdx - 1)), btn('🔊', 'Tell me', () => speak(LM[wIdx].say)), btn('▶️', 'Next stop', () => goLandmark(wIdx + 1), 'hero'),
       btn('🌌', 'Planets', () => { ++seq; overview(); }));
   }
-  if (mode === 'story') acts.append(btn('🏡', 'House', () => { ++seq; manualCam = false; homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); }), btn('🔁', 'Read again', () => speak(STORY)));
+  if (mode === 'story') acts.append(btn('🏡', 'House', () => { hush(); ++seq; manualCam = false; homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); }), btn('🔁', 'Read again', () => speak(STORY)));
   if (mode === 'home') acts.append(btn('🚀', 'Back to space', launch, 'hero'), btn('📖', 'Bedtime story', bedtime), btn(night ? '☀️' : '🌙', night ? 'Make day' : 'Make night', toggleNight, 'gold'), btn('🔭', "Tonight's sky", tonight), btn('🔊', 'Tell me more', moreFact), btn('🛂', 'Passport', openPassport));
   if (mode === 'sky') acts.append(...(matchMedia('(pointer:fine)').matches ? [] : [skyTilt.on ? btn('✋', 'Stop pointing', () => skyPoint(false), 'hero') : btn('📱', 'Point my phone', () => skyPoint(true), 'hero')]), btn('🏡', 'House', () => { skyPoint(false, true); ++seq; homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); speak(HOME_FACTS[0]); }), btn('🔊', 'Tell me again', () => speak(skyLines(sky))), btn('🚀', 'Back to space', () => { skyPoint(false, true); homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); launch(); }, 'gold'));
   if (mode === 'quiz') acts.append(btn('🔊', 'Again', () => qz && speak(qz.order[qz.i % qz.order.length][1]), 'hero'), btn('🌌', 'All planets', endQuiz), btn('🔄', 'New game', startQuiz, 'gold'));
@@ -3052,7 +3053,7 @@ function nav(){
   for (const p of P) {
     const b = document.createElement('button'); b.className = 'th' + (p.kind ? ' dwarf' : ''); b.dataset.id = p.id;
     b.innerHTML = `<span>${p.label}</span>` + (p.kind ? '<small class="dw">dwarf</small>' : ''); b.prepend(imgEl(p.thumb));
-    b.onclick = () => { audio()?.resume?.(); ++seq; openPlanet(p); b.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' }); };
+    b.onclick = () => { const t = performance.now(); if (t - stripTap.t < 1000 && stripTap.id !== p.id) return; stripTap.t = t; stripTap.id = p.id; audio()?.resume?.(); ++seq; openPlanet(p); const sr = b.parentElement.getBoundingClientRect(), br = b.getBoundingClientRect(); if (br.left < sr.left || br.right > sr.right) b.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' }); };   // the strip only slides when the button is cut off, so a second tap lands on the same planet
     strip.append(b);
   }
   for (const L of LM) {
@@ -3514,6 +3515,7 @@ function siteSparkles(L, info){
 const PLACE_CONT = { ksc: 'northAmerica', liberty: 'northAmerica', canyon: 'northAmerica', amazon: 'southAmerica', penguins: 'antarctica', bigben: 'europe', eiffel: 'europe', colosseum: 'europe', pyramids: 'africa', taj: 'asia', everest: 'asia', wall: 'asia', opera: 'australia', college: 'northAmerica' };
 const CONT_ALT = { northAmerica: ['europe', 'africa'], southAmerica: ['asia', 'europe'], antarctica: ['africa', 'australia'], europe: ['asia', 'southAmerica'], africa: ['europe', 'australia'], asia: ['africa', 'northAmerica'], australia: ['asia', 'southAmerica'] };
 const PLACE_Q = {   // [question, [emoji, label, right?] x3]
+  college: ["What do grown-ups do at a college like MIT or Harvard? Learn, sleep, or swim?", [['📚', 'Learn', 1], ['😴', 'Sleep'], ['🏊', 'Swim']]],
   ksc: ["Where did the giant Saturn V rocket take astronauts? The Moon, the Sun, or Mars?", [['🌙', 'Moon', 1], ['☀️', 'Sun'], ['🔴', 'Mars']]],
   liberty: ["What is the flame on her torch covered in? Gold, chocolate, or ice?", [['🥇', 'Gold', 1], ['🍫', 'Chocolate'], ['🧊', 'Ice']]],
   canyon: ["What carved the Grand Canyon? A river, a dinosaur, or a robot?", [['🌊', 'River', 1], ['🦖', 'Dinosaur'], ['🤖', 'Robot']]],
@@ -4449,7 +4451,7 @@ function buildSite(L){
   const es = new THREE.Scene(), esky = new Sky(); esky.scale.setScalar(900); es.add(esky);
   for (const k of ['turbidity', 'rayleigh', 'mieCoefficient', 'mieDirectionalG']) esky.material.uniforms[k].value = su[k].value;
   esky.material.uniforms.sunPosition.value.copy(sd);
-  const rt = pmrem.fromScene(es, 0, .1, 1000); sc.environment = rt.texture;
+  const rt = pmrem.fromScene(es, 0, .1, 1000); sc.environment = rt.texture; esky.geometry.dispose(); esky.material.dispose();
   const sun = new THREE.DirectionalLight(night > .5 ? 0xb4c2ff : 0xfff0dc, night > .5 ? 1.3 : 3.2 * sst(-2, 12, alt) + 1);   // bright moonlight at night so scenes stay readable
   const span = info.shadow || 300; sun.position.copy(ld).multiplyScalar(span * 1.5).add(info.target); sun.target.position.copy(info.target); sc.add(sun, sun.target);
   sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -span, right: span, top: span, bottom: -span, near: 1, far: span * 4 }); sun.shadow.bias = -.0005; sun.shadow.normalBias = .5;
@@ -4486,7 +4488,7 @@ async function visitSite(L){
   enterSite(L); await sleep(200); whoosh(false);
 }
 async function leaveSite(to){   // back to Explorer Earth, right at the landmark you were visiting
-  const L = LM[(((to ?? wIdx) % LM.length) + LM.length) % LM.length]; ++seq; await whoosh(true);
+  const L = LM[(((to ?? wIdx) % LM.length) + LM.length) % LM.length], my = ++seq; await whoosh(true); if (my !== seq) return;
   $('#amcard').hidden = true; camera.far = 3000; camera.near = .05; camera.updateProjectionMatrix();
   if (site) { disposeScene(site.sc); site.rt.dispose(); site = null; }
   sceneMode = 'space'; enterToy({ lat: L.lat, lon: L.lon, ratio: TOY_LEVELS[2] / TOY_R, roll: 0, stay: true, lm: L });
@@ -4497,7 +4499,7 @@ function siteSwap(i){   // straight from one landmark scene to the next
   whooshSfx(); Promise.all([whoosh(true), prepSite(L)]).then(() => { if (my !== seq) return; wIdx = LM.indexOf(L); if (toy) { toy.lmI = wIdx; } enterSite(L); sleep(200).then(() => whoosh(false)); });
 }
 async function siteToSpace(){
-  ++seq; await whoosh(true); $('#amcard').hidden = true; camera.far = 3000; camera.near = .05; camera.updateProjectionMatrix();
+  const my = ++seq; await whoosh(true); if (my !== seq) return; $('#amcard').hidden = true; camera.far = 3000; camera.near = .05; camera.updateProjectionMatrix();
   if (site) { disposeScene(site.sc); site.rt.dispose(); site = null; }
   sceneMode = 'space'; manualCam = false; camera.up.set(0, 1, 0); overview(); await sleep(150); whoosh(false);
 }
@@ -4505,7 +4507,8 @@ function updateSite(dt, t){
   if (!site) return;
   camera.up.set(0, 1, 0);
   if (ptrs.size === 0 && !(site.spots && site.spots.some(m => !m.userData.got))) goal.az += dt * (siteL && siteL.id === 'canyon' ? .012 : .045);   // hold still while there are sparkles to find
-  site.sc.traverse(o => { if (o.userData.waterTex) { o.userData.waterTex.offset.x += dt * .01; o.userData.waterTex.offset.y += dt * .006; } });
+  if (!site.water) { site.water = []; site.sc.traverse(o => { if (o.userData.waterTex) site.water.push(o.userData.waterTex); }); }
+  for (const w of site.water) { w.offset.x += dt * .01; w.offset.y += dt * .006; }
   if (site.info.update) site.info.update(dt, t);
   if (site.info.lights) site.info.lights(site.night);
   (site.spots || []).forEach(m => { const u = m.userData; u.t += dt; if (u.got) { m.scale.setScalar(u.base * (1 + u.t * 3)); m.material.opacity = Math.max(0, m.material.opacity - dt * 1.5); if (m.material.opacity <= 0) m.visible = false; return; }
@@ -4579,7 +4582,7 @@ function toyHighlight(st, color = 'rgba(255,209,102,.6)'){   // paint one state 
 }
 function toyStatesGame(){
   const T = toy; T.lmTour = false; T.quiz = { n: 0, miss: 0, target: null, done: new Set() }; T.menu = null; T.hunt = null; $('#tstars').hidden = false; toyHighlight(null);
-  toyFlyTo(39, -97, null); goal.dist = TOY_R * 2.35; speak(SAY.statesIn); setTimeout(() => { if (toy.quiz && mode === 'toy') toyQuizNext(); }, 5500); nav();
+  toyFlyTo(39, -97, null); goal.dist = TOY_R * 2.35; speak(SAY.statesIn); { const q0 = toy.quiz; setTimeout(() => { if (toy.quiz && toy.quiz === q0 && mode === 'toy') toyQuizNext(); }, 5500); } nav();
 }
 function toyQuizNext(){
   const T = toy, q = T.quiz; if (!q) return; const left = QUIZ_STATES.filter(n => !q.done.has(n)); q.target = left[Math.floor(Math.random() * left.length)]; q.miss = 0;
@@ -4830,7 +4833,7 @@ function buildToy(){
   let np = 0, nr = 0;
   for (let k = 0; k < 9000 && (np < 900 || nr < 900); k++) {
     const [lat, lon] = randLL(), c = col(lat, lon); if (sea(lat, lon) || nearRoad(lat, lon, .45)) continue; const hh = h(lat, lon);
-    if (hh > .34 || (c[0] > 200 && c[1] > 215 && c[2] > 225) || (c[0] > 200 && c[1] > 160 && c[2] < 170) || desertK(lat, lon) > .25) continue;   // no trees on snow, ice or desert
+    if (lat < -60 || lat > 72 || (lat > 60 && lon > -73 && lon < -12) || hh > .34 || (c[0] > 200 && c[1] > 215 && c[2] > 225) || (c[0] > 200 && c[1] > 160 && c[2] < 170) || desertK(lat, lon) > .25) continue;   // no trees on snow, ice or desert
     const d = featDir(lat, lon), pos = d.clone().multiplyScalar(R + hh - .02), sc = .1 + rnd() * .06;
     if (hh > .25 || rnd() < sst(42, 56, Math.abs(lat))) { if (np < 900) { setAt(pines, np, pos, d, rnd() * 6, sc); pines.setColorAt(np++, c3.setHSL(.35 + rnd() * .05, .5, .32 + rnd() * .12)); } }   // pines phase in going north (no hard line), in a friendlier green
     else if (nr < 900) { setAt(rounds, nr, pos, d, rnd() * 6, sc); rounds.setColorAt(nr++, c3.setHSL(.27 + rnd() * .08, .6, .36 + rnd() * .12)); }
@@ -5081,7 +5084,7 @@ function enterToy(view, opts = {}){
   if (view && view.lm) { toy.lmI = LM.indexOf(view.lm); toy.picked = view.lm; }
   $('#pill').textContent = view && view.lm ? view.lm.name : 'Explorer Earth'; $('#inset').hidden = true; nav(); layout();
   if (!(view && view.stay)) speak(opts.tour != null ? SAY.toyPlaces : SAY.toyIn);
-  if (!view && opts.tour != null) setTimeout(() => { if (mode === 'toy') toyLmTour(opts.tour); }, 1800);
+  if (!view && opts.tour != null) { const my = seq; setTimeout(() => { if (my === seq && mode === 'toy' && !toy.fly) toyLmTour(opts.tour); }, 1800); }
 }
 function toyLmTour(i){   // fly from landmark to landmark; Visit opens the 3D scene
   const T = toy, L = LM[((i % LM.length) + LM.length) % LM.length]; T.menu = null; T.follow = null;
@@ -5132,6 +5135,9 @@ function toyRide(kind){
 }
 /* ---------- ✈️ Fly it yourself: Amelia's own plane, gold rings, stars to grab, and famous places to land at ---------- */
 const ANIMAL_NAME = { polarBear: 'polar bear' };
+// old phones draw the polar bear (bear + snowflake joined) as two pictures: use a whitened bear there
+const zwjOk = (() => { try { const g = mkCanvas(96, 48).getContext('2d'); g.font = '32px sans-serif'; return g.measureText('🐻‍❄️').width < g.measureText('🐻').width * 1.5; } catch { return true; } })();
+const animalEm = (k, el) => { const bad = k === 'polarBear' && (!zwjOk || !!window.__noZwj); if (el) el.classList.toggle('pbw', bad); return bad ? '🐻' : ANIMAL_EM[k]; };
 const ANIMAL_EM = { kangaroo: '🦘', elephant: '🐘', giraffe: '🦒', panda: '🐼', polarBear: '🐻‍❄️', whale: '🐋', dolphin: '🐬', llama: '🦙', eagle: '🦅', camel: '🐪', zebra: '🦓', bison: '🦬', volcano: '🌋' };
 const roadLine = (road, end) => `Road trip mission! Drive Interstate ${road.slice(2)} all the way to ${end}! Follow the green arrow from city to city.`;
 const missionLine = (m, car = !!(toy && toy.fly && toy.fly.kind === 'car')) => m.road ? roadLine(m.road, m.end) : m.lm ? `Mission: ${car ? 'drive' : 'fly'} to ${theName(m.lm)}! Follow the green arrow!` : `Mission: find the ${ANIMAL_NAME[m.an] || m.an}! Follow the green arrow!`;
@@ -5236,12 +5242,19 @@ function toyFly(kind = 'plane'){
     const L = LM.find(l => featDir(l.lat, l.lon).angleTo(p) < 1.3 * DEG);   // starting right on a landmark: back off onto land so it doesn't fill the camera
     if (L) { const c = featDir(L.lat, L.lon), tg = new THREE.Vector3(0, 1, 0).cross(c).normalize();
       outer: for (const d of [1.6, 1.2]) for (let a = 0; a < 16; a++) { const q = at(c, tg, a * Math.PI / 8, d); if (!T.sea(...T.ll(q))) { p.copy(q).normalize(); f.copy(c).addScaledVector(p, -c.dot(p)).normalize().negate(); break outer; } } }   // face away: the landmark is behind her and ducks out of the camera's way
+  } else {   // the plane: head where no landmark fills the view, and start clear of one she was looking at
+    const at = (q, dir, ang, deg) => { const h = dir.clone().applyAxisAngle(q, ang), ax = q.clone().cross(h).normalize(); return q.clone().applyAxisAngle(ax, deg * DEG); };
+    const near = LM.map(l => featDir(l.lat, l.lon)).filter(c => c.angleTo(p) < 20 * DEG);
+    if (near.length) { let best = -1, bh = f.clone();
+      for (let a = 0; a < 16; a++) { const h = f.clone().applyAxisAngle(p, a * Math.PI / 8); let sc = Infinity; for (const d of [3, 6, 9]) { const q = at(p, h, 0, d); for (const c of near) sc = Math.min(sc, c.angleTo(q)); } if (sc > best) { best = sc; bh = h; } }
+      f.copy(bh); const back = 1.35 / TOY_R / DEG;   // the camera trails about 8 degrees behind the plane: start far enough on that neither the plane nor the camera sits in a landmark
+      for (const d of [0, 3, 6, 9, 12, 15]) { if (near.every(c => c.angleTo(at(p, f, 0, d)) > 2 * DEG && c.angleTo(at(p, f, 0, d - back)) > 3.5 * DEG)) { if (d) { p.copy(at(p, f, 0, d)).normalize(); f.addScaledVector(p, -f.dot(p)).normalize(); } break; } } }
   }
   const ringPool = T.flyRings || (T.flyRings = [...Array(5)].map(() => { const m = new THREE.Mesh(new THREE.TorusGeometry(.17, .028, 10, 32), toyToon('#ffd166', { emissive: '#ff9f1c', emissiveIntensity: .5 })); inkChild(m, .012); T.s.add(m); return m; }));
   const starPool = T.flyStars || (T.flyStars = (() => { const m = new THREE.InstancedMesh(T.starMesh.geometry, T.starMesh.material, 16); m.frustumCulled = false; T.s.add(m); return m; })());
   T.fly = { kind, p, f, alt: kind === 'car' ? .1 : 1, v: kind === 'car' ? CAR_V : PLANE_V, vMax: kind === 'car' ? CAR_V : PLANE_V, sx: 0, sy: 0, bank: 0, score: 0, combo: 0, best: 0, rings: [], ringPool, starPool, stars: [...Array(16)].map(() => ({ pos: new THREE.Vector3(), got: true, pop: 0 })), near: null, landed: null, landT: 0, saidNear: new Set(), hist: [], snap: true, missionT: kind === 'car' ? 10.5 : 9 };
   const car = kind === 'car'; T.flyer.visible = !car; T.lms.children.forEach(g => { g.scale.setScalar(car ? .42 : 1.1); g.visible = true; }); T.flyer.userData.trail.forEach(m => { m.visible = !car; });   // landmarks big enough to spot from the plane; the plane's trail only while flying (this line had been hidden inside the comment)
-  if (car) { T.fly.wasSea = T.sea(...T.ll(p)); } else flyRingSet();
+  if (car) { T.fly.wasSea = T.sea(...T.ll(p)); } else { flyRingSet(); T.fly.calm = 4; }
   flyStarsAround(); flyHud(); miniMapBase(); $('#minimap').hidden = false; $('#flyhint').hidden = false; setTimeout(() => { $('#flyhint').hidden = true; }, 6000);
   $('#pill').textContent = car ? 'Drive!' : 'Fly!'; speak(car ? SAY.driveIn : SAY.flyIn); award(car ? 'toy' : 'pilot'); whooshSfx(); nav();
 }
@@ -5313,12 +5326,12 @@ function toyRamps(F, sea){
       for (const x of [-.05, 0, .05]) { const st = new THREE.Mesh(new THREE.BoxGeometry(.018, .013, .2), toyToon('#e63946')); st.position.set(x, .031, 0); st.rotation.x = -.35; g.add(st); }
       g.children.forEach(o => inkChild(o, .006)); T.s.add(g); return { g, p: null, used: false }; }); }
   for (const r of T.ramps) {
-    if (!r.p || r.used || r.p.angleTo(F.p) > .45) {   // (re)place a ramp somewhere ahead, on land
+    if (!r.p || (r.used && performance.now() - (r.usedAt || 0) > 900) || r.p.angleTo(F.p) > .45) {   // (re)place a ramp somewhere ahead, on land
       const p = F.p.clone(), f = F.f.clone().applyAxisAngle(F.p, (Math.random() - .5) * .8), ax = p.clone().cross(f).normalize(); p.applyAxisAngle(ax, .08 + Math.random() * .22);
       const [la, lo] = T.ll(p); if (T.sea(la, lo)) { r.g.visible = false; r.p = p; r.used = true; continue; }
       r.p = p; r.used = false; r.g.visible = true; const tg = f.clone().applyAxisAngle(ax, .1).addScaledVector(p, -f.dot(p)).normalize(); r.g.position.copy(p).multiplyScalar(R + Math.max(.03, T.h(la, lo))); orientTo(r.g.quaternion, p, tg); r.g.scale.setScalar(1.3); }
     const pp = F.prevP || F.p, seg = F.p.clone().sub(pp), sl = seg.lengthSq(), tt = sl > 1e-12 && sl < .01 ? clamp(r.p.clone().sub(pp).dot(seg) / sl, 0, 1) : 1, near = pp.clone().addScaledVector(seg, tt).normalize();   // swept test: a slow phone's big frame step can't skip over the ramp
-    if (!r.used && !F.air && !sea && r.p.angleTo(near) < .012) { r.used = true; F.air = { vy: 1.1 }; whooshSfx(); pop(); F.score += 10; flyHud(true); if ((T.jumps = (T.jumps || 0) + 1) <= 3) speak(SAY.rampJump); if (T.jumps === 5) award('jumper'); setTimeout(() => { r.g.visible = false; }, 800); }
+    if (!r.used && !F.air && !sea && r.p.angleTo(near) < .012) { r.used = true; F.air = { vy: 1.1 }; whooshSfx(); pop(); F.score += 10; flyHud(true); if ((T.jumps = (T.jumps || 0) + 1) <= 3) speak(SAY.rampJump); if (T.jumps === 5) award('jumper'); r.usedAt = performance.now(); setTimeout(() => { if (r.used) r.g.visible = false; }, 800); }
   }
   F.prevP = (F.prevP || new THREE.Vector3()).copy(F.p);   // for next frame's swept ramp test
 }
@@ -5326,7 +5339,7 @@ function toyLand(){
   const T = toy, F = T.fly, L = F && F.near; if (!L) return;
   F.landed = L; F.landT = 0; F.near = null; whooshSfx();
   const first = !FLY_STAMPS.has(L.id); FLY_STAMPS.add(L.id); try { localStorage.setItem('ast-flystamps', JSON.stringify([...FLY_STAMPS])); } catch {}
-  setTimeout(() => { if (toy.fly && toy.fly.landed === L) { chime(); const sp = $('#stamppop'); sp.textContent = L.em; sp.hidden = false; sp.style.animation = 'none'; void sp.offsetWidth; sp.style.animation = ''; setTimeout(() => { sp.hidden = true; }, 2600); tone(180, .15, 'square', .12, 120); speak(first ? [L.say, toy.fly.kind === 'car' ? SAY.driveLand : SAY.flyLand] : L.say); flyHud(true); if (FLY_STAMPS.size >= LM.length) { award('globetrotter'); setTimeout(() => speak(SAY.flyAll), 9000); } } }, 1600);
+  setTimeout(() => { if (toy.fly && toy.fly.landed === L) { chime(); const sp = $('#stamppop'); sp.textContent = L.em; sp.hidden = false; sp.style.animation = 'none'; void sp.offsetWidth; sp.style.animation = ''; setTimeout(() => { sp.hidden = true; }, 2600); tone(180, .15, 'square', .12, 120); speak(first ? [L.say, toy.fly.kind === 'car' ? SAY.driveLand : SAY.flyLand] : L.say); flyHud(true); if (FLY_STAMPS.size >= LM.length) { award('globetrotter'); const my = seq; setTimeout(() => { if (my === seq && toy.fly) speak(SAY.flyAll); }, 9000); } } }, 1600);
   $('#pill').textContent = L.name; nav();
 }
 function toyTakeOff(){ const F = toy.fly; if (!F) return; F.landed = null; F.landSpot = null; F.f.negate(); F.snap = true; F.v = F.vMax; F.landT = 0; if (F.kind !== 'car') { F.alt = Math.max(F.alt, .5); flyRingSet(); } whooshSfx(); flyStarsAround(); $('#pill').textContent = F.kind === 'car' ? 'Drive!' : 'Fly!'; nav(); }
@@ -5398,7 +5411,7 @@ function updateFly(dt, t){
     if (!F.near && !F.landed) $('#pill').textContent = '📍 ' + F.where; }
   miniMap(la, lo, t); riderStep(F, dt, t);
   { const gc = $('#goalchip'), m = F.mission; gc.hidden = !m || !!F.landed;   // the goal's picture, with an arrow that turns toward it on screen
-    if (m) { gc.classList.toggle('road', !!m.road); gc.querySelector('.ge').textContent = m.road ? `🛣️${m.i + 1}/${m.n}` : m.lm ? m.lm.em : ANIMAL_EM[m.an] || '🎯'; gc.style.borderColor = m.daily ? '#ffd166' : '#4ade80';
+    if (m) { gc.classList.toggle('road', !!m.road); { const ge = gc.querySelector('.ge'); ge.classList.remove('pbw'); ge.textContent = m.road ? `🛣️${m.i + 1}/${m.n}` : m.lm ? m.lm.em : animalEm(m.an, ge) || '🎯'; } gc.style.borderColor = m.daily ? '#ffd166' : '#4ade80';
       const gd = featDir(m.lat, m.lon), to = gd.clone().addScaledVector(F.p, -gd.dot(F.p)).normalize(), side = F.p.clone().cross(F.f).normalize();
       const ang = Math.atan2(-to.dot(side), to.dot(F.f)); let deg = (-Math.PI / 2 + ang) * 180 / Math.PI; const prev = F.chipDeg ?? deg; deg += Math.round((prev - deg) / 360) * 360; F.chipDeg = deg; gc.querySelector('.ga').style.transform = `rotate(${deg}deg)`;   // keep the angle continuous, so it never spins the long way round when the goal passes behind   // ➤ points right at 0°: straight ahead is up
       const dist = gd.angleTo(F.p), band = dist < .2 ? 3 : dist < .4 ? 2 : dist < .8 ? 1 : 0; if (band > (m.band || 0)) { m.band = band; tone(660 + band * 220, .18, 'sine', .08); }
@@ -5424,8 +5437,8 @@ function updateFly(dt, t){
     else if (goalDir.angleTo(F.p) < (F.mission.road ? .04 : .07)) { const m = F.mission; F.mission = null; F.missionT = 0; F.missions = (F.missions || 0) + 1; F.score += 50; chime(); flyHud(true);
       { const v = F.kind === 'car' ? (T.boat.visible ? T.boat : T.car) : T.flyer; if (v && v.userData.am) waveAmelia(v.userData.am, 3); }   // she cheers at every finished mission
       if (m.an) { const k = m.an; (ANIMAL_SFX[k] || pop)(); if (k === 'volcano') toyErupt(); const md = F.kind === 'car' ? SAY.missionDoneCar : SAY.missionDone; speak([md, ANIMALS[k][2]]); } else speak(F.kind === 'car' ? SAY.missionDoneCar : SAY.missionDone);
-      if (m.daily) { try { localStorage.setItem('ast-daily', todayKey()); } catch {} award('daily'); setTimeout(() => speak(SAY.dailyDone), 7000); }
-      if (m.road) { F.roadsDone.add(m.road); award('highway'); burst(); setTimeout(() => speak(SAY.roadDone), 2600); }
+      if (m.daily) { try { localStorage.setItem('ast-daily', todayKey()); } catch {} award('daily'); const my = seq; setTimeout(() => { if (my === seq && toy && toy.fly) speak(SAY.dailyDone); }, 7000); }
+      if (m.road) { F.roadsDone.add(m.road); award('highway'); burst(); const my = seq; setTimeout(() => { if (my === seq && toy && toy.fly) speak(SAY.roadDone); }, 2600); }
       if (F.missions % 3 === 0) award('missions'); if (m.lm) F.saidNear.add(m.lm.id); flyConfetti(pos); }
   }
   // a gold light beam and a bobbing badge mark the famous place you're near (or landed at)
@@ -5437,7 +5450,7 @@ function updateFly(dt, t){
   if (bl) { const up = featDir(bl.lat, bl.lon), base = up.clone().multiplyScalar(R + Math.max(.03, T.h(bl.lat, bl.lon)));
     B.position.copy(base); B.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), up);
     const u = B.userData; if (!u.tex[bl.id]) { const c = mkCanvas(128, 128), g = c.getContext('2d'); g.fillStyle = '#fff'; g.beginPath(); g.arc(64, 64, 60, 0, 7); g.fill(); g.lineWidth = 8; g.strokeStyle = '#ffb703'; g.stroke(); g.font = '72px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(bl.em, 64, 70); u.tex[bl.id] = new THREE.CanvasTexture(c); }
-    u.badge.material.map = u.tex[bl.id]; u.badge.material.needsUpdate = true; u.badge.position.set(0, (F.kind === 'car' ? .9 : 1.5) + Math.sin(t * 3) * .08, 0); u.col.visible = !F.landed; u.col.scale.set(1, F.kind === 'car' ? .5 : 1, 1); u.col.material.opacity = (.25 + Math.sin(t * 4) * .1) * sst(.6, 2.2, camera.position.distanceTo(base)); u.badge.material.opacity = F.landed ? .85 : 1;
+    if (u.badge.material.map !== u.tex[bl.id]) { u.badge.material.map = u.tex[bl.id]; u.badge.material.needsUpdate = true; } u.badge.position.set(0, (F.kind === 'car' ? .9 : 1.5) + Math.sin(t * 3) * .08, 0); u.col.visible = !F.landed; u.col.scale.set(1, F.kind === 'car' ? .5 : 1, 1); u.col.material.opacity = (.25 + Math.sin(t * 4) * .1) * sst(.6, 2.2, camera.position.distanceTo(base)); u.badge.material.opacity = F.landed ? 1 : sst(2, 3.2, camera.position.distanceTo(u.badge.getWorldPosition(_bw)));   // the badge fades when the camera is right on it, so it never fills the screen u.badge.material.opacity = F.landed ? .85 : 1;
     if (F.landed) { dodge(base, .35, camera.position, F.kind === 'car' ? .42 : 1.1); T.lms.children.forEach(g => { if (g.userData.lm !== bl && g.position.distanceTo(base) < 2.2) g.scale.setScalar(.3); }); } }   // neighbours (London next to Paris) shrink so the landmark stands alone
   // chase camera: behind and above, looking ahead
   const cz = F.landed ? 1 : (T.camZoom || 1), back = (isCar ? (F.landed ? 1 : .95) : F.landed ? 1.1 + F.landT * .6 : 1.35) * cz, want = pos.clone().addScaledVector(F.f, -back).addScaledVector(F.p, (isCar ? (F.landed ? .6 : .45) : F.landed ? .6 + F.landT * .4 : .55) * (1 + (cz - 1) * 1.15));
@@ -5445,7 +5458,8 @@ function updateFly(dt, t){
     const g = T.lms.children.find(o => o.userData.lm === F.landed), hh = g ? Math.max(.4, new THREE.Box3().setFromObject(g).getSize(new THREE.Vector3()).length() * .6) : 1;   // frame the whole landmark
     want.copy(lm).addScaledVector(up, hh * .9).addScaledVector(F.f, -hh * 2.9).addScaledVector(side, hh * .8); look = lm.addScaledVector(up, hh * .45); }
   if (F.snap || camera.position.distanceTo(want) > 2.5) { camera.position.copy(want); F.snap = false; } else camera.position.lerp(want, 1 - Math.exp(-dt * (look ? 2 : 4))); camera.up.copy(F.p); if (look) camera.lookAt(look); else camera.lookAt(pos.clone().addScaledVector(F.f, isCar ? .75 : .9).addScaledVector(F.p, isCar ? 0 : -.05));
-  if (!isCar && !F.landed) T.lms.children.forEach(g => { const up = g.position.clone().normalize(), c = camera.position.clone().sub(g.position), h = lmHeight(g) * 1.1, u = clamp(c.dot(up), 0, h), k = sst(.35, .9, c.addScaledVector(up, -u).length());
+  if (!isCar && F.calm > 0) F.calm -= dt;   // the first seconds of a flight: landmarks close to the camera stay small, so the start view is clear
+  if (!isCar && !F.landed) T.lms.children.forEach(g => { const up = g.position.clone().normalize(), c = camera.position.clone().sub(g.position), h = lmHeight(g) * 1.1, u = clamp(c.dot(up), 0, h), k = Math.min(sst(.35, .9, c.clone().addScaledVector(up, -u).length()), F.calm > 0 ? 1 - clamp(F.calm, 0, 1) * (1 - sst(1.2, 3.5, c.length())) : 1);
     g.scale.setScalar(1.1 * Math.max(.001, k)); g.visible = k > .01; });   // a landmark the camera would sit inside ducks away, then grows back
   const d = camera.position.clone().normalize(); rig.az = goal.az = Math.atan2(d.x, d.z); rig.el = goal.el = Math.asin(clamp(d.y, -1, 1)); rig.dist = goal.dist = camera.position.length();
   T.skyC.copy(T.dayC); T.s.background = T.skyC; T.s.fog.color.copy(T.skyC); T.s.fog.near = 3; T.s.fog.far = 14; T.stars.visible = false; T.trees.forEach(m => { m.visible = true; if (m.userData.ink) m.userData.ink.visible = true; });
@@ -5474,17 +5488,20 @@ const REGIONS = {
   arctic: [82, 0, '🌊', 'Arctic', "This is the Arctic Ocean, near the North Pole. Much of it is covered in ice."],
   southern: [-60, 60, '🌊', 'Southern', "This is the Southern Ocean, the cold ocean all around Antarctica."],
   med: [35, 18, '🌊', 'Mediterranean', "This is the Mediterranean Sea. It sits between Europe, Africa and Asia."],
+  caribbean: [15, -75, '🌊', 'Caribbean', "This is the Caribbean Sea. Its warm blue water is part of the Atlantic Ocean."],
 };
 const REGION_NAME = { northAmerica: 'North America', southAmerica: 'South America', europe: 'Europe', africa: 'Africa', asia: 'Asia', australia: 'Australia', antarctica: 'Antarctica',
-  pacific: 'Pacific Ocean', atlantic: 'Atlantic Ocean', indian: 'Indian Ocean', arctic: 'Arctic Ocean', southern: 'Southern Ocean', med: 'Mediterranean Sea' };
+  pacific: 'Pacific Ocean', atlantic: 'Atlantic Ocean', indian: 'Indian Ocean', arctic: 'Arctic Ocean', southern: 'Southern Ocean', med: 'Mediterranean Sea', caribbean: 'Caribbean Sea' };
 function regionAt(lat, lon, isSea){   // a child-level guess at which continent or ocean a point is in
   if (lat < -60) return isSea ? 'southern' : 'antarctica';
   if (isSea) {
     if (lat > 66) return 'arctic'; if (lat < -50) return 'southern';
     if (lat > 30 && lat < 46 && lon > -5.5 && lon < 36 && !(lon > 27 && lat > 40.5)) return 'med';   // the Mediterranean Sea (not the Black Sea)
     if (lon > 20 && lon < 120 && lat < 25 && !(lon > 100 && lat > 0)) return 'indian';
+    if (lat < 21 && (lat < 15 && lon < -84 && lon > -110 || lat < 17.5 && lon < -92 && lon > -110 || lon < -97.8 && lon > -125 || lat < 9 && lon < -77.3 && lon > -90)) return 'pacific';   // the Pacific side of Mexico and Central America
+    if (lon > -89 && lon < -61 && lat > 9 && lat < 21.6 && !(lon < -84.5 && lat > 20.5)) return 'caribbean';   // south of Cuba and Hispaniola, west of the little islands
     if (lon > -70 && lon <= 20 && !(lon < -80)) return 'atlantic';
-    if (lon > -100 && lon <= -70 && lat > 8) return 'atlantic';   // Caribbean and Gulf of Mexico
+    if (lon > -100 && lon <= -70 && lat > 8) return 'atlantic';   // the Gulf is part of the Atlantic too
     return 'pacific';
   }
   if (lon < -30) return lat > 12 || (lat > 7 && lon < -77) ? 'northAmerica' : 'southAmerica';
@@ -5536,7 +5553,7 @@ function toyExtras(){
   // --- continent and ocean labels (seen from far away) ---
   T.labels = [];
   for (const [k, r] of Object.entries(REGIONS)) {
-    const c = mkCanvas(512, 96), g = c.getContext('2d'), sea = k in { pacific: 1, atlantic: 1, indian: 1, arctic: 1, southern: 1, med: 1 };
+    const c = mkCanvas(512, 96), g = c.getContext('2d'), sea = k in { pacific: 1, atlantic: 1, indian: 1, arctic: 1, southern: 1, med: 1, caribbean: 1 };
     g.font = '800 54px Fredoka, Nunito, system-ui, sans-serif'; { const w = g.measureText(REGION_NAME[k]).width; if (w > 470) g.font = `800 ${Math.floor(54 * 470 / w)}px Fredoka, Nunito, system-ui, sans-serif`; } g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
     g.lineWidth = 12; g.strokeStyle = '#241a3a'; g.strokeText(REGION_NAME[k], 256, 50); g.fillStyle = sea ? '#bfefff' : '#fff3b0'; g.fillText(REGION_NAME[k], 256, 50);
     const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex(c), transparent: true, depthWrite: false })); sp.scale.set(4.4, .83, 1);
@@ -5589,7 +5606,7 @@ function toyExtras(){
   const bar = $('#tstrip'); bar.innerHTML = '';
   const add = (em, label, fn) => { const b = document.createElement('button'); b.className = 'th'; b.innerHTML = `<span class="em" aria-hidden="true">${em}</span><span>${label}</span>`; b.onclick = () => { audio()?.resume?.(); fn(); }; bar.append(b); };
   add('🏡', 'Home', () => toyHomeSpot());
-  for (const [k, r] of Object.entries(REGIONS)) if (!(k in { pacific: 1, atlantic: 1, indian: 1, arctic: 1, southern: 1, med: 1 })) add(r[2], r[3], () => { T.home = false; T.lmTour = false; toyFlyTo(r[0], r[1], 1); speak(r[4]); $('#pill').textContent = REGION_NAME[k]; nav(); });
+  for (const [k, r] of Object.entries(REGIONS)) if (!(k in { pacific: 1, atlantic: 1, indian: 1, arctic: 1, southern: 1, med: 1, caribbean: 1 })) add(r[2], r[3], () => { T.home = false; T.lmTour = false; toyFlyTo(r[0], r[1], 1); speak(r[4]); $('#pill').textContent = REGION_NAME[k]; nav(); });
   for (const L of LM) { add(L.em, lmShort(L), () => toyLmTour(LM.indexOf(L))); bar.lastChild.dataset.lm = L.id; }
   T.touchT = 0; T.done = new Set();
 }
@@ -5918,7 +5935,7 @@ const drive = { x: 0, z: 0, yaw: 0, v: 0, steer: 0, gas: 0 };
 const iceTex = () => canvasTex(512, 512, (g, w, h) => { g.fillStyle = '#f2f7fc'; g.fillRect(0, 0, w, h); speckle(g, w, h, 16000, ['#dfe9f3', '#ffffff', '#cfdbe8', '#e9eef5'], 1, 3, .25, .6); }, 3);   // bright, faintly blue ice
 function buildMars(world = 'mars'){
   marsWorld = world; const moonW = world !== 'mars', WK = WALKS[world];   // moonW: she walks (Moon, Europa, Titan) instead of driving the rover
-  const s = new THREE.Scene();
+  const s = new THREE.Scene(); s.userData.mark = { m: new THREE.Material().id, t: new THREE.Texture().id };   // anything made after this belongs to this world and is freed when it is rebuilt
   s.background = new THREE.Color(moonW ? WK.bg : '#c99c6e');
   s.fog = moonW ? new THREE.Fog(...WK.fog) : new THREE.Fog('#d6a877', 90, 700);
   const sun = new THREE.DirectionalLight('#fff0dc', 3); sun.position.set(-60, 90, 40); sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
@@ -5939,7 +5956,7 @@ function buildMars(world = 'mars'){
   else {   // black sky full of stars, and Earth (from the Moon) or giant Jupiter (from Europa) hanging overhead
     s.add(starfield(1600, 1200, 2.4, true));
     const bp = byId[WK.big], em = new THREE.Mesh(new THREE.SphereGeometry(WK.bigR, 48, 32), new THREE.MeshBasicMaterial({ map: (bp.cartoonMat || bp.mesh.material).map, fog: false }));
-    em.position.set(...WK.bigAt); em.rotation.y = 2.2; if (WK.big === 'jupiter') em.rotation.z = .05; s.add(em);
+    em.position.set(...WK.bigAt); if (W / H > 1.3) em.position.x *= 2; em.rotation.y = 2.2; if (WK.big === 'jupiter') em.rotation.z = .05; s.add(em);   // wide screens: Earth clear of the title and caption
     const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: softTex, color: WK.big === 'jupiter' ? new THREE.Color(1.4, 1.1, .8) : new THREE.Color(.5, .8, 1.6), blending: THREE.AdditiveBlending, depthWrite: false, fog: false })); halo.scale.setScalar(WK.bigR * 2.85); halo.position.copy(em.position); s.add(halo); }
   const redTex = canvasTex(512, 512, (g, w, h) => {
     g.fillStyle = '#b0643a'; g.fillRect(0, 0, w, h);
@@ -5998,18 +6015,19 @@ function buildMars(world = 'mars'){
   roverAm = makeAmelia('astro'); roverAm.scale.setScalar(moonW ? 1.5 : .95); roverAm.position.set(0, moonW ? 0 : 1.2, moonW ? 0 : .3); roverAm.rotation.y = moonW ? Math.PI : .6; roverBody.add(roverAm);
   tracks.userData.k = moonW ? .45 : 1; if (moonW) tracks.material.color.set(WK.prints);   // small grey boot prints on the Moon (sized per print, not by scaling the whole mesh)
   if (moonW) { roverWheels = []; return s; }
+  const body = roverBody, sc = s;
   loadModel('models/perseverance.glb').then(g => {
-    const m = g.scene; m.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    if (marsScene && marsScene !== sc) return; const m = g.scene; m.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
     m.rotation.y = Math.PI;   // the model's cameras face +z; the rover drives toward -z
-    roverBody.add(m); splitWheels(m);
-  }).catch(e => { console.warn(e); const b = box(2.2, .6, 2.8, '#ddd', 0, .9, 0, roverBody); for (const [x, z] of [[-1.2, -1], [1.2, -1], [-1.2, 0], [1.2, 0], [-1.2, 1], [1.2, 1]]) { const w = cyl(.3, .3, .3, '#555', x, .3, z, roverBody); w.rotation.z = Math.PI / 2; } });
+    body.add(m); if (m.userData.wheels) roverWheels = m.userData.wheels; else { splitWheels(m); m.userData.wheels = roverWheels; }
+  }).catch(e => { if (marsScene && marsScene !== sc) return; console.warn(e); const roverBody = body; const b = box(2.2, .6, 2.8, '#ddd', 0, .9, 0, roverBody); for (const [x, z] of [[-1.2, -1], [1.2, -1], [-1.2, 0], [1.2, 0], [-1.2, 1], [1.2, 1]]) { const w = cyl(.3, .3, .3, '#555', x, .3, z, roverBody); w.rotation.z = Math.PI / 2; } });
   return s;
 }
 function enterMars(world = 'mars'){
   award(world === 'mars' ? 'drive' : WALKS[world].walkStamp);
   ++seq; stopJump();
   if (!marsScene || marsWorld !== world) { if (marsScene) disposeScene(marsScene); marsScene = buildMars(world); }
-  Object.assign(drive, { x: 0, z: 0, yaw: 0, v: 0, steer: 0, gas: 0 });
+  Object.assign(drive, { x: 0, z: 0, yaw: 0, v: 0, steer: 0, gas: 0, jumpT: 0, hop: 0, snap: true });   // snap: the camera starts behind her, not on its way from space
   sceneMode = 'mars'; mode = 'mars'; current = null; manualCam = true; camera.up.set(0, 1, 0); camera.far = 2400; camera.updateProjectionMatrix();
   $('#pill').textContent = world === 'mars' ? 'Drive on Mars' : WALKS[world].pill; $('#inset').hidden = true; $('#drive').hidden = false; updRockCount();
   nav(); layout();
@@ -6037,6 +6055,8 @@ function leaveMars(){
   $('#drive').hidden = true; manualCam = false; sceneMode = 'space'; camera.far = 3000; camera.updateProjectionMatrix();
   speak(SAY.marsBack); const pw = byId[marsWorld]; focus(pw, true); worldPos(pw, rig.target); rig.dist = 3;
 }
+try { new ResizeObserver(() => document.documentElement.style.setProperty('--toph', $('#top').offsetHeight + 'px')).observe($('#top')); } catch {}   // the gem counter sits below the caption, never behind it
+const stripTap = { t: 0, id: null }, _bw = new THREE.Vector3();
 function updRockCount(){ $('#rockct').textContent = `💎 ${marsFound} / ${marsRocks.length || 10}`; }
 // The model's six wheels are one mesh; split it by wheel (left/right x front/middle/back) so each can spin on its own axle.
 let roverWheels = [];
@@ -6121,7 +6141,7 @@ function updateMars(dt, t){
   const cd = (marsWorld === 'mars' ? 9 : 7.5) + Math.abs(D.v) * .4, ch = marsWorld === 'mars' ? 4.2 : 2.3;   // walking worlds: a lower, closer camera, so the sky shows
   const jy = marsWorld !== 'mars' && roverBody ? roverBody.position.y * .85 : 0;   // the camera rises with her Moon hops so she stays in view
   _v.set(D.x - fx * cd, 0, D.z - fz * cd); _v.y = Math.max(groundH(_v.x, _v.z) + 1.5, y + ch + jy);
-  camera.position.lerp(_v, Math.min(1, dt * 3)); const la = marsWorld === 'mars' ? 3 : 14, lh = marsWorld === 'mars' ? 1.4 : 3.6; camera.lookAt(D.x + fx * la, y + lh + jy, D.z + fz * la);   // walking worlds: look further ahead, so the sky (Earth, Jupiter) shows above her
+  if (D.snap) { D.snap = false; camera.position.copy(_v); } else camera.position.lerp(_v, Math.min(1, dt * 3)); const la = marsWorld === 'mars' ? 3 : 14, lh = marsWorld === 'mars' ? 1.4 : 3.6; camera.lookAt(D.x + fx * la, y + lh + jy, D.z + fz * la);   // walking worlds: look further ahead, so the sky (Earth, Jupiter) shows above her
   { const pad = $('#drive .pad'), pr = pad && pad.getBoundingClientRect(), top = pr && pr.left > W * .5 ? H : pr && pr.top, who = roverAm || rover;   // a pad at the side (landscape, desktop) doesn't push her up   // keep her (or the rover) in the clear space above the GO pad on any screen height
     if (top > 0 && who) { camera.updateMatrixWorld(); const v = who.getWorldPosition(_v2).project(camera), y0 = (1 - v.y) / 2 * H, want = Math.min(H * .6, top - 70), s = clamp(y0 + marsShift - want, 0, H * .35);   // y0 already includes last frame's shift
       marsShift += (s - marsShift) * Math.min(1, dt * 4); camera.setViewOffset(W, H + 2 * shift, 0, 2 * shift + marsShift, W, H); } }
@@ -6374,7 +6394,7 @@ function openPassport(){
 }
 
 /* ---------- loop ---------- */
-const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3();
+const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), tmp3 = new THREE.Vector3();
 function updateSpace(dt, t){
   orbitRate += ((mode === 'space' || mode === 'intro' ? 1 : 0) - orbitRate) * Math.min(1, dt * 2);
   boost += ((mode === 'space' || mode === 'intro' ? 1.4 : 1) - boost) * Math.min(1, dt * 2.5);
@@ -6387,7 +6407,7 @@ function updateSpace(dt, t){
     if (p.id === 'moon' || p.parent) continue;
     p.ang += p.w * dt * orbitRate * tWarp;
     const inc = (p.inc || 0) * DEG; p.anchor.position.set(Math.sin(p.ang) * p.d, Math.cos(p.ang) * p.d * Math.sin(inc), Math.cos(p.ang) * p.d * Math.cos(inc));
-    if (p.id !== 'sun') p.anchor.scale.setScalar(boost);
+    if (p.id !== 'sun') p.anchor.scale.setScalar(boost * (p.nk ?? 1));
     if (p.spinGoal != null) p.mesh.rotation.y += angDiff(p.spinGoal, p.mesh.rotation.y) * Math.min(1, dt * 2.4);
     else if (!(p === earth && earthSpinGoal !== null)) p.mesh.rotation.y += p.spin * dt;
   }
@@ -6455,13 +6475,15 @@ function updateSpace(dt, t){
   const tanF = Math.tan(camera.fov * DEG / 2);
   const focusD = current ? worldPos(current, tmp).distanceTo(camera.position) : Infinity;
   for (const p of P) {
-    worldPos(p, tmp); const dist = tmp.distanceTo(camera.position), r = p.id === 'sun' ? p.r : p.r * boost;
+    worldPos(p, tmp); const dist = tmp.distanceTo(camera.position); let r = p.id === 'sun' ? p.r : p.r * boost;
     // a neighbour that would sit between the camera and the planet we're visiting steps out of the way
     const blocking = current && p !== current && p.id !== 'sun' && !(current === earth && p === moon) && !(current.parent === p.id) && !(p.parent && p.parent === current.id) && dist < focusD * .9 + r;
     p.anchor.visible = !blocking;
+    { const near = mode === 'focus' && current && p !== current && p.id !== 'sun' && !(current === earth && p === moon) && current.parent !== p.id && p.parent !== current.id;   // a neighbour that looks close to the planet she is visiting (on screen) shrinks out of the way
+      let k = 1; if (near) { worldPos(current, tmp3).sub(camera.position); worldPos(p, tmp2).sub(camera.position); const sep = tmp2.angleTo(tmp3), curA = current.fitR * boost / tmp3.length(), pA = r / tmp2.length(); k = clamp((sep - pA * .5) / (curA * 5), .12, 1); } p.nk = (p.nk ?? 1) + (k - (p.nk ?? 1)) * Math.min(1, dt * 3); worldPos(p, tmp); r *= p.nk; }
     const px = r / (dist * tanF) * (H / 2);
     tmp2.copy(camera.position).sub(tmp).normalize();
-    p.face.position.copy(tmp).addScaledVector(tmp2, r * 1.03);
+    p.face.position.copy(tmp).addScaledVector(tmp2, r * (ATMO[p.id] ? ATMO[p.id][3] + .03 : 1.03));
     p.face.scale.setScalar(r * (p.id === 'sun' ? 1.35 : 1.25));
     p.face.material.opacity = blocking || p.id === 'pluto' || style === 'real' || (tour && tour.p === p) || (p === earth && (mode === 'flying' || mode === 'launch' || mode === 'world')) ? 0 : clamp((px - 16) / 18, 0, 1);
     p.face.visible = p.face.material.opacity > .01;
@@ -6657,6 +6679,13 @@ window.__allLines = () => {
 window.__voiceCheck = () => voiceReady.then(() => new Promise(r => { const a = new Audio(voiceSrc(SAY.blastoff)); a.onloadedmetadata = () => r({ n: VOICE.size, dur: a.duration }); a.onerror = () => r('error ' + (a.error && a.error.code)); }));
 window.__wheels = () => roverWheels.length + " r=" + (roverWheels.r || 0).toFixed(3) + " a=" + (roverWheels[0] ? roverWheels[0].rotation.x.toFixed(2) : "-");
 window.__pos = () => P.map(p => p.id + ':' + (p.ang / DEG % 360).toFixed(0));
+window.__regionAt = regionAt; window.__animalEm = animalEm;
+window.__lmCover = () => { if (!toy || !toy.lms) return null; const b = new THREE.Box3(), v = new THREE.Vector3(); let a = 0; const out = []; for (const g of toy.lms.children) { if (!g.visible || g.scale.x < .05) continue; b.makeEmpty(); g.updateMatrixWorld(true); g.traverseVisible(o => { if (o.isMesh && !o.isInstancedMesh && o.geometry) { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); b.union(new THREE.Box3().copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld)); } }); if (b.isEmpty()) continue; let x0 = 1, x1 = -1, y0 = 1, y1 = -1, front = 0; for (let i = 0; i < 8; i++) { v.set(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).project(camera); if (v.z >= 1) front = -1e9; else front++; x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); } if (front < 8) continue; const k = Math.max(0, Math.min(1, x1) - Math.max(-1, x0)) * Math.max(0, Math.min(1, y1) - Math.max(-1, y0)) / 4; if (k > .01) out.push([g.userData.lm && g.userData.lm.id, +k.toFixed(2), +b.getCenter(v).distanceTo(camera.position).toFixed(2), +b.getSize(v).length().toFixed(2)]); a += k; } return { a: +a.toFixed(2), out }; };
+window.__beacon = () => toy && toy.beacon ? { vis: toy.beacon.visible, op: +toy.beacon.userData.badge.material.opacity.toFixed(2), d: +toy.beacon.userData.badge.getWorldPosition(new THREE.Vector3()).distanceTo(camera.position).toFixed(2), near: toy.fly && toy.fly.near && toy.fly.near.id } : null;
+window.__amOn = () => { if (!roverAm) return null; const v = roverAm.getWorldPosition(new THREE.Vector3()).project(camera); return { x: +v.x.toFixed(2), y: +v.y.toFixed(2), z: +v.z.toFixed(3), on: Math.abs(v.x) < .9 && Math.abs(v.y) < .9 && v.z < 1, d: +camera.position.distanceTo(roverAm.getWorldPosition(new THREE.Vector3())).toFixed(1) }; };
+window.__nk = () => Object.fromEntries(P.map(p => [p.id, +(p.nk ?? 1).toFixed(2)]));
+window.__scr = id => { const p = P.find(q => q.id === id), v = worldPos(p, new THREE.Vector3()).project(camera); return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; };
+window.__crowd = () => { if (!current) return []; const c = worldPos(current, new THREE.Vector3()).sub(camera.position), cA = current.fitR * boost / c.length(); return P.filter(p => p !== current && p.id !== 'sun' && p.anchor.visible && !(current === earth && p === moon) && current.parent !== p.id && p.parent !== current.id).map(p => { const d = worldPos(p, new THREE.Vector3()).sub(camera.position); return { id: p.id, sep: d.angleTo(c) / cA, nk: p.nk ?? 1 }; }).filter(o => o.sep < 2.5 && o.nk > .6); };
 window.__sky = () => { const e = evening(); return { look: e.look.toString(), ph: e.ph, moon: e.moon, planets: e.planets, lines: skyLines(e) }; };
 function frame(now){
   const raw = (now - last) / 1000, dt = Math.min(.05, raw); last = now; T += dt; engineSound(dt);
@@ -6701,7 +6730,9 @@ function frame(now){
 
 
 /* ---------- boot ---------- */
-addEventListener('resize', () => { layout(); if (mode === 'space') overview(); else if (mode === 'focus') focus(current, true); });
+const refit = () => { layout(); if (mode === 'space') { goal.dist = fitDist(40, 1.06, 1.1); goal.min = goal.dist * .3; goal.max = goal.dist * 1.25; } else if (mode === 'focus' && current && !tour) goal.dist = fitDist(current.fitR, 1.45); };   // re-frame only: speed-up and tours carry on
+const vvb = () => { const v = window.visualViewport; document.documentElement.style.setProperty('--vvb', v ? Math.max(0, Math.round(innerHeight - v.height - v.offsetTop)) + 'px' : '0px'); };   // the part of the page hidden under browser bars or zoom
+addEventListener('resize', () => { vvb(); refit(); }); window.visualViewport?.addEventListener('resize', () => { vvb(); refit(); }); vvb();
 // start every planet (and the Moon) where it really is in space today
 {
   const t = TC(new Date());
@@ -6807,7 +6838,7 @@ function engineSound(dt){
 // computers: the mouse wheel scrolls the picture strips sideways, and the keyboard drives
 for (const id of ['#strip', '#wstrip', '#tstrip', '#szrow']) $(id).addEventListener('wheel', e => { const el = e.currentTarget; if (el.scrollWidth > el.clientWidth && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { el.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
 if (matchMedia('(pointer:fine)').matches) $('#flyhint').textContent = '⌨️ Arrow keys to steer';
-const typing = () => /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '');
+const typing = () => /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || '') && document.activeElement.type !== 'range';
 addEventListener('keydown', e => {
   if (mode === 'launch' && L.hold && (e.key === ' ' || e.key === 'ArrowUp')) { L.thrust = 1; e.preventDefault(); return; }   // desktop: hold Space or Up to fly the rocket
   if (typing() || e.repeat && !/Arrow|^[wasd]$/i.test(e.key)) return;

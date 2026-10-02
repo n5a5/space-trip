@@ -1,0 +1,5 @@
+// Seas by Florida: the Caribbean has its own name; the Pacific side of Mexico and Central America is the Pacific; the Gulf stays Atlantic.
+module.exports=async({pg,S,W})=>{await pg.click('#go');await W(2000);
+const pts=[[25,-90,'atlantic'],[22.5,-88.5,'atlantic'],[19.5,-94,'atlantic'],[25,-76,'atlantic'],[30,-40,'atlantic'],[15,-75,'caribbean'],[19,-86.5,'caribbean'],[16.5,-86,'caribbean'],[17.5,-66,'caribbean'],[12,-83.2,'caribbean'],[16,-100,'pacific'],[9.5,-86,'pacific'],[8.3,-79.5,'pacific'],[15.5,-95,'pacific'],[13,-89.5,'pacific'],[20,-110,'pacific'],[0,-150,'pacific'],[-30,-80,'pacific'],[35,18,'med'],[-20,80,'indian']];
+const bad=await pg.evaluate(p=>p.map(([a,o,w])=>[a,o,w,window.__regionAt(a,o,true)]).filter(x=>x[2]!==x[3]),pts);console.log('mismatch',JSON.stringify(bad));if(bad.length)throw new Error('wrong sea: '+JSON.stringify(bad));
+const land=await pg.evaluate(()=>[window.__regionAt(28,-81,false),window.__regionAt(19,-99,false)]);if(land.join()!=='northAmerica,northAmerica')throw new Error('land '+land);};
