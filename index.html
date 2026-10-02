@@ -108,6 +108,43 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 @keyframes ispIn{to{opacity:1}}
 #quiz.isp #qtray{grid-template-columns:repeat(3,1fr);max-width:440px}
 #quiz.isp #qtray .pl{min-height:104px;justify-content:center;gap:4px}
+#quiz.lab #qtray{grid-template-columns:repeat(3,1fr);max-width:400px}
+#quiz.lab #qtray .pl{min-height:96px;justify-content:center}
+.labN{font:700 46px/1 var(--display)}
+.tenf{display:grid;grid-template-columns:repeat(5,52px);grid-auto-rows:52px;gap:6px;justify-content:center;margin:0 auto}
+.labRow{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center;font-size:34px;max-width:340px;margin:0 auto;line-height:1.15}
+.labRow .grp{display:inline-flex;flex-wrap:wrap;gap:2px;justify-content:center;max-width:180px}
+.labRow .plus{font:700 34px/1 var(--display);color:#ffd166;margin:0 4px}
+.labRow.cd span{font:700 40px/1 var(--display);min-width:52px;padding:6px;border-radius:12px;background:rgba(255,255,255,.1);text-align:center}
+.labRow.cd .q{color:#ffd166}
+.moonDot{display:inline-block;width:36px;height:36px;margin:2px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fffbe8,#e8e1c4 55%,#b9b296);box-shadow:inset -4px -4px 0 rgba(0,0,0,.08)}
+.labNew{outline:3px dashed #7de2d1;outline-offset:2px;border-radius:50%;animation:labIn .8s 2.6s both}
+.labGone{animation:labOut .8s 2.6s forwards}
+@keyframes labIn{from{opacity:0;transform:translateY(-30px) scale(.4)}to{opacity:1;transform:none}}
+@keyframes labOut{to{opacity:.12;transform:translateY(-24px) scale(.6)}}
+.shp{display:block;width:56px;height:56px;background:#ffd166}
+.shp.circle{border-radius:50%}
+.shp.triangle{width:0;height:0;background:none;border-left:32px solid transparent;border-right:32px solid transparent;border-bottom:56px solid #ffd166}
+.shp.rectangle{width:76px;height:42px}
+#quiz.lab #qtray.two{grid-template-columns:repeat(2,1fr);max-width:300px;align-items:end}
+.rk{position:relative;display:block;width:30px;margin:22px auto 10px;border-radius:15px 15px 4px 4px;background:linear-gradient(90deg,#dcdde6,#ffffff 45%,#c9ccd6)}
+.rk::before{content:'';position:absolute;left:0;right:0;top:-20px;margin:auto;width:0;height:0;border-left:15px solid transparent;border-right:15px solid transparent;border-bottom:22px solid #ff7eb6}
+.rk::after{content:'';position:absolute;left:-9px;right:-9px;bottom:0;height:16px;background:linear-gradient(90deg,#ff7eb6 0 9px,transparent 9px calc(100% - 9px),#ff7eb6 calc(100% - 9px));clip-path:polygon(0 100%,9px 0,9px 100%,calc(100% - 9px) 100%,calc(100% - 9px) 0,100% 100%)}
+.rk b{position:absolute;left:50%;top:10px;width:12px;height:12px;margin-left:-6px;border-radius:50%;background:#7de2d1;border:2px solid #4b5563}
+@media (prefers-reduced-motion:reduce){.labNew,.labGone{animation-duration:.01s;animation-delay:0s}}
+.rdStory{display:flex;gap:10px;justify-content:center;font-size:52px}
+.rdStory span{opacity:0;animation:labIn .8s both}
+@media (prefers-reduced-motion:reduce){.rdStory span{animation:none;opacity:1}}
+@media (orientation:landscape) and (max-height:520px){#quiz.lab #qstars{min-height:28px;flex:0 0 auto}.rdT .hem{font-size:48px}.rdT b{font-size:24px}.tenf{grid-template-columns:repeat(5,40px);grid-auto-rows:40px}#qtray .pl.out{opacity:.35;filter:grayscale(1)}
+.tenf span{font-size:26px}.rdStory{font-size:40px}#quiz.read #qtray .pl{min-height:76px}#quiz.read .hem{font-size:34px}}
+#quiz.read #qtray .pl .hem{white-space:nowrap}
+.rdT{display:flex;flex-direction:column;align-items:center;gap:2px}
+.rdT .hem{font-size:72px}
+.rdT b{font:700 30px/1 var(--display)}
+.rdS{font:700 clamp(26px,7vw,34px)/1.25 var(--read,var(--display));text-align:center;padding:10px 14px;border-radius:16px;background:rgba(255,255,255,.1);max-width:360px;margin:0 auto}
+.rdW{font:700 34px/1 var(--read,var(--display))}
+#quiz.read #qtray .pl{min-height:104px;gap:2px}
+.tenf span{display:flex;align-items:center;justify-content:center;font-size:34px;border-radius:10px;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.45)}
 #kbaim{position:fixed;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 3px #7de2d1;pointer-events:none;z-index:3}
 #kbaim::after{content:'';position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff}
 #goalchip.road .ge{font-size:.8em;letter-spacing:-.02em}
@@ -196,6 +233,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #passport p,#grown .phead p{margin:4px 0 0;font:700 14px/1 var(--body);color:var(--muted)}
 #pclose,#gclose{flex:0 0 auto;width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:rgba(255,255,255,.1);color:var(--ink);font:700 22px/1 var(--body);cursor:pointer}
 #grown .phead{max-width:440px;margin:0 auto 14px}
+.gnote2{font:600 13px/1.35 var(--body);color:var(--muted);margin:10px 0 0}
 /* desktop and laptop: mouse and keyboard, wide screens */
 @media (hover:hover) and (pointer:fine){
   #minimap{width:280px;height:140px}
@@ -296,6 +334,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
       <button id="gfull" class="gbtn">⛶ Full screen</button>
       <button id="gstk" class="gbtn danger">Reset stickers</button>
       <button id="gbld" class="gbtn danger">Clear Explorer Earth building</button>
+      <p class="gnote2">MIT and Harvard appear in the app as real places only. The app is not made, sponsored or endorsed by either school.</p>
       <p class="gver" id="gver"></p>
     </div>
   </section>
@@ -497,7 +536,7 @@ const SAY = {
   world: "Let's fly around the world and visit amazing places! Our first stop is right here in Florida.",
   belt: "Those are asteroids! They're space rocks that go around the Sun, between Mars and Jupiter.",
 };
-const LM_SHORT = { ksc: 'Rockets', liberty: 'Liberty', canyon: 'Canyon', amazon: 'Rainforest', penguins: 'Antarctica', bigben: 'Big Ben', eiffel: 'Eiffel', colosseum: 'Colosseum', pyramids: 'Pyramids', taj: 'Taj Mahal', everest: 'Everest', wall: 'Great Wall', opera: 'Opera House', home: 'House' };
+const LM_SHORT = { ksc: 'Rockets', liberty: 'Liberty', canyon: 'Canyon', amazon: 'Rainforest', penguins: 'Antarctica', bigben: 'Big Ben', eiffel: 'Eiffel', colosseum: 'Colosseum', pyramids: 'Pyramids', taj: 'Taj Mahal', everest: 'Everest', wall: 'Great Wall', opera: 'Opera House', college: 'Colleges', home: 'House' };
 const lmShort = L => LM_SHORT[L.id] || L.name;
 const LM = [
   { id: 'ksc', name: 'Kennedy Space Center', em: '🚀', lat: 28.57, lon: -80.65, say: "This is Kennedy Space Center in Florida, not far from Amelia's house! Astronauts blast off to space from right here." },
@@ -513,6 +552,7 @@ const LM = [
   { id: 'everest', name: 'Mount Everest', em: '🏔️', lat: 27.99, lon: 86.93, say: "This is Mount Everest, the tallest mountain on Earth. Its top pokes up higher than the clouds!" },
   { id: 'wall', name: 'Great Wall of China', em: '🧱', lat: 40.43, lon: 116.57, say: "This is the Great Wall of China. It's so long, it would take more than a year to walk from one end to the other!" },
   { id: 'opera', name: 'Sydney Opera House', em: '🎭', lat: -33.86, lon: 151.21, say: "This is the Sydney Opera House in Australia. Its roof looks like the giant sails of a boat!" },
+  { id: 'college', name: 'MIT and Harvard', em: '🎓', lat: 42.367, lon: -71.105, say: "This is Cambridge, in Massachusetts. Two famous colleges are here, MIT and Harvard! Grown-ups come here to learn." },
 ];
 const SITE_IDS = LM.map(l => l.id);   // landmarks with a detailed ground-level scene
 const COUNT = ['Ten!', 'Nine!', 'Eight!', 'Seven!', 'Six!', 'Five!', 'Four!', 'Three!', 'Two!', 'One!'];
@@ -554,7 +594,7 @@ function pickVoice(){
 if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 // Every line is pre-recorded (Kokoro-82M, voice af_heart, the same voice as Princess Quest) and embedded below;
 // anything missing falls back to the phone's own text-to-speech.
-const APP_VERSION = 'space-v38';
+const APP_VERSION = 'space-v39';
 let VOICE = {};
 // grown-up settings, kept on this phone
 const prefs = { rate: 1, vol: 1, captions: true }; try { Object.assign(prefs, JSON.parse(localStorage.getItem('ast-prefs') || '{}')); } catch {}
@@ -587,7 +627,7 @@ function speak(lines, soft = false){   // soft: a by-the-way line that waits its
   lines = [].concat(lines); const my = ++vToken, all = lines.join(' ');
   const cap = $('#caption'); cap.textContent = prefs.captions || prefs.muted ? (matchMedia('(pointer:fine)').matches ? DESK_CAP.reduce((a, [r, w]) => a.replace(r, w), all) : all) : ''; clearTimeout(capTimer);
   const qc = $('#qcap'); if (qc) qc.textContent = prefs.muted ? cap.textContent : '';   // muted, in a game: the words show under the answers instead of over the game
-  capTimer = setTimeout(() => { cap.textContent = ''; if (qc) qc.textContent = ''; }, 2500 + all.length * 70);
+  capTimer = setTimeout(() => { cap.textContent = ''; if (qc) qc.textContent = prefs.muted && qz && qz.e && !qz.lock ? [].concat(qz.e.again || qz.e.ask).slice(-1)[0] : ''; }, 2500 + all.length * 70);   // muted, mid-question: the question itself stays
   try { vEl.pause(); } catch {}
   if (canSpeak) try { speechSynthesis.cancel(); } catch {}
   let i = 0;
@@ -2686,7 +2726,7 @@ function answerHome(b, h){
   if (h !== HOME_OF[qz.an][0]) { qz.wrongT = performance.now(); bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); speak(SAY.homesNo); return; }
   qz.lock = true; chime(); b.classList.add('hint'); qz.right++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + (qz.cups ? ' ' : '') + '★'.repeat(qz.right) + '☆'.repeat(Math.max(0, 5 - qz.right));
   const done = qz.right === 5; speak(done ? [HOME_OF[qz.an][1], SAY.homesDone] : HOME_OF[qz.an][1]); if (done) { burst(); award('homes'); }
-  setTimeout(() => { if (mode === 'homes' && qz) { if (done) { qz.right = 0; qz.cups++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextHome(); } }, done ? 9000 : 5500);
+  const my = seq; setTimeout(() => { if (my !== seq) return;  if (mode === 'homes' && qz) { if (done) { qz.right = 0; qz.cups++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextHome(); } }, done ? 9000 : 5500);
 }
 // Is it a planet? Three checks (goes around the Sun, round, boss of its path), then she picks planet, dwarf planet or moon (IAU 2006 rules)
 const ISP_KIND = { planet: ['🪐', 'Planet'], dwarf: ['🟤', 'Dwarf planet'], moon: ['🌙', 'Moon'] };
@@ -2726,9 +2766,134 @@ function answerIsp(b, k){
   qz.lock = true; if (qz.miss < 2) { chime(); qz.right++; } b && b.classList.add('hint'); qz.i++;
   $('#qstars').textContent = '🏆'.repeat(qz.cups) + (qz.cups ? ' ' : '') + '★'.repeat(Math.min(5, qz.right)) + '☆'.repeat(Math.max(0, 5 - qz.right));
   const done = qz.right === 5; speak(done ? [yes, SAY.ispDone] : yes); if (done) { burst(); award('isplanet'); }
-  setTimeout(() => { if (mode === 'isplanet' && qz) { if (done) { qz.right = 0; qz.cups++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextIsp(); } }, done ? 8000 : 4500);
+  const my = seq; setTimeout(() => { if (my !== seq) return;  if (mode === 'isplanet' && qz) { if (done) { qz.right = 0; qz.cups++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextIsp(); } }, done ? 8000 : 4500);
 }
 function endIsp(){ hush(); $('#quiz').hidden = true; $('#quiz').classList.remove('isp'); $('#app').classList.remove('game'); qz = null; focus(byId.pluto, true); }
+// Number Lab at MIT: five quick experiments per visit, picture answers, no penalty (Florida B.E.S.T. Kindergarten math; codes on each kind)
+const Cap = w => w[0].toUpperCase() + w.slice(1), NWd = n => NUM[n];
+const nn = (n, one, many) => `${NWd(n)} ${n === 1 ? one : many}`;
+const labYes = n => n === 1 ? 'Yes! One rocket!' : `Yes! ${Cap(NWd(n))} rockets!`;
+const labCount = n => `Let's count them together. ${NUM.slice(1, n + 1).map(Cap).join(', ')}. ${Cap(nn(n, 'rocket', 'rockets'))}!`;
+const moonsAsk = (n, d) => `${n === 1 ? 'There is one moon' : `There are ${NWd(n)} moons`}. ${d > 0 ? 'One more moon comes along!' : 'One moon floats away!'} How many moons now?`;
+const moonsYes = m => `Yes! ${Cap(nn(m, 'moon', 'moons'))}!`;
+const moonsShow = (n, d) => `${d > 0 ? 'One more' : 'One less'} than ${NWd(n)} is ${NWd(n + d)}.`;
+const astroAsk = (a, b, d) => d > 0 ? `${Cap(nn(a, 'astronaut is', 'astronauts are'))} in the rocket. ${b === 1 ? 'One more climbs in!' : Cap(NWd(b)) + ' more climb in!'} How many astronauts now?`
+  : `${Cap(NWd(a))} astronauts are in the rocket. ${Cap(NWd(b))} ${b === 1 ? 'climbs' : 'climb'} out! How many are left?`;
+const astroYes = c => `Yes! ${Cap(nn(c, 'astronaut', 'astronauts'))}!`;
+const astroShow = (a, b, d) => `${Cap(NWd(a))} ${d > 0 ? 'and' : 'take away'} ${NWd(b)} is ${NWd(a + d * b)}.`;
+const cdAsk = k => `Rocket countdown! ${Cap(NWd(k))}, ${NWd(k - 1)}, ${NWd(k - 2)}. What comes next?`;
+const cdYes = m => m === 0 ? 'Yes! Zero! Blast off!' : `Yes! ${Cap(NWd(m))}!`;
+const cdShow = m => m === 0 ? 'Next comes zero. Blast off!' : `Next comes ${NWd(m)}.`;
+const SHAPES = { circle: 'Yes! That\'s a circle! A round window on a spaceship is a circle.', triangle: 'Yes! That\'s a triangle! The tip of a rocket looks like a triangle.',
+  square: 'Yes! That\'s a square! It has four sides that are all the same.', rectangle: 'Yes! That\'s a rectangle! A rocket door is a rectangle.' };
+const shapeAsk = t => `Find the ${t}!`, shapeShow = t => `This one is the ${t}.`;
+SAY.labIn = "Welcome to the Number Lab, next to the big dome at MIT! Let's play some number games!";
+SAY.labNo = "Let's look again. Take your time!";
+SAY.labDone = "Five experiments! You're a Number Lab scientist!";
+SAY.tallAsk = 'Which rocket is taller?'; SAY.shortAsk = 'Which rocket is shorter?';
+SAY.tallYes = 'Yes! That rocket is taller!'; SAY.shortYes = 'Yes! That rocket is shorter!'; SAY.tallShow = 'This one is taller.'; SAY.shortShow = 'This one is shorter.';
+const LAB_KINDS = ['count', 'more', 'add', 'countdown', 'shape', 'compare'];
+const ri = (a, b) => a + (Math.random() * (b - a + 1) | 0);
+const numOpts = (ans, lo, hi) => { const set = new Set([ans]); let g = 0; while (set.size < 3 && g++ < 50) { const d = ans + [-2, -1, 1, 2][Math.random() * 4 | 0]; if (d >= lo && d <= hi) set.add(d); } return [...set].sort((x, y) => x - y).map(k => ({ id: String(k), html: `<span class="labN">${k}</span>` })); };
+const emRow = (em, n, cls = '') => `<div class="labRow">${Array.from({ length: n }, () => `<span class="${cls}">${em}</span>`).join('')}</div>`;
+function labExp(kind){   // one experiment: what to show, the choices, the right one, and what Luna says
+  if (kind === 'count') { const n = ri(1, 10), f = `<div class="tenf">${Array.from({ length: 10 }, (_, k) => `<span>${k < n ? '🚀' : ''}</span>`).join('')}</div>`;
+    return { std: 'MA.K.NSO.1.1', show: f, opts: numOpts(n, 1, 10), ans: String(n), ask: 'How many rockets?', yes: labYes(n), reveal: labCount(n), n }; }
+  if (kind === 'more') { const d = Math.random() < .5 ? 1 : -1, n = d > 0 ? ri(1, 9) : ri(2, 10), m = n + d;
+    const mo = c => `<span class="moonDot ${c}"></span>`, show = `<div class="labRow">${Array.from({ length: n }, (_, k) => mo(d < 0 && k === n - 1 ? 'labGone' : '')).join('')}${d > 0 ? '<span class="plus">+</span>' + mo('labNew') : ''}</div>`;   // drawn moons: the full-moon emoji is missing on some phones
+    return { std: 'MA.K.AR.1.3', show, opts: numOpts(m, 1, 10), ans: String(m), ask: moonsAsk(n, d), yes: moonsYes(m), reveal: moonsShow(n, d) }; }
+  if (kind === 'add') { const d = Math.random() < .5 ? 1 : -1; let a, b; if (d > 0) { a = ri(1, 5); b = ri(1, Math.min(5, 10 - a)); } else { a = ri(3, 9); b = ri(1, Math.min(3, a - 1)); }
+    const c = a + d * b, show = d > 0 ? `<div class="labRow">🚀<span class="grp">${Array.from({ length: a }, () => '<span>🧑‍🚀</span>').join('')}</span><span class="plus">+</span><span class="grp">${Array.from({ length: b }, () => '<span class="labNew">🧑‍🚀</span>').join('')}</span></div>`
+      : `<div class="labRow">🚀${Array.from({ length: a }, (_, k) => `<span class="${k >= a - b ? 'labGone' : ''}">🧑‍🚀</span>`).join('')}</div>`;
+    return { std: 'MA.K.AR.1.3', show, opts: numOpts(c, 0, 10), ans: String(c), ask: astroAsk(a, b, d), yes: astroYes(c), reveal: astroShow(a, b, d) }; }
+  if (kind === 'countdown') { const k = ri(3, 10), m = k - 3;
+    return { std: 'MA.K.NSO.2.1', show: `<div class="labRow cd"><span>${k}</span><span>${k - 1}</span><span>${k - 2}</span><span class="q">?</span></div>`, opts: [m, ...[...Array(11).keys()].filter(x => x !== m && x < k - 2 || x > k).sort((x, y) => Math.abs(x - m) - Math.abs(y - m) || Math.random() - .5).slice(0, 2)].sort((x, y) => x - y).map(x => ({ id: String(x), html: `<span class="labN">${x}</span>` })), ans: String(m), ask: cdAsk(k), yes: cdYes(m), reveal: cdShow(m) }; }
+  if (kind === 'shape') { const ks = Object.keys(SHAPES), t = ks[Math.random() * 4 | 0], others = ks.filter(x => x !== t && !(t === 'rectangle' && x === 'square')).sort(() => Math.random() - .5).slice(0, 2);
+    return { std: 'MA.K.GR.1.1', show: '', opts: [t, ...others].sort(() => Math.random() - .5).map(x => ({ id: x, label: x, html: `<span class="shp ${x}"></span>` })), ans: t, ask: shapeAsk(t), yes: SHAPES[t], reveal: shapeShow(t) }; }
+  const tall = Math.random() < .5, h = [ri(50, 70), ri(95, 120)].sort(() => Math.random() - .5), want = tall ? (h[0] > h[1] ? 0 : 1) : (h[0] < h[1] ? 0 : 1);   // compare
+  return { std: 'MA.K.M.1.2', show: '', opts: h.map((x, k) => ({ id: String(k), label: 'rocket ' + (k + 1), html: `<span class="rk" style="height:${x}px"><b></b></span>` })), ans: String(want), ask: tall ? SAY.tallAsk : SAY.shortAsk, yes: tall ? SAY.tallYes : SAY.shortYes, reveal: tall ? SAY.tallShow : SAY.shortShow };
+}
+function startLab(){
+  ++seq; mode = 'lab'; $('#pill').textContent = 'Number Lab'; $('#app').classList.add('game');
+  $('#quiz').hidden = false; $('#quiz').classList.add('lab'); const rest = LAB_KINDS.slice(1).sort(() => Math.random() - .5);
+  qz = { kind: 'lab', right: 0, cups: 0, miss: 0, lock: false, order: ['count', ...rest], r: 0 }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextLab(true);
+}
+let keyUser = false; addEventListener('keydown', () => { keyUser = true; }, true); addEventListener('pointerdown', () => { keyUser = false; }, true);
+const focusTray = () => { if (keyUser) setTimeout(() => { const f = document.querySelector('#qtray .pl'); f && f.focus({ preventScroll: true }); }, 50); };
+function nextLab(first){
+  const kind = qz.order[qz.r++ % qz.order.length], e = labExp(kind); qz.e = e; qz.exp = kind; qz.miss = 0; qz.wrongId = null; qz.lock = false; qz.n = e.n;
+  $('#qask').innerHTML = e.show; const tray = $('#qtray'); tray.innerHTML = ''; tray.classList.toggle('two', e.opts.length === 2);
+  for (const o of e.opts) { const b = document.createElement('button'); b.className = 'pl'; b.dataset.id = o.id; b.innerHTML = o.html; if (o.label) b.setAttribute('aria-label', o.label); b.onclick = () => answerLab(b, o.id); tray.append(b); }
+  speak(first ? [SAY.labIn, e.ask] : e.ask); focusTray();
+}
+function answerLab(b, k){
+  if (!qz || qz.lock || performance.now() - (qz.wrongT || 0) < 800) return; const e = qz.e;
+  if (k !== e.ans && qz.wrongId === k) { bloop(); return; }   // the same wrong card again: not a new try
+  if (k !== e.ans) { qz.wrongId = k; qz.wrongT = performance.now(); bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); qz.miss++;
+    b.classList.add('out'); b.setAttribute('aria-disabled', 'true'); const rt = document.querySelector(`#qtray .pl[data-id="${e.ans}"]`); if (rt && qz.miss >= 2) rt.classList.add('hint');   // first miss: that one dims and the question comes again; second miss: the answer glows   // first miss: the right one glows
+    if (qz.miss < 2) { speak([].concat(SAY.labNo, e.ask)); return; } b = rt; }   // second miss: Luna shows and explains it
+  qz.lock = true; if (qz.miss === 0) { chime(); qz.right++; } else pop(); b && b.classList.add('hint');   // stars are for first tries; a fixed answer still moves on
+  $('#qstars').textContent = '🏆'.repeat(qz.cups) + (qz.cups ? ' ' : '') + '★'.repeat(Math.min(5, qz.right)) + '☆'.repeat(Math.max(0, 5 - qz.right));
+  const done = qz.right === 5, say = qz.miss === 0 ? e.yes : e.reveal; speak(done ? [say, SAY.labDone] : say); if (done) { burst(); award('numberlab'); }
+  const my = seq; setTimeout(() => { if (my !== seq) return;  if (mode === 'lab' && qz) { if (done) { qz.right = 0; qz.cups++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextLab(); } }, done ? 7000 : qz.miss < 2 ? 3600 : 6500);
+}
+// Reading Room at Harvard: five quick reading items per visit (Florida B.E.S.T. Kindergarten ELA; codes on each kind).
+// Sight words and decodable sentences are copied from Princess Quest; three sentences whose pictures didn't match (yak, jam, mop) are left out and three pictures are clearer (content/sight-words.json, content/sentences.json), so she sees the same words in both apps.
+const PQ_SIGHT = ["a", "and", "away", "big", "blue", "can", "come", "down", "find", "for", "funny", "go", "help", "here", "I", "in", "is", "it", "jump", "little", "look", "make", "me", "my", "not", "one", "play", "red", "run", "said", "see", "the", "three", "to", "two", "up", "we", "where", "yellow", "you"];
+const PQ_SENT = [{"s": "a", "t": "The cat is in the hat.", "c": [["🐱🎩", 1], ["🐶🎩", 0], ["🐱👜", 0]]}, {"s": "a", "t": "I can see a rat.", "c": [["🐀", 1], ["🐱", 0], ["🐷", 0]]}, {"s": "a", "t": "Dad is in the van.", "c": [["👨🚐", 1], ["👨🚕", 0], ["🐱🚐", 0]]}, {"s": "a", "t": "The man can see a map.", "c": [["👨🗺️", 1], ["👨🧢", 0], ["👩🗺️", 0]]}, {"s": "a", "t": "I see a bat and a cat.", "c": [["🦇🐱", 1], ["🦇🐀", 0], ["🐶🐱", 0]]}, {"s": "a", "t": "The cat is sad.", "c": [["🐱😢", 1], ["🐱😊", 0], ["🐶😢", 0]]}, {"s": "a", "t": "I see a cab and a van.", "c": [["🚕🚐", 1], ["🚕🚌", 0], ["🚗🚐", 0]]}, {"s": "a", "t": "The ram can nap.", "c": [["🐏😴", 1], ["🐏🏃", 0], ["🐱😴", 0]]}, {"s": "b", "t": "The pig is in the tub.", "c": [["🐷🛁", 1], ["🐷🛏️", 0], ["🐶🛁", 0]]}, {"s": "b", "t": "The dog can dig.", "c": [["🐶🕳️", 1], ["🐶😴", 0], ["🐷🕳️", 0]]}, {"s": "b", "t": "The hen is on the bed.", "c": [["🐔🛏️", 1], ["🐔🪺", 0], ["🐱🛏️", 0]]}, {"s": "b", "t": "A bug is in my cup.", "c": [["🐛☕", 1], ["🐛📦", 0], ["🐝☕", 0]]}, {"s": "b", "t": "The fox is in the box.", "c": [["🦊📦", 1], ["🦊🛏️", 0], ["🐶📦", 0]]}, {"s": "b", "t": "I can see a jet and a bus.", "c": [["✈️🚌", 1], ["✈️🚂", 0], ["🚕🚌", 0]]}, {"s": "b", "t": "The kid can hug the dog.", "c": [["🧒🐶", 1], ["🧒🐱", 0], ["👵🐶", 0]]}, {"s": "b", "t": "The sun is up.", "c": [["🌅", 1], ["🌙", 0], ["☔", 0]]}, {"s": "b", "t": "Dad and I can run.", "c": [["👨‍👧🏃", 1], ["👨‍👧😴", 0], ["🐶🏃", 0]]}, {"s": "c", "t": "The fish is in the dish.", "c": [["🐟🍽️", 1], ["🐟🛁", 0], ["🐱🍽️", 0]]}, {"s": "c", "t": "The ship is big.", "c": [["🚢", 1], ["🛶", 0], ["✈️", 0]]}, {"s": "c", "t": "I can see a chip on the dish.", "c": [["🍟🍽️", 1], ["🍟📦", 0], ["🐟🍽️", 0]]}, {"s": "c", "t": "The cat is in the bath.", "c": [["🐱🛀", 1], ["🐱🛏️", 0], ["🐶🛀", 0]]}, {"s": "c", "t": "We can wash the dog.", "c": [["🧼🐶", 1], ["🧼🐱", 0], ["🐶😴", 0]]}, {"s": "c", "t": "Hush! The kid is in bed.", "c": [["🤫🧒🛏️", 1], ["🧒🏃", 0], ["👨🛏️", 0]]}, {"s": "c", "t": "The bug is on the bush.", "c": [["🐛🌳", 1], ["🐛☕", 0], ["🐝🌳", 0]]}, {"s": "c", "t": "I see a fish and a ship.", "c": [["🐟🚢", 1], ["🐟🛶", 0], ["🐙🚢", 0]]}, {"s": "d", "t": "The ant is on my hand.", "c": [["🐜✋", 1], ["🐜🦵", 0], ["🐛✋", 0]]}, {"s": "d", "t": "The gift is in the tent.", "c": [["🎁🏕️", 1], ["🎁🛏️", 0], ["🐶🏕️", 0]]}, {"s": "d", "t": "The fish is in the pond.", "c": [["🐟🪷", 1], ["🐟🛁", 0], ["🐸🪷", 0]]}, {"s": "d", "t": "The kid can jump.", "c": [["🧒🤸", 1], ["🧒😴", 0], ["🐶🤸", 0]]}, {"s": "d", "t": "The milk is on the desk.", "c": [["🥛🖥️", 1], ["🥛🛏️", 0], ["☕🖥️", 0]]}, {"s": "d", "t": "The lamp is on the desk.", "c": [["🪔🖥️", 1], ["🪔🛏️", 0], ["🎁🖥️", 0]]}, {"s": "d", "t": "The mask is in the sand.", "c": [["🎭🏖️", 1], ["🎭📦", 0], ["🐚🏖️", 0]]}, {"s": "d", "t": "We can camp in the tent.", "c": [["🏕️", 1], ["🏠", 0], ["🚌", 0]]}];
+const RHYME = [['moon', '🌙', 'spoon', '🥄', [['star', '⭐'], ['cat', '🐱']]], ['star', '⭐', 'car', '🚗', [['sun', '☀️'], ['dog', '🐶']]], ['sky', '🌤️', 'pie', '🥧', [['moon', '🌙'], ['fish', '🐟']]],
+  ['night', '🌃', 'kite', '🪁', [['bed', '🛏️'], ['star', '⭐']]], ['space', '🌌', 'face', '😀', [['cup', '🥤'], ['sock', '🧦']]]];
+const FIRST = [['moon', '🌙', 'mouse', '🐭', [['sun', '☀️'], ['fish', '🐟']]], ['sun', '☀️', 'sock', '🧦', [['moon', '🌙'], ['cat', '🐱']]], ['rocket', '🚀', 'robot', '🤖', [['cup', '🥤'], ['sun', '☀️']]], ['planet', '🪐', 'pig', '🐷', [['moon', '🌙'], ['fish', '🐟']]], ['comet', '☄️', 'cat', '🐱', [['dog', '🐶'], ['sun', '☀️']]]];
+const STORIES = [   // true and simple (NASA mission pages): [pictures, the story, the question, [picture, word, right?] x3, the answer]
+  [['🚀', '👨‍🚀', '👣', '🌍'], ['Long ago, in 1969, astronauts flew a rocket all the way to the Moon.', 'Neil Armstrong stepped out first.', 'He left footprints in the moon dust.', 'Then the astronauts flew home to Earth.'], 'Where did Neil Armstrong walk?', [['🌙', 'Moon', 1], ['🌍', 'Earth', 0], ['☀️', 'Sun', 0]], 'Yes! He walked on the Moon!'],
+  [['👩‍🚀', '✨', '🌍'], ['In 1983, Sally Ride flew into space.', 'She was the first American woman to go to space.', 'She rode on a space shuttle, which blasted off like a rocket.', 'She worked and floated around inside it!'], 'How did Sally Ride get to space?', [['🚀', 'Space shuttle', 1], ['✈️', 'Airplane', 0], ['🎈', 'Balloon', 0]], 'Yes! A space shuttle took her to space!'],
+  [['🪐', '✨', '☀️'], ['In 1977, a spacecraft called Voyager 1 blasted off.', 'It flew past Jupiter and Saturn and took pictures.', 'It is still flying, far away from the Sun.', 'Nothing people ever made has gone farther!'], 'What is Voyager 1?', [['🛰️', 'Spacecraft', 1], ['🪐', 'Planet', 0], ['⭐', 'Star', 0]], 'Yes! Voyager 1 is a spacecraft!']];
+const orList = ws => `${Cap(ws[0])}, ${ws[1]}, or ${ws[2]}?`;
+const rhAsk = (t, ws) => `What rhymes with ${t}? ${orList(ws)}`, rhYes = (t, r) => `Yes! ${Cap(t)} and ${r} rhyme!`, rhShow = (t, r) => `Listen. ${Cap(t)}, ${r}. They rhyme!`;
+const fsAsk = (t, ws) => `Which one starts like ${t}? ${orList(ws)}`, fsYes = (t, a) => `Yes! ${Cap(t)} and ${a} start the same way!`, fsShow = (t, a) => `Listen. ${Cap(t)}, ${a}. They start the same way!`;
+const swAsk = w => `Find the word ${w}!`, swYes = w => `Yes! That word is ${w}!`, swShow = w => `This word is ${w}.`;
+SAY.readIn = "Welcome to the Reading Room, in the brick yard at Harvard! Let's read and listen together.";
+SAY.readNo = "Let's look again. Take your time!";
+SAY.readDone = "Five reading treasures! You're a Reading Room star!";
+SAY.sentAsk = 'Read the sentence. Then find its picture!'; SAY.sentYes = 'Yes! You read it!';
+const READ_KINDS = ['rhyme', 'first', 'sight', 'sentence', 'story'];
+const picOpt = (id, pic, word, show = true) => ({ id, label: word, html: `<span class="hem">${pic}</span>${show ? `<span>${word}</span>` : ''}` });
+function readItem(kind){
+  if (kind === 'rhyme' || kind === 'first') { const L = kind === 'rhyme' ? RHYME : FIRST, [t, tp, r, rp, foils] = L[Math.random() * L.length | 0];
+    const opts = [picOpt(r, rp, r, false), ...foils.map(([w, p2]) => picOpt(w, p2, w, false))].sort(() => Math.random() - .5), ws = opts.map(o => o.id);
+    return { std: 'ELA.K.F.1.2', show: `<div class="rdT"><span class="hem">${tp}</span><b>${t}</b></div>`, opts, ans: r,
+      ask: kind === 'rhyme' ? rhAsk(t, ws) : fsAsk(t, ws), yes: kind === 'rhyme' ? rhYes(t, r) : fsYes(t, r), reveal: kind === 'rhyme' ? rhShow(t, r) : fsShow(t, r) }; }
+  if (kind === 'sight') { const w = PQ_SIGHT[Math.random() * PQ_SIGHT.length | 0], SOUND_SAME = { to: 'two', two: 'to' }, others = PQ_SIGHT.filter(x => x !== w && x.toLowerCase() !== w.toLowerCase() && SOUND_SAME[w] !== x).sort(() => Math.random() - .5).slice(0, 2);
+    return { std: 'ELA.K.F.1.4', show: '<div class="rdT"><span class="hem">🔎</span></div>', opts: [w, ...others].sort(() => Math.random() - .5).map(x => ({ id: x, html: `<span class="rdW">${x}</span>` })), ans: w, ask: swAsk(w), yes: swYes(w), reveal: swShow(w) }; }
+  if (kind === 'sentence') { const easy = PQ_SENT.filter(x => x.s === 'a' || x.s === 'b'), x = easy[Math.random() * easy.length | 0];
+    return { std: 'ELA.K.F.1.3', show: `<div class="rdS">${x.t}</div>`, opts: x.c.map(([pic, ok], k) => ({ id: ok ? 'ok' : 'no' + k, html: `<span class="hem">${pic}</span>` })).sort(() => Math.random() - .5), ans: 'ok', ask: SAY.sentAsk, yes: SAY.sentYes, reveal: x.t }; }
+  const [pics, lines, q, ch, yes] = STORIES[Math.random() * STORIES.length | 0];
+  return { std: 'ELA.K.R.2.2', show: `<div class="rdStory">${pics.map((x, k) => `<span style="animation-delay:${k * 2.4}s">${x}</span>`).join('')}</div>`, opts: ch.map(([p2, w, ok], k) => ({ ...picOpt(ok ? 'ok' : 'no' + k, p2, w) })).sort(() => Math.random() - .5), ans: 'ok', ask: [...lines, q], again: [...lines, q], yes, reveal: yes.replace('Yes! ', '') };
+}
+function startRead(){
+  ++seq; mode = 'read'; $('#pill').textContent = 'Reading Room'; $('#app').classList.add('game');
+  $('#quiz').hidden = false; $('#quiz').classList.add('lab', 'read'); const rest = READ_KINDS.slice(1).sort(() => Math.random() - .5);
+  qz = { kind: 'read', right: 0, cups: 0, miss: 0, lock: false, order: ['rhyme', ...rest], r: 0 }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextRead(true);
+}
+function nextRead(first){
+  const kind = qz.order[qz.r++ % qz.order.length], e = readItem(kind); qz.e = e; qz.exp = kind; qz.miss = 0; qz.wrongId = null; qz.lock = false;
+  $('#qask').innerHTML = e.show; const tray = $('#qtray'); tray.innerHTML = ''; tray.classList.remove('two');
+  for (const o of e.opts) { const b = document.createElement('button'); b.className = 'pl'; b.dataset.id = o.id; b.innerHTML = o.html; if (o.label) b.setAttribute('aria-label', o.label); b.onclick = () => answerRead(b, o.id); tray.append(b); }
+  speak(first ? [SAY.readIn, ...[].concat(e.ask)] : e.ask); focusTray();
+}
+function answerRead(b, k){
+  if (!qz || qz.lock || performance.now() - (qz.wrongT || 0) < 800) return; const e = qz.e;
+  if (k !== e.ans && qz.wrongId === k) { bloop(); return; }   // the same wrong card again: not a new try
+  if (k !== e.ans) { qz.wrongId = k; qz.wrongT = performance.now(); bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); qz.miss++;
+    b.classList.add('out'); b.setAttribute('aria-disabled', 'true'); const rt = document.querySelector(`#qtray .pl[data-id="${e.ans}"]`); if (rt && qz.miss >= 2) rt.classList.add('hint');   // first miss: that one dims and the question comes again; second miss: the answer glows
+    if (qz.miss < 2) { speak([].concat(SAY.readNo, (e.again || e.ask))); return; } b = rt; }
+  qz.lock = true; if (qz.miss === 0) { chime(); qz.right++; } else pop(); b && b.classList.add('hint');   // stars are for first tries; a fixed answer still moves on
+  $('#qstars').textContent = '🏆'.repeat(qz.cups) + (qz.cups ? ' ' : '') + '★'.repeat(Math.min(5, qz.right)) + '☆'.repeat(Math.max(0, 5 - qz.right));
+  const done = qz.right === 5, say = qz.miss === 0 ? e.yes : e.reveal; speak(done ? [say, SAY.readDone] : say); if (done) { burst(); award('reading'); }
+  const my = seq; setTimeout(() => { if (my !== seq) return;  if (mode === 'read' && qz) { if (done) { qz.right = 0; qz.cups++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextRead(); } }, done ? 7000 : qz.miss < 2 ? 3800 : 6500);
+}
+function endRead(){ hush(); $('#quiz').hidden = true; $('#quiz').classList.remove('lab', 'read'); $('#app').classList.remove('game'); qz = null; mode = 'site'; $('#pill').textContent = LM[wIdx].name; nav(); layout(); }
+function endLab(){ hush(); $('#quiz').hidden = true; $('#quiz').classList.remove('lab'); $('#app').classList.remove('game'); qz = null; mode = 'site'; $('#pill').textContent = LM[wIdx].name; nav(); layout(); }
 function endHomes(){ hush(); $('#quiz').hidden = true; $('#quiz').classList.remove('bigger', 'homes'); $('#app').classList.remove('game'); qz = null; mode = 'toy'; $('#pill').textContent = 'Explorer Earth'; nav(); layout(); }
 function endBigger(){ hush(); $('#quiz').hidden = true; $('#quiz').classList.remove('bigger'); $('#app').classList.remove('game'); qz = null; overview(); }
 function endQuiz(){ hush(); $('#quiz').hidden = true; $('#app').classList.remove('game'); qz = null; overview(); }
@@ -2756,6 +2921,8 @@ function goBack(){
   if (mode === 'bigger') { endBigger(); return true; }
   if (mode === 'homes') { endHomes(); return true; }
   if (mode === 'isplanet') { endIsp(); return true; }
+  if (mode === 'lab') { endLab(); return true; }
+  if (mode === 'read') { endRead(); return true; }
   if (mode === 'parade') { endParade(); return true; }
   if (mode === 'toy') { const T = toy; if (T.fly) toyFlyStop(); else if (T.quiz) toyQuizEnd(); else if (T.hunt) { T.hunt = null; T.starMesh.count = T.starMesh.userData.ink.count = 0; $('#tstars').hidden = true; nav(); } else if (T.follow) toyStop(); else if (T.menu) { T.menu = null; nav(); } else if (T.home) { T.home = false; nav(); } else if (T.lmTour) { T.lmTour = false; T.picked = null; $('#pill').textContent = 'Explorer Earth'; nav(); } else toyToSpace(); return true; }
   if (mode === 'site') { leaveSite(wIdx); return true; }
@@ -2842,7 +3009,7 @@ function nav(){
   if (mode === 'site' && site && site.quiz) { const Q = site.quiz, q = Q.list[Q.i];
     q.opts.forEach(o => { const b = btn(o[0], o[1], () => placeQuizAnswer(o), ''); b.classList.add('bigpic'); acts.append(b); });
     acts.append(btn('🔊', 'Again', () => speak(q.say)), btn('✋', 'Stop', () => { site.quiz = null; nav(); })); }
-  else if (mode === 'site') { acts.append(...(site && site.spots && site.spots.length && site.spots.every(m => m.userData.got) && !site.quizDone ? [btn('🧠', 'Quiz', placeQuiz, 'hero')] : [])); acts.append(btn('🧭', 'Map', () => leaveSite(wIdx)), btn('🔊', 'Tell me', () => speak(ANIMAL_SAY[LM[wIdx].id] ? [LM[wIdx].say, ANIMAL_SAY[LM[wIdx].id]] : LM[wIdx].say)), btn('▶️', 'Next place', () => siteSwap(wIdx + 1), 'hero'), btn('🌌', 'Planets', siteToSpace)); }
+  else if (mode === 'site') { acts.append(...(site && site.spots && site.spots.length && site.spots.every(m => m.userData.got) && !site.quizDone ? [btn('🧠', 'Quiz', placeQuiz, 'hero')] : [])); if (LM[wIdx].id === 'college') acts.append(btn('🔬', 'Number Lab', startLab, 'hero'), btn('📚', 'Reading Room', startRead, 'hero')); acts.append(btn('🧭', 'Map', () => leaveSite(wIdx)), btn('🔊', 'Tell me', () => speak(ANIMAL_SAY[LM[wIdx].id] ? [LM[wIdx].say, ANIMAL_SAY[LM[wIdx].id]] : LM[wIdx].say)), btn('▶️', 'Next place', () => siteSwap(wIdx + 1), 'hero'), btn('🌌', 'Planets', siteToSpace)); }
   if (mode === 'world') {
     acts.append(btn('◀️', 'Back', () => goLandmark(wIdx - 1)), btn('🔊', 'Tell me', () => speak(LM[wIdx].say)), btn('▶️', 'Next stop', () => goLandmark(wIdx + 1), 'hero'),
       btn('🌌', 'Planets', () => { ++seq; overview(); }));
@@ -2851,6 +3018,8 @@ function nav(){
   if (mode === 'home') acts.append(btn('🚀', 'Back to space', launch, 'hero'), btn('📖', 'Bedtime story', bedtime), btn(night ? '☀️' : '🌙', night ? 'Make day' : 'Make night', toggleNight, 'gold'), btn('🔭', "Tonight's sky", tonight), btn('🔊', 'Tell me more', moreFact), btn('🛂', 'Passport', openPassport));
   if (mode === 'sky') acts.append(...(matchMedia('(pointer:fine)').matches ? [] : [skyTilt.on ? btn('✋', 'Stop pointing', () => skyPoint(false), 'hero') : btn('📱', 'Point my phone', () => skyPoint(true), 'hero')]), btn('🏡', 'House', () => { skyPoint(false, true); ++seq; homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); speak(HOME_FACTS[0]); }), btn('🔊', 'Tell me again', () => speak(skyLines(sky))), btn('🚀', 'Back to space', () => { skyPoint(false, true); homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); launch(); }, 'gold'));
   if (mode === 'quiz') acts.append(btn('🔊', 'Again', () => qz && speak(qz.order[qz.i % qz.order.length][1]), 'hero'), btn('🌌', 'All planets', endQuiz), btn('🔄', 'New game', startQuiz, 'gold'));
+  if (mode === 'read') acts.append(btn('🔊', 'Again', () => qz && qz.e && speak(qz.lock ? qz.e.yes : qz.e.again || qz.e.ask), 'hero'), btn('🎓', 'Back to campus', endRead));
+  if (mode === 'lab') acts.append(btn('🔊', 'Again', () => qz && qz.e && speak(qz.lock ? qz.e.yes : qz.e.ask), 'hero'), btn('🎓', 'Back to campus', endLab));
   if (mode === 'isplanet') acts.append(btn('🔊', 'Again', () => qz && speak(ISP[qz.i % ISP.length][3]), 'hero'), btn('🟤', 'Back to Pluto', endIsp));
   if (mode === 'homes') acts.append(btn('🔊', 'Again', () => qz && speak(qz.lock ? HOME_OF[qz.an][1] : homesAsk(qz.an)), 'hero'), btn('🌍', 'Back to Earth', endHomes));
   if (mode === 'bigger') acts.append(btn('🔊', 'Again', () => speak(SAY.biggerAsk), 'hero'), btn('🌌', 'All planets', endBigger), btn('📏', 'Sizes', () => { endBigger(); openSizes(); }, 'gold'));
@@ -3289,6 +3458,7 @@ const SITE_EXTRA = {   // a second thing to spot, said a little later
 };
 // three sparkles to tap in every landmark scene, each with something true to learn
 const SITE_SPOTS = {
+  college: ["The big round dome is on top of a building at MIT. Students there build robots and rockets!", "Harvard is the oldest college in the United States. It started in 1636, almost four hundred years ago!", "MIT and Harvard are neighbors in the same city. You could walk from one to the other, but it's a long walk!"],
   ksc: [ANIMAL_SAY.ksc, "The giant Saturn V rocket was taller than a thirty-story building. It took astronauts to the Moon!", "Alligators live near the Space Center too! It's inside a big wildlife refuge."],
   liberty: ["The flame on her torch is covered in real gold!", "Her crown has seven points. Some people say they stand for the seven seas and the seven continents.", ANIMAL_SAY.liberty],
   canyon: ["The Colorado River carved the Grand Canyon, a tiny bit at a time, over millions of years.", "See the stripes in the rocks? They're layers, like a cake. The bottom ones are the oldest!", ANIMAL_SAY.canyon],
@@ -3319,7 +3489,7 @@ function siteSparkles(L, info){
     site.sc.add(m); return m; });
 }
 // after the sparkles: three picture questions about the place (no reading needed; Luna says every choice)
-const PLACE_CONT = { ksc: 'northAmerica', liberty: 'northAmerica', canyon: 'northAmerica', amazon: 'southAmerica', penguins: 'antarctica', bigben: 'europe', eiffel: 'europe', colosseum: 'europe', pyramids: 'africa', taj: 'asia', everest: 'asia', wall: 'asia', opera: 'australia' };
+const PLACE_CONT = { ksc: 'northAmerica', liberty: 'northAmerica', canyon: 'northAmerica', amazon: 'southAmerica', penguins: 'antarctica', bigben: 'europe', eiffel: 'europe', colosseum: 'europe', pyramids: 'africa', taj: 'asia', everest: 'asia', wall: 'asia', opera: 'australia', college: 'northAmerica' };
 const CONT_ALT = { northAmerica: ['europe', 'africa'], southAmerica: ['asia', 'europe'], antarctica: ['africa', 'australia'], europe: ['asia', 'southAmerica'], africa: ['europe', 'australia'], asia: ['africa', 'northAmerica'], australia: ['asia', 'southAmerica'] };
 const PLACE_Q = {   // [question, [emoji, label, right?] x3]
   ksc: ["Where did the giant Saturn V rocket take astronauts? The Moon, the Sun, or Mars?", [['🌙', 'Moon', 1], ['☀️', 'Sun'], ['🔴', 'Mars']]],
@@ -3336,9 +3506,9 @@ const PLACE_Q = {   // [question, [emoji, label, right?] x3]
   wall: ["What did soldiers use to watch for danger on the wall? Towers, boats, or kites?", [['🏯', 'Towers', 1], ['⛵', 'Boats'], ['🪁', 'Kites']]],
   opera: ["What covers the Opera House roof? Tiles, leaves, or candy?", [['🔲', 'Tiles', 1], ['🍃', 'Leaves'], ['🍬', 'Candy']]],
 };
-const NO_THE = { bigben: 1, everest: 1, penguins: 1 }, theName = L => (NO_THE[L.id] ? '' : 'the ') + L.name;   // "Big Ben", not "the Big Ben"
+const NO_THE = { bigben: 1, everest: 1, penguins: 1, college: 1 }, theName = L => (NO_THE[L.id] ? '' : 'the ') + L.name;   // "Big Ben", not "the Big Ben"
 const whichLine = L => `Which one is ${theName(L)}? Tap it!`;
-const contLine = (L, opts) => `${L.id === 'penguins' ? 'Where do emperor penguins live?' : 'Which continent ' + (L.id === 'pyramids' ? 'are ' : 'is ') + theName(L) + ' in?'} Is it ${opts[0][1]}, ${opts[1][1]}, or ${opts[2][1]}?`;
+const contLine = (L, opts) => `${L.id === 'penguins' ? 'Where do emperor penguins live?' : 'Which continent ' + (L.id === 'pyramids' || L.id === 'college' ? 'are ' : 'is ') + theName(L) + ' in?'} Is it ${opts[0][1]}, ${opts[1][1]}, or ${opts[2][1]}?`;
 const contOpts = L => { const c = PLACE_CONT[L.id], [a, b] = CONT_ALT[c], o = [[REGIONS[c][2], REGION_NAME[c], 1], [REGIONS[a][2], REGION_NAME[a]], [REGIONS[b][2], REGION_NAME[b]]], k = LM.indexOf(L) % 3; return [...o.slice(k), ...o.slice(0, k)]; };
 SAY.placeQuizIn = "Quiz time! Tap the right picture.";
 SAY.placeQuizDone = "You got them all! You really know this place!";
@@ -3923,6 +4093,55 @@ SITES.bigben = (s) => {
   const dials = []; T.traverse(o => { if (o.userData.dial) dials.push(o); });
   return { target: new THREE.Vector3(0, 60, 0), dist: 200, el: .1, az: 2.2, shadow: 220, ownSky: true, haze: '#cfe3f3', far: 3000, lights: n => dials.forEach(d => { d.material.emissiveIntensity = n > .5 ? 2 : 0; }),
     update: (dt, t) => { wheel.rotation.z = t * .02; pods.forEach(p => p.rotation.z = -wheel.rotation.z); buses.forEach(b => { b.position.z += b.userData.dir * dt * 6; if (b.position.z > 300) b.position.z = 5; if (b.position.z < 5) b.position.z = 300; b.rotation.y = b.userData.dir > 0 ? 0 : Math.PI; }); } };
+};
+SITES.college = (s) => {   // Cambridge, Massachusetts: a domed hall with a columned porch (MIT) and a red-brick college yard with a white steeple (Harvard), squeezed closer together than they really are
+  const LIME = std({ color: '#e6dfcf', map: stoneTex('#e6dfcf', '#b9b19f', 20, 44, ['#d8d0bd', '#efe9dc'], 2), roughness: .9 }), DOMEM = std({ color: '#b9c0c4', roughness: .5, metalness: .3 });
+  const GLASS = std({ color: '#2f3a46', roughness: .15, metalness: .5 }), GRASS = std({ map: grassGroundTex, roughness: 1 });
+  const mit = new THREE.Group(); s.add(mit);
+  box(120, 26, 40, LIME, 0, 13, -12, mit);
+  for (let y = 6; y < 24; y += 8) for (let x = -54; x <= 54; x += 7) if (Math.abs(x) > 26) box(3, 4.5, .4, GLASS, x, y, 8.3, mit);
+  box(50, 4, 14, LIME, 0, 2, 15, mit); for (let k = 0; k < 3; k++) box(50, 1.3, 3, LIME, 0, .65 + k * 1.3, 27 - k * 3, mit);   // porch and steps
+  for (let i = 0; i < 10; i++) cyl(1.3, 1.5, 20, LIME, -21 + i * 42 / 9, 14, 20, mit);
+  box(52, 4, 14, LIME, 0, 26, 15, mit); box(52, 1, 15, '#d5cdbb', 0, 28.5, 15, mit);
+  cyl(18, 18, 9, LIME, 0, 30.5, -8, mit); cyl(19, 19, 1.5, '#d5cdbb', 0, 35.5, -8, mit);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(18, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2), DOMEM); dome.position.set(0, 36, -8); dome.castShadow = true; mit.add(dome);
+  cyl(2.2, 2.6, 4, LIME, 0, 55.5, -8, mit);
+  box(520, .3, 520, GRASS, -100, .15, 170, s);   // lawns from the dome to the brick yard and out towards the camera
+  const harv = new THREE.Group(); harv.position.set(-170, 0, 75); harv.rotation.y = .45; s.add(harv);
+  const BRICK = std({ color: '#b2583e', map: stoneTex('#b2583e', '#7e3c2a', 3, 8, ['#a24f37', '#c0694d'], 8), roughness: .9 }), SLATE = std({ color: '#55606a', roughness: .6, metalness: .2 }), WHITE = std({ color: '#f4f1ea', roughness: .7 });
+  const hall = (w, d, x, z, ry) => { const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; harv.add(g);
+    box(w, 16, d, BRICK, 0, 8, 0, g); box(w + .6, .8, d + .6, WHITE, 0, 16.4, 0, g);
+    const rf = new THREE.Mesh(new THREE.CylinderGeometry(d * .62, d * .62, w, 3, 1), SLATE); rf.rotation.z = Math.PI / 2; rf.scale.set(1, 1, .5); rf.position.y = 16.8 + d * .2; rf.castShadow = true; g.add(rf);
+    for (const y of [4, 10]) for (let x2 = -w / 2 + 4; x2 <= w / 2 - 4; x2 += 5) { box(2.4, 3.6, .3, WHITE, x2, y, d / 2 + .1, g); box(1.8, 3, .3, GLASS, x2, y, d / 2 + .2, g); }
+    for (const sx of [-1, 1]) box(2, 6, 2, '#8a4a35', sx * (w / 2 - 3), 22, 0, g); };
+  hall(70, 16, 0, -55, 0); hall(70, 16, 0, 55, Math.PI); hall(60, 16, -50, 0, Math.PI / 2);
+  box(110, .4, 96, GRASS, 0, .2, 0, harv);
+  const ch = new THREE.Group(); ch.position.set(50, 0, 0); ch.rotation.y = -Math.PI / 2; harv.add(ch);   // a white church steeple at the end of the yard
+  box(22, 14, 40, BRICK, 0, 7, -6, ch); const crf = new THREE.Mesh(new THREE.CylinderGeometry(14, 14, 40, 3, 1), SLATE); crf.rotation.x = Math.PI / 2; crf.rotation.y = Math.PI / 2; crf.scale.set(1, .5, 1); crf.position.set(0, 18, -6); ch.add(crf);
+  box(12, 6, 4, WHITE, 0, 3, 15.5, ch); for (const x of [-4.5, -1.5, 1.5, 4.5]) cyl(.6, .6, 12, WHITE, x, 6, 18, ch); box(13, 2.5, 5, WHITE, 0, 13, 17, ch);
+  box(9, 12, 9, WHITE, 0, 20, 12, ch); box(7, 8, 7, WHITE, 0, 30, 12, ch); box(5, 6, 5, WHITE, 0, 37, 12, ch);
+  const sp = new THREE.Mesh(new THREE.ConeGeometry(3.4, 20, 8), WHITE); sp.position.set(0, 50, 12); sp.castShadow = true; ch.add(sp);
+  const trees = [];
+  for (let k = 0; k < 26; k++) { const a = k / 26 * Math.PI * 2; trees.push([-170 + Math.cos(a) * 34 + Math.sin(k) * 8, 75 + Math.sin(a) * 28, .8 + (k % 3) * .15]); }
+  for (let z = 40; z < 150; z += 16) for (const x of [-80, 80]) trees.push([x, z, 1]);
+  const LR = 2400; cityGround(s, { R: LR + 120, pitch: 90, street: 16, style: 'london' });
+  cityGrid(s, { pitch: 90, street: 16, R0: 0, R1: LR - 150, nearR: 1000, lots: [4, 2, false], farLots: [2, 1, false], gap: .5, h: [12, 22], roof: 'gable', roofH: 5, facade: 'brick',
+    walls: ['#a85a40', '#b46a4b', '#94503a', '#e9e3d6', '#ddd4c2', '#c9c2b4'], roofs: ['#56606a', '#646b73', '#4d565f'], extras: 'chimney', chimneyC: '#8a4a35', parks: .06,
+    trees: { every: 4, step: 20, r: 1000 }, extraTrees: trees, treeC: ['#5e9a4a', '#4f8b3f', '#6aa655'], treeH: 12,
+    exclude: [{ r: [-370, -80, 170, 440] }] });
+  skylineRing(s, { R: LR, H: 420, base: '#c3c4bf', haze: '#cfe3f3', draw: P => {
+    P.hills('#a3bda3', 15, 50, 2, 2);
+    const b = skyBehind(2.2), at = (x, dx) => x + dx * P.mx;
+    for (const [dx, w, h, c] of [[-60, 40, 260, '#8ea6ba'], [-20, 34, 330, '#a9bccb'], [24, 46, 290, '#7f97ad'], [70, 30, 220, '#b6c6d3']]) P.rect(at(P.X(b + .2), dx), w, h, c);   // city towers across the river
+    P.row({ w: [18, 40], h: [14, 26], cols: ['#a4624a', '#b37457', '#9a5a46', '#e6e0d4', '#c9a58c'], roof: 'gable', roofC: '#5c646d', chim: '#7a4535', win: 'rgba(250,250,245,.55)', floor: 4 });
+    P.trees('#6a9b5b', 16, 150);
+  } });
+  citySky(s, { R: 3300, cloudR: 2100 });
+  const caps = [], CAPM = std({ color: '#1f2433', roughness: .6 }), TASM = std({ color: '#ffd166', roughness: .5 });   // graduation caps tossed over the lawn: it's a college
+  for (let i = 0; i < 7; i++) { const c = new THREE.Group(); box(7, .5, 7, CAPM, 0, 0, 0, c); cyl(2.4, 2.8, 2.2, CAPM, 0, -1.3, 0, c); cyl(.25, .25, 3, TASM, 2.8, -1.3, 2.8, c); c.position.set(-60 + i * 22 + (i % 2) * 6, 6, 70 + (i % 3) * 18); c.userData.ph = i * 1.7; caps.push(c); s.add(c); }
+  const tall = W < H;   // a phone held upright sees a narrow slice: stand further back and look down so both campuses fit
+  return { target: new THREE.Vector3(-75, 20, 35), dist: tall ? 470 : 240, el: tall ? .32 : .2, az: .12, shadow: 260, ownSky: true, haze: '#cfe3f3', far: 3000,
+    update: (dt, t) => caps.forEach(c => { const u = (t * .45 + c.userData.ph) % 3.2, up = u < 2 ? Math.sin(u / 2 * Math.PI) : 0; c.position.y = 6 + up * 46; c.rotation.y = t * 1.3 + c.userData.ph; c.rotation.x = Math.sin(t * 2 + c.userData.ph) * .4 * up; }) };
 };
 SITES.taj = (s, ctx) => {
   const marbleT = canvasTex(256, 256, (g, w, h) => { g.fillStyle = '#f6f2ea'; g.fillRect(0, 0, w, h); speckle(g, w, h, 600, ['#ece6da', '#fbf9f4'], 1, 4);
@@ -4688,6 +4907,8 @@ function buildToy(){
       cyl2(g, .008, .008, .22, '#ffffff', 0, .78); const f = new THREE.Mesh(new THREE.PlaneGeometry(.14, .09), toyToon('#ff4d6d', { side: THREE.DoubleSide })); f.position.set(.07, .95, 0); g.add(f); },
     canyon: g => { for (const [x, z, hh] of [[0, 0, .3], [.3, .1, .22], [-.25, .15, .18]]) bx(g, .2, hh, .2, '#d9763b', x, 0, z); },
     penguins: g => { for (let i = 0; i < 5; i++) { const x = (i - 2) * .14; cyl2(g, .04, .05, .16, '#1f2230', x, 0, 0); ball2(g, .04, '#ffffff', x, .08, .035); cone(g, .015, .04, '#ff9f1c', x, .13, .05, 6).rotation.x = Math.PI / 2; } },
+    college: g => { bx(g, .62, .2, .26, '#e6dfcf', -.2, 0, 0); ball2(g, .15, '#b9c0c4', -.2, .22, 0); for (let i = 0; i < 4; i++) cyl2(g, .02, .02, .16, '#ffffff', -.38 + i * .11, 0, .15);
+      bx(g, .36, .2, .24, '#b5573c', .36, 0, .05); cone(g, .17, .1, '#55606a', .36, .2, .05); bx(g, .08, .22, .08, '#ffffff', .36, .2, .05); cone(g, .05, .22, '#ffffff', .36, .42, .05, 8); },
     amazon: g => { ball2(g, .08, '#e63946', 0, .25, 0); const w = bx(g, .22, .02, .06, '#2a6fdb', 0, .22, 0); w.rotation.z = .2; },
   };
   for (const L of LM) if (BUILD[L.id]) mk(L, BUILD[L.id]);
@@ -6051,7 +6272,7 @@ function drawEclipse(){
 const STAMPS = [
   ...P.map(p => ({ id: 'p:' + p.id, img: p.thumb, label: p.label })),
   { id: 'eclipse', em: '🌑', label: 'Eclipse' }, { id: 'home', em: '🏡', label: 'Home' }, { id: 'landing', em: '🪂', label: 'Landing' }, { id: 'launch', em: '🚀', label: 'Blast off' }, { id: 'sky', em: '🔭', label: "Tonight's sky" },
-  { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'bigger', em: '⚖️', label: 'Size expert' }, { id: 'highway', em: '🛣️', label: 'Highway hero' }, { id: 'europarocks', em: '🧊', label: 'Europa explorer' }, { id: 'phases', em: '🌗', label: 'Moon phases' }, { id: 'homes', em: '🦒', label: 'Animal homes' }, { id: 'isplanet', em: '🔭', label: 'Pluto pal' }, { id: 'titanrocks', em: '🟠', label: 'Titan explorer' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
+  { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'bigger', em: '⚖️', label: 'Size expert' }, { id: 'highway', em: '🛣️', label: 'Highway hero' }, { id: 'europarocks', em: '🧊', label: 'Europa explorer' }, { id: 'phases', em: '🌗', label: 'Moon phases' }, { id: 'homes', em: '🦒', label: 'Animal homes' }, { id: 'isplanet', em: '🔭', label: 'Pluto pal' }, { id: 'numberlab', em: '🔬', label: 'Number Lab' }, { id: 'reading', em: '📚', label: 'Reading Room' }, { id: 'titanrocks', em: '🟠', label: 'Titan explorer' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
   { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'sparkles', em: '✨', label: 'Sparkle finder' }, { id: 'placequiz', em: '🧠', label: 'Place quiz' }, { id: 'daily', em: '🌟', label: 'Daily mission' }, { id: 'moonwalk', em: '🧑‍🚀', label: 'Moonwalker' }, { id: 'sizes', em: '📏', label: 'Size explorer' }, { id: 'jumper', em: '🛹', label: 'Ramp jumper' }, { id: 'moonrocks', em: '🌕', label: 'Moon rock hunter' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
   { id: 'roadtrip', em: '🚗', label: 'Road tripper' }, { id: 'cityhopper', em: '🏙️', label: 'City hopper' }, { id: 'balloons', em: '🎈', label: 'Balloons' }, { id: 'aurora', em: '🌌', label: 'Northern lights' },
   ...LM.map(l => ({ id: 'l:' + l.id, em: l.em, label: l.name.replace('Pyramids of Giza', 'Pyramids').replace('Great Wall of China', 'Great Wall').replace('Sydney Opera House', 'Opera House').replace('Kennedy Space Center', 'Space Center').replace('Amazon Rainforest', 'Rainforest') })),
@@ -6359,6 +6580,9 @@ window.__startRoadMission = () => { const F = toy.fly; F.mission = null; const m
 window.__perf = () => { const f = (window.__ft || []).slice(-300).filter(x => x > 0 && x < 2), m = f.reduce((a, b) => a + b, 0) / Math.max(1, f.length), sorted = [...f].sort((a, b) => a - b), p95 = sorted[Math.floor(sorted.length * .95)] || 0, i = renderer.info; return { fps: +(1 / Math.max(1e-6, m)).toFixed(1), p95ms: +(p95 * 1000).toFixed(1), calls: i.render.calls, tris: i.render.triangles, geos: i.memory.geometries, texs: i.memory.textures, heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, mode, sceneMode }; };
 window.__phases = v => { if (v != null) $('#phslide').value = v; return { on: phx.on, last: phx.last, seen: phx.seen.size, done: !!phx.done, mode }; };
 window.__drawBreakdown = () => { const nm = new Map(toy ? [[toy.lms, 'landmarks'], [toy.planet, 'planet'], [toy.stars, 'stars'], ...Object.entries(toy).flatMap(([k, v]) => v && v.isObject3D ? [[v, k]] : Array.isArray(v) ? v.filter(x => x && x.isObject3D).map(x => [x, k + '[]']) : [])] : []), sc = sceneMode === 'toy' ? toy.s : sceneMode === 'site' && site ? site.sc : sceneMode === 'mars' ? marsScene : space, out = {}; for (const top of sc.children) { let n = 0; top.traverseVisible(o => { if (o.isMesh || o.isPoints || o.isSprite || o.isLine) n++; }); if (n) { const k = (nm.get(top) || top.name || top.type) + (top.isInstancedMesh ? '[inst]' : '') + (top.type === 'Group' && !nm.get(top) ? '#' + sc.children.indexOf(top) + ':' + top.children.length + 'ch:' + ((top.children[0] && top.children[0].geometry && top.children[0].geometry.type) || (top.children[0] && top.children[0].type) || '') : ''); out[k] = (out[k] || 0) + n; } } return Object.entries(out).sort((a, b) => b[1] - a[1]).slice(0, 25); };
+window.__read = () => qz && qz.kind === 'read' && { ask: [].concat(qz.e.ask).join(' '), opts: qz.e.opts.map(o => o.id), exp: qz.exp, ans: qz.e.ans, right: qz.right, miss: qz.miss, std: qz.e.std, mode };
+window.__lab = () => qz && qz.kind === 'lab' && { exp: qz.exp, ans: qz.e.ans, n: qz.n, right: qz.right, miss: qz.miss, std: qz.e.std, mode };
+window.__voiceGaps = () => voiceReady.then(() => window.__allLines().filter(l => !(VOICE.has && VOICE.has(voiceHash(l)))));   // spoken lines with no recording
 window.__isp = () => qz && qz.kind === 'isp' && { id: qz.id, ans: ISP[qz.i % ISP.length][2], right: qz.right, i: qz.i, mode };
 window.__homesNext = () => { if (qz && qz.kind === 'homes') nextHome(); return [qz.an, HOME_OF[qz.an][0], [...document.querySelectorAll('#qtray .pl')].map(b => b.dataset.id), HOME_ALSO[qz.an] || []]; };
 window.__homes = () => qz && qz.kind === 'homes' && { an: qz.an, right: qz.right, home: HOME_OF[qz.an][0], mode };
@@ -6393,6 +6617,15 @@ window.__allLines = () => {
   Object.entries(US_ROAD_CITIES).forEach(([r, n]) => { s.add(roadLine(r, n[0])); s.add(roadLine(r, n[n.length - 1])); });
   Object.entries(HOME_OF).forEach(([a, [, l]]) => { s.add(l); s.add(homesAsk(a)); });
   ISP.forEach(x => { s.add(x[3]); s.add(x[4]); });
+  for (let n = 0; n <= 10; n++) { if (n) { s.add(labYes(n)); s.add(labCount(n)); s.add(moonsYes(n)); } s.add(astroYes(n)); }
+  for (let n = 1; n <= 10; n++) { if (n <= 9) { s.add(moonsAsk(n, 1)); s.add(moonsShow(n, 1)); } if (n >= 2) { s.add(moonsAsk(n, -1)); s.add(moonsShow(n, -1)); } }
+  for (let a = 1; a <= 5; a++) for (let b = 1; b <= Math.min(5, 10 - a); b++) { s.add(astroAsk(a, b, 1)); s.add(astroShow(a, b, 1)); }
+  for (let a = 3; a <= 9; a++) for (let b = 1; b <= Math.min(3, a - 1); b++) { s.add(astroAsk(a, b, -1)); s.add(astroShow(a, b, -1)); }
+  for (let k = 3; k <= 10; k++) { s.add(cdAsk(k)); s.add(cdYes(k - 3)); s.add(cdShow(k - 3)); }
+  const perms = a => [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]].map(o => o.map(i => a[i]));
+  [...RHYME].forEach(([t, , r, , f]) => { perms([r, f[0][0], f[1][0]]).forEach(ws => s.add(rhAsk(t, ws))); s.add(rhYes(t, r)); s.add(rhShow(t, r)); }); FIRST.forEach(([t, , a, , f]) => { perms([a, f[0][0], f[1][0]]).forEach(ws => s.add(fsAsk(t, ws))); s.add(fsYes(t, a)); s.add(fsShow(t, a)); });
+  PQ_SIGHT.forEach(w => { s.add(swAsk(w)); s.add(swYes(w)); s.add(swShow(w)); }); PQ_SENT.forEach(x => s.add(x.t)); STORIES.forEach(([, l, q, , y]) => { l.forEach(x => s.add(x)); s.add(q); s.add(y); s.add(y.replace('Yes! ', '')); });
+  Object.keys(SHAPES).forEach(t => { s.add(SHAPES[t]); s.add(shapeAsk(t)); s.add(shapeShow(t)); }); s.add('How many rockets?');
   [...PHASES.map(p => p[1]), ...EUROPA_ROCKS, ...TITAN_ROCKS, jumpLine(byId.europa), jumpLine(byId.titan), ...Object.values(TRIP_SAY), ...Object.values(ROAD_SAY), ...Object.values(BIOME_SAY), ...CITY_STOPS.map(c => c.say)].forEach(x => s.add(x)); Object.values(US_ROAD_CITIES).flat().forEach(n => { if (n) s.add('Welcome to ' + n + '!'); });   // road-trip narration
   DIRS.forEach(d => { s.add(moonWhere(d)); SKY_PLANETS.forEach(id => s.add(planetWhere(id, d))); });
   for (const l of [...s]) { const d = deskLine(l); if (d !== l) s.add(d); }   // desktop versions of tap/swipe lines
@@ -6545,6 +6778,7 @@ addEventListener('keydown', e => {
     if (k === 'arrowup' || k === 'w') { drive.gas = 1; e.preventDefault(); return; } if (k === 'arrowdown' || k === 's') { drive.gas = -.5; e.preventDefault(); return; }
     if (k === 'arrowleft' || k === 'a') { drive.steer = -1; e.preventDefault(); return; } if (k === 'arrowright' || k === 'd') { drive.steer = 1; e.preventDefault(); return; } }
   if (e.key === 'Escape' && !$('#grown').hidden) { $('#grown').hidden = true; return; }
+  if (e.key === 'Escape' && ['lab', 'read', 'homes', 'isplanet', 'quiz', 'bigger', 'phases', 'eclipse'].includes(mode)) { goBack(); e.preventDefault(); return; }
   if (!$('#sizes').hidden && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { $('#szrow').scrollBy({ left: e.key === 'ArrowRight' ? 320 : -320, behavior: 'smooth' }); e.preventDefault(); return; }
   if (mode === 'toy' && toy && toy.lmTour && !toy.fly && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { toyLmTour(toy.lmI + (e.key === 'ArrowRight' ? 1 : -1)); e.preventDefault(); return; }
   if ((mode === 'toy' && toy && !toy.fly && !toy.follow) || mode === 'site') {   // keyboard play on the globe and at landmarks: arrows turn, + and - zoom, Enter taps what's under the crosshair
