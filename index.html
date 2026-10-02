@@ -94,6 +94,16 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #qstars{text-align:center;font-size:26px;letter-spacing:4px;min-height:32px}
 #qtray{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:360px;width:100%;margin:0 auto}
 #qtray .pl img{width:84px;height:84px}
+.th.dwarf img{outline:2px dashed #c9b8ff;outline-offset:1px;border-radius:50%}
+.th .dw{font-size:10px;line-height:1;margin-top:-2px;color:#c9b8ff}
+#quiz.isp #qask{display:flex;flex-direction:column;align-items:center;gap:6px}
+#quiz.isp .ispW{width:110px;height:110px}
+.ispChecks{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.ispC{display:flex;align-items:center;gap:4px;padding:4px 10px;border-radius:14px;background:rgba(255,255,255,.08);font:600 15px/1.2 var(--display);opacity:0;animation:ispIn .4s ease forwards}
+.ispC b{font-size:20px}
+@keyframes ispIn{to{opacity:1}}
+#quiz.isp #qtray{grid-template-columns:repeat(3,1fr);max-width:440px}
+#quiz.isp #qtray .pl{min-height:104px;justify-content:center;gap:4px}
 #goalchip.road .ge{font-size:.8em;letter-spacing:-.02em}
 #szgame{align-self:center;margin:6px auto 0}
 #quiz.homes #qtray{grid-template-columns:repeat(3,1fr);max-width:440px;align-items:stretch}
@@ -371,6 +381,18 @@ const P = [
     "This is Neptune, the farthest planet from the Sun.",
     "Neptune has the fastest winds in the solar system. Whoosh!",
     "Neptune is so far away that one trip around the Sun takes 165 of our years!"]},
+  { id:'pluto', label:'Pluto', kind:'dwarf planet', r:.24, d:38, per:248, inc:17, spin:.25, tilt:0, g:.063, facts:[   // kind: the one field to change if the IAU ever renames it
+    "This is Pluto! It's a dwarf planet, far out past Neptune.",
+    "Pluto is round, and it goes around the Sun, just like a planet. But it shares its path with lots of other icy little worlds.",
+    "A planet is the boss of its path. Pluto isn't, so in 2006, scientists started calling it a dwarf planet.",
+    "Pluto is smaller than our Moon!",
+    "Pluto has a giant heart made of ice! The New Horizons spacecraft took its picture in 2015.",
+    "Pluto has five moons. The biggest one is called Charon.",
+    "One trip around the Sun takes Pluto 248 of our years!"]},
+  { id:'charon', label:'Charon', parent:'pluto', r:.12, d:1, spin:.1, tilt:0, g:null, facts:[
+    "This is Charon, Pluto's biggest moon. It's about half as big as Pluto!",
+    "Charon has a dark red patch at its top, like a little cap.",
+    "Pluto and Charon always show each other the same side, like two friends holding hands as they spin."]},
   { id:'europa', label:'Europa', parent:'jupiter', r:.34, d:3.6, spin:.1, tilt:0, g:.134, facts:[
     "This is Europa, one of Jupiter's moons. It's covered in ice!",
     "Scientists think a giant salty ocean is hiding under Europa's ice.",
@@ -525,7 +547,7 @@ function pickVoice(){
 if (canSpeak) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 // Every line is pre-recorded (Kokoro-82M, voice af_heart, the same voice as Princess Quest) and embedded below;
 // anything missing falls back to the phone's own text-to-speech.
-const APP_VERSION = 'space-v36';
+const APP_VERSION = 'space-v37';
 let VOICE = {};
 // grown-up settings, kept on this phone
 const prefs = { rate: 1, vol: 1, captions: true }; try { Object.assign(prefs, JSON.parse(localStorage.getItem('ast-prefs') || '{}')); } catch {}
@@ -550,6 +572,7 @@ const DESK_CAP = [[/Drag your finger to steer/g, 'Use the arrow keys to steer'],
 const deskLine = l => DESK_CAP.reduce((a, [r, w]) => a.replace(r, w), l);   // the same line with mouse words
 const voicePick = l => { if (!matchMedia('(pointer:fine)').matches) return l; const d = deskLine(l); return d !== l && VOICE.has && VOICE.has(voiceHash(d)) ? d : l; };   // desktop says click and scroll, when that recording exists
 const speaking = () => (!vEl.paused && !vEl.ended) || (canSpeak && speechSynthesis.speaking);
+function hush(){ ++vToken; try { vEl.pause(); } catch {} if (canSpeak) try { speechSynthesis.cancel(); } catch {} clearTimeout(capTimer); $('#caption').textContent = ''; }   // leaving a game: its question must not keep talking
 function speak(lines, soft = false){   // soft: a by-the-way line that waits its turn (skipped if someone is already talking)
   lines = [].concat(lines).filter(l => typeof l === 'string' && l);   // never let a missing line stop the app
   if (!lines.length || (soft && speaking())) return;
@@ -719,6 +742,19 @@ function planetCanvas(id){
       for (let i = 0; i < 70; i++) { g.strokeStyle = `rgba(${140 + rnd() * 40 | 0},${80 + rnd() * 30 | 0},${50 | 0},${.35 + rnd() * .4})`; g.lineWidth = 1.5 + rnd() * 3; g.beginPath(); let x = rnd() * TW, y = rnd() * TH; g.moveTo(x, y); const a = rnd() * 6.3; for (let k = 0; k < 6; k++) { x += Math.cos(a + (rnd() - .5) * .4) * 40; y += Math.sin(a + (rnd() - .5) * .4) * 40; g.lineTo(x, y); } g.stroke(); }
       break;
     }
+    case 'pluto': {   // cartoon of the New Horizons view: tan and cream, the pale heart (Tombaugh Regio) facing front, the dark red region to its west
+      fill('#dcb894'); const n = fbm([4, 8, 16, 32], 171); tintWhere(c, n, .5, .62, [196, 150, 110], .6); tintWhere(c, n.map(v => 1 - v), .55, .66, [242, 226, 202], .55);
+      for (const [lo, la, w, h, a] of [[-62, -14, 34, 12, .2], [-34, -18, 26, 10, -.15], [-88, -10, 22, 9, .1], [62, -12, 16, 8, 0], [80, -6, 12, 7, .3], [130, -14, 20, 9, 0], [-140, -10, 18, 8, 0]]) {
+        const [x, y] = lonLatXY(lo, la); g.fillStyle = 'rgba(112,46,30,.85)'; g.beginPath(); g.ellipse(x, y, w / 360 * TW, h / 180 * TH, a, 0, 7); g.fill(); }
+      const [x, y] = lonLatXY(0, 14), hw = 64 / 360 * TW, hh = 58 / 180 * TH; g.fillStyle = '#fbf6ee'; g.beginPath(); g.moveTo(x, y + hh * .5);
+      g.bezierCurveTo(x - hw * .55, y + hh * .05, x - hw * .5, y - hh * .5, x - hw * .22, y - hh * .5); g.bezierCurveTo(x - hw * .05, y - hh * .5, x, y - hh * .32, x, y - hh * .25);
+      g.bezierCurveTo(x, y - hh * .32, x + hw * .05, y - hh * .5, x + hw * .22, y - hh * .5); g.bezierCurveTo(x + hw * .5, y - hh * .5, x + hw * .55, y + hh * .05, x, y + hh * .5); g.fill();
+      shade(c, .14, 173); break;
+    }
+    case 'charon': { fill('#a9a3a0'); shade(c, .3, 181, [4, 8, 16]); dots(g, 50, '#95908d', 3, 14, 40, 480, '#c9c4c0');
+      const gr = g.createLinearGradient(0, 0, 0, 70); gr.addColorStop(0, 'rgba(120,50,35,.9)'); gr.addColorStop(1, 'rgba(120,50,35,0)'); g.fillStyle = gr; g.fillRect(0, 0, TW, 70); break; }   // the red cap (Mordor Macula)
+    case 'ceres': { fill('#8e8b88'); shade(c, .35, 191, [4, 8, 16]); dots(g, 60, '#7d7a77', 3, 18, 40, 480, '#aaa7a4');
+      for (const [lo, la] of [[-120, 20], [-116, 18]]) { const [x, y] = lonLatXY(lo, la); g.fillStyle = '#ffffff'; g.beginPath(); g.arc(x, y, 6, 0, 7); g.fill(); } break; }   // the bright spots in Occator crater
     case 'titan': bands(g, ['#e3a24a', '#d99a44', '#e8ae5a', '#cf8e3c', '#e3a24a'], 6, 2); warp(c, 40, 8, 151); shade(c, .08, 153); break;
     case 'moon': {
       fill('#cfd0d8'); const n = fbm([4, 8, 16, 32], 91);
@@ -997,8 +1033,8 @@ for (const p of P) {
   p.ang = rnd() * Math.PI * 2; p.w = p.per ? .08 / Math.sqrt(p.per) : 0;
   p.fitR = p.r * (p.id === 'saturn' ? 2.3 : p.id === 'earth' ? 1.5 : p.id === 'uranus' ? 1.8 : 1.15);
   if (p.d && p.id !== 'moon' && !p.parent) {
-    const pts = []; for (let i = 0; i <= 200; i++) { const a = i / 200 * Math.PI * 2; pts.push(new THREE.Vector3(Math.sin(a) * p.d, 0, Math.cos(a) * p.d)); }
-    const ol = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x9d90ff, transparent: true, opacity: .28 })); space.add(ol); orbitLines.push(ol);
+    const si = Math.sin((p.inc || 0) * DEG), ci = Math.cos((p.inc || 0) * DEG), pts = []; for (let i = 0; i <= 200; i++) { const a = i / 200 * Math.PI * 2; pts.push(new THREE.Vector3(Math.sin(a) * p.d, Math.cos(a) * p.d * si, Math.cos(a) * p.d * ci)); }
+    const ol = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), p.kind ? new THREE.LineDashedMaterial({ color: 0xc9b8ff, transparent: true, opacity: .35, dashSize: .9, gapSize: .7 }) : new THREE.LineBasicMaterial({ color: 0x9d90ff, transparent: true, opacity: .28 })); if (p.kind) ol.computeLineDistances(); space.add(ol); orbitLines.push(ol);
   }
 }
 const sunGlows = [];
@@ -1964,14 +2000,14 @@ function overview(){
   mode = 'space'; current = null; worldL = worldAim = null; diving = false; earthSpinGoal = null;
   $('#pill').textContent = 'Our Solar System';
   nav(); layout();
-  goal.target.set(0, 0, 0); goal.el = 1.1; goal.dist = fitDist(37, 1.06, 1.1);
+  goal.target.set(0, 0, 0); goal.el = 1.1; goal.dist = fitDist(40, 1.06, 1.1);
   goal.min = goal.dist * .3; goal.max = goal.dist * 1.25; goal.azMin = -Infinity; goal.azMax = Infinity; goal.elMin = .12; goal.elMax = 1.45;
 }
 function focus(p, quiet){
   endTour(); warpGoal = 1;
   award('p:' + p.id);
   stopJump(); mode = 'focus'; current = p; worldL = worldAim = null; diving = false; earthSpinGoal = null;
-  $('#pill').textContent = p.label;
+  $('#pill').textContent = p.kind ? p.label + ' · ' + p.kind : p.label;
   nav(); layout();
   worldPos(p, goal.target);
   goal.az = p.id === 'sun' ? rig.az : Math.atan2(-goal.target.x, -goal.target.z) + .9;
@@ -1987,6 +2023,8 @@ function moreFact(){
 /* ---------- Explore: turn a world so a real feature faces Amelia, pin it, and tell her about it ---------- */
 // [name, latitude °N, longitude °E, what Luna says]; positions match the NASA maps (0° longitude at the map's centre)
 const FEATURES = {
+  pluto: [['Heart', 14, 0, "This is Pluto's giant heart! It's a huge, flat plain of ice."],
+    ['Dark red land', -14, -62, "This dark red land gets its color from gunk that forms when sunlight shines on frozen gases."]],
   mercury: [['Caloris Basin', 31, 163, "This giant round crater is the Caloris Basin. It's one of the biggest craters in the whole solar system!"],
     ['Hot and cold', 0, -30, "Mercury is the closest planet to the Sun. In the daytime it's super hot, and at night it's freezing cold!"]],
   venus: [['Thick clouds', 10, 0, "Venus is wrapped in thick yellow clouds. Under them, it's hotter than an oven!"],
@@ -2503,6 +2541,7 @@ function pick(b, p){
 }
 /* ---------- riddle game: "Which planet am I?" ---------- */
 const TRIP_SAY = {   // how long real trips took (NASA mission pages)
+  pluto: "The New Horizons spacecraft took nine and a half years to reach Pluto!",
   sun: "Sunlight zooms to Earth in about eight minutes. That's super fast!",
   mercury: "Getting to Mercury is tricky! The spacecraft MESSENGER took almost seven years to get there.",
   venus: "Some spacecraft flew to Venus in about four months.",
@@ -2558,7 +2597,7 @@ function startQuiz(){
 }
 function nextRiddle(first){
   const [ans, text] = qz.order[qz.i % qz.order.length]; qz.tries = 0;
-  const others = P.map(p => p.id).filter(id => id !== ans && !byId[id].parent).sort(() => Math.random() - .5).slice(0, 3);
+  const others = P.map(p => p.id).filter(id => id !== ans && !byId[id].parent && !byId[id].kind).sort(() => Math.random() - .5).slice(0, 3);
   const opts = [ans, ...others].sort(() => Math.random() - .5), tray = $('#qtray'); tray.innerHTML = '';
   $('#qask').textContent = text;
   for (const id of opts) {
@@ -2610,11 +2649,12 @@ function answerBigger(el, id){
 // Who lives here? An animal, three homes to choose from; the right home tells one true thing about why it lives there (NGSS K-ESS3-1)
 const HOMES = { desert: ['🏜️', 'Desert'], ocean: ['🌊', 'Ocean'], ice: ['🧊', 'Ice'], grass: ['🌾', 'Grassland'], forest: ['🌳', 'Forest'], mountains: ['⛰️', 'Mountains'] };
 const HOME_OF = { camel: ['desert', 'Yes! Camels live in the desert. They can go a long time without drinking water.'], polarBear: ['ice', 'Yes! Polar bears live on the Arctic sea ice, where they hunt for seals.'],
-  whale: ['ocean', 'Yes! Whales live in the ocean. They swim up to the top to breathe air.'], dolphin: ['ocean', 'Yes! Dolphins live in the ocean and breathe air through a blowhole.'],
-  zebra: ['grass', 'Yes! Zebras live on grassy plains in Africa, eating grass all day.'], giraffe: ['grass', 'Yes! Giraffes live on grassy plains in Africa and eat leaves from tall trees.'],
+  whale: ['ocean', 'Yes! Whales live in the ocean. They swim up to the top to breathe air.'], dolphin: ['ocean', 'Yes! Most dolphins live in the ocean, and they breathe air through a blowhole.'],
+  zebra: ['grass', 'Yes! Zebras live on grassy plains in Africa, eating grass all day.'], giraffe: ['grass', 'Yes! Giraffes live on grassy savannas in Africa and eat leaves from tall trees.'],
   kangaroo: ['grass', 'Yes! Kangaroos live on grassy plains in Australia, and they hop to get around.'], elephant: ['grass', 'Yes! Many elephants live on grassy plains in Africa, close to water.'],
   bison: ['grass', 'Yes! Bison live on grasslands called prairies.'], panda: ['forest', 'Yes! Giant pandas live in mountain forests in China and eat lots of bamboo.'],
   llama: ['mountains', 'Yes! Llamas come from the Andes Mountains in South America.'] };
+const HOME_ALSO = { panda: ['mountains'], elephant: ['forest'], kangaroo: ['desert', 'forest'], zebra: ['mountains'], giraffe: ['forest'], polarBear: ['ocean'], bison: ['forest', 'mountains'], llama: ['grass'], camel: ['grass'] };   // homes that are also true, so never offered as the wrong answer
 const homesAsk = an => `Where does the ${ANIMAL_NAME[an] || an} live? Tap its home!`;
 SAY.homesIn = "Let's play Who Lives Here! Help each animal find its home.";
 SAY.homesNo = 'Hmm, not that one. Try another home!';
@@ -2624,23 +2664,64 @@ function startHomes(){
   $('#quiz').hidden = false; $('#quiz').classList.add('homes'); qz = { kind: 'homes', n: 0, right: 0, cups: 0, lock: false, last: null }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextHome(true);
 }
 function nextHome(first){
-  const ids = Object.keys(HOME_OF).filter(a => a !== qz.last), an = ids[rnd() * ids.length | 0], right = HOME_OF[an][0];
-  const others = Object.keys(HOMES).filter(h => h !== right).sort(() => rnd() - .5).slice(0, 2), opts = [right, ...others].sort(() => rnd() - .5);
+  const ids = Object.keys(HOME_OF).filter(a => a !== qz.last), an = ids[Math.random() * ids.length | 0], right = HOME_OF[an][0];
+  const others = Object.keys(HOMES).filter(h => h !== right && !(HOME_ALSO[an] || []).includes(h)).sort(() => Math.random() - .5).slice(0, 2), opts = [right, ...others].sort(() => Math.random() - .5);
   qz.last = an; qz.an = an; qz.lock = false; $('#qask').innerHTML = `<span class="homesAn">${ANIMAL_EM[an] || '🐾'}</span>`;
   const tray = $('#qtray'); tray.innerHTML = '';
   for (const h of opts) { const b = document.createElement('button'); b.className = 'pl home'; b.dataset.id = h; b.innerHTML = `<span class="hem">${HOMES[h][0]}</span><span>${HOMES[h][1]}</span>`; b.onclick = () => answerHome(b, h); tray.append(b); }
   speak(first ? [SAY.homesIn, homesAsk(an)] : homesAsk(an));
 }
 function answerHome(b, h){
-  if (!qz || qz.lock) return;
-  if (h !== HOME_OF[qz.an][0]) { bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); speak(SAY.homesNo); return; }
+  if (!qz || qz.lock || performance.now() - (qz.wrongT || 0) < 800) return;
+  if (h !== HOME_OF[qz.an][0]) { qz.wrongT = performance.now(); bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); speak(SAY.homesNo); return; }
   qz.lock = true; chime(); b.classList.add('hint'); qz.right++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + (qz.cups ? ' ' : '') + '★'.repeat(qz.right) + '☆'.repeat(Math.max(0, 5 - qz.right));
   const done = qz.right === 5; speak(done ? [HOME_OF[qz.an][1], SAY.homesDone] : HOME_OF[qz.an][1]); if (done) { burst(); award('homes'); }
   setTimeout(() => { if (mode === 'homes' && qz) { if (done) { qz.right = 0; qz.cups++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextHome(); } }, done ? 9000 : 5500);
 }
-function endHomes(){ $('#quiz').hidden = true; $('#quiz').classList.remove('bigger', 'homes'); $('#app').classList.remove('game'); qz = null; mode = 'toy'; $('#pill').textContent = 'Explorer Earth'; nav(); layout(); }
-function endBigger(){ $('#quiz').hidden = true; $('#quiz').classList.remove('bigger'); $('#app').classList.remove('game'); qz = null; overview(); }
-function endQuiz(){ $('#quiz').hidden = true; $('#app').classList.remove('game'); qz = null; overview(); }
+// Is it a planet? Three checks (goes around the Sun, round, boss of its path), then she picks planet, dwarf planet or moon (IAU 2006 rules)
+const ISP_KIND = { planet: ['🪐', 'Planet'], dwarf: ['🟤', 'Dwarf planet'], moon: ['🌙', 'Moon'] };
+const ISP_CHECK = [['☀️', 'Goes around the Sun'], ['⚪', 'Round'], ['👑', 'Boss of its path']];
+const ISP = [
+  ['earth', [1, 1, 1], 'planet', "Earth goes around the Sun. It's round. And it's the boss of its path. So what is Earth?", 'Yes! Earth is a planet!'],
+  ['pluto', [1, 1, 0], 'dwarf', "Pluto goes around the Sun, and it's round. But it shares its path with lots of icy little worlds. So what is Pluto?", 'Yes! Pluto is a dwarf planet!'],
+  ['moon', [0, 1, null], 'moon', "The Moon is round, but it goes around Earth, not around the Sun. So what is it?", 'Yes! The Moon is a moon. It goes around Earth!'],
+  ['ceres', [1, 1, 0], 'dwarf', "Ceres goes around the Sun, and it's round. But it shares its path with lots of space rocks. So what is Ceres?", 'Yes! Ceres is a dwarf planet, out in the asteroid belt!'],
+  ['mars', [1, 1, 1], 'planet', "Mars goes around the Sun. It's round. And it's the boss of its path. So what is Mars?", 'Yes! Mars is a planet!'],
+  ['charon', [0, 1, null], 'moon', "Charon is round, but it goes around Pluto, not around the Sun. So what is it?", 'Yes! Charon is a moon. It goes around Pluto!']];
+SAY.ispIn = "Let's play Is It a Planet! A planet goes around the Sun, it's round, and it's the boss of its path.";
+SAY.ispNo = 'Not quite. Look at the checks again!';
+SAY.ispDone = "You know the planet rules! You're a real space scientist!";
+let ceresThumb = null;
+const ispThumb = id => id === 'ceres' ? (ceresThumb = ceresThumb || thumb({ id: 'ceres' }, planetCanvas('ceres'), 2)) : byId[id].thumb;
+function startIsp(){
+  ++seq; stopJump(); mode = 'isplanet'; current = null; $('#pill').textContent = 'Is it a planet?'; $('#app').classList.add('game');
+  $('#quiz').hidden = false; $('#quiz').classList.add('isp'); qz = { kind: 'isp', i: 0, right: 0, cups: 0, miss: 0, lock: false }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextIsp(true);
+}
+function nextIsp(first){
+  const [id, checks, , line] = ISP[qz.i % ISP.length]; qz.id = id; qz.miss = 0; qz.lock = false;
+  const name = id === 'ceres' ? 'Ceres' : byId[id].label, ask = $('#qask'); ask.innerHTML = '';
+  const im = imgEl(ispThumb(id)); im.className = 'ispW'; ask.append(im);
+  const row = document.createElement('div'); row.className = 'ispChecks';
+  ISP_CHECK.forEach(([em, t], k) => { const c = document.createElement('span'); c.className = 'ispC'; c.style.animationDelay = (1.2 + k * 1.4) + 's'; c.innerHTML = `${em} ${t} <b>${checks[k] == null ? '➖' : checks[k] ? '✅' : '❌'}</b>`; row.append(c); });
+  ask.append(row); ask.setAttribute('aria-label', name);
+  const tray = $('#qtray'); tray.innerHTML = '';
+  for (const k of Object.keys(ISP_KIND)) { const b = document.createElement('button'); b.className = 'pl'; b.dataset.id = k; b.innerHTML = `<span class="hem">${ISP_KIND[k][0]}</span><span>${ISP_KIND[k][1]}</span>`; b.onclick = () => answerIsp(b, k); tray.append(b); }
+  speak(first ? [SAY.ispIn, line] : line);
+}
+function answerIsp(b, k){
+  if (!qz || qz.lock || performance.now() - (qz.wrongT || 0) < 800) return; const [, , ans, , yes] = ISP[qz.i % ISP.length];
+  if (k !== ans) { qz.wrongT = performance.now(); bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); qz.miss++;
+    const rt = document.querySelector(`#qtray .pl[data-id="${ans}"]`); if (rt) rt.classList.add('hint');   // first miss: the right one glows
+    if (qz.miss < 2) { speak(SAY.ispNo); return; } b = rt; }   // second miss: it is shown and explained
+  qz.lock = true; if (qz.miss < 2) { chime(); qz.right++; } b && b.classList.add('hint'); qz.i++;
+  $('#qstars').textContent = '🏆'.repeat(qz.cups) + (qz.cups ? ' ' : '') + '★'.repeat(Math.min(5, qz.right)) + '☆'.repeat(Math.max(0, 5 - qz.right));
+  const done = qz.right === 5; speak(done ? [yes, SAY.ispDone] : yes); if (done) { burst(); award('isplanet'); }
+  setTimeout(() => { if (mode === 'isplanet' && qz) { if (done) { qz.right = 0; qz.cups++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextIsp(); } }, done ? 8000 : 4500);
+}
+function endIsp(){ hush(); $('#quiz').hidden = true; $('#quiz').classList.remove('isp'); $('#app').classList.remove('game'); qz = null; focus(byId.pluto, true); }
+function endHomes(){ hush(); $('#quiz').hidden = true; $('#quiz').classList.remove('bigger', 'homes'); $('#app').classList.remove('game'); qz = null; mode = 'toy'; $('#pill').textContent = 'Explorer Earth'; nav(); layout(); }
+function endBigger(){ hush(); $('#quiz').hidden = true; $('#quiz').classList.remove('bigger'); $('#app').classList.remove('game'); qz = null; overview(); }
+function endQuiz(){ hush(); $('#quiz').hidden = true; $('#app').classList.remove('game'); qz = null; overview(); }
 function endParade(){ $('#parade').hidden = true; $('#app').classList.remove('game'); overview(); }
 
 /* ---------- controls ---------- */
@@ -2659,6 +2740,7 @@ function goBack(){
   if (mode === 'quiz') { endQuiz(); return true; }
   if (mode === 'bigger') { endBigger(); return true; }
   if (mode === 'homes') { endHomes(); return true; }
+  if (mode === 'isplanet') { endIsp(); return true; }
   if (mode === 'parade') { endParade(); return true; }
   if (mode === 'toy') { const T = toy; if (T.fly) toyFlyStop(); else if (T.quiz) toyQuizEnd(); else if (T.hunt) { T.hunt = null; T.starMesh.count = T.starMesh.userData.ink.count = 0; $('#tstars').hidden = true; nav(); } else if (T.follow) toyStop(); else if (T.menu) { T.menu = null; nav(); } else if (T.home) { T.home = false; nav(); } else if (T.lmTour) { T.lmTour = false; T.picked = null; $('#pill').textContent = 'Explorer Earth'; nav(); } else toyToSpace(); return true; }
   if (mode === 'site') { leaveSite(wIdx); return true; }
@@ -2689,7 +2771,7 @@ function nav(){
   const showStrip = mode === 'space' || mode === 'focus';
   $('#style').hidden = !(mode === 'space' || mode === 'focus' || mode === 'world' || (mode === 'toy' && !(toy && (toy.follow || toy.quiz || toy.fly))));
   strip.hidden = !showStrip; $('#wstrip').hidden = (mode !== 'world' && mode !== 'site') || !!(mode === 'site' && site && site.quiz); $('#tstrip').hidden = mode !== 'toy' || !!(toy && (toy.follow || toy.menu || toy.fly)); $('#tzoom').hidden = mode !== 'toy' || !!(toy && (toy.follow || toy.fly)); $('#flyhud').hidden = mode !== 'toy' || !(toy && toy.fly); if ($('#flyhud').hidden) $('#flyhint').hidden = true; $('#bottom').hidden = mode === 'flying' || mode === 'intro' || (mode === 'launch' && !L.hold) || mode === 'landing';   // the launch shows the bar only for the Hold to fly button
-  strip.querySelectorAll('.th').forEach(t => t.setAttribute('aria-pressed', String(current && t.dataset.id === current.id)));
+  strip.querySelectorAll('.th').forEach(t => t.setAttribute('aria-pressed', String(!!(current && t.dataset.id === current.id))));
   acts.innerHTML = '';
   if (mode === 'launch' && L.hold) { const b = btn('🚀', 'Hold to fly!', () => {}, 'hero pulse'); b.id = 'holdfly';   // press and hold: the rocket speeds up while she holds it
     const on = e => { e.preventDefault(); L.thrust = 1; b.classList.add('down'); }, off = () => { if (L.thrust === 1) L.thrust = 0; b.classList.remove('down'); };
@@ -2704,6 +2786,7 @@ function nav(){
     if (current.g) acts.append(btn('🤸', 'Jump!', startJump, 'gold'));
     if (current === moon || current.id === 'sun') acts.append(btn('🌑', 'Eclipse', openEclipse, 'hero'));
     if (current === moon) acts.append(btn('🌗', 'Moon phases', openPhases, 'gold'));
+    if (current.id === 'pluto' || current.id === 'charon') acts.append(btn('🔭', 'Is it a planet?', startIsp, 'hero'));
     if (current.id === 'mars') acts.append(btn('🚗', 'Drive on Mars', () => enterMars('mars'), 'hero'));
     if (current.id === 'moon') acts.append(btn('🧑‍🚀', 'Walk on the Moon', () => enterMars('moon'), 'hero'));
     if (current.id === 'europa' || current.id === 'titan') acts.append(btn('🧑‍🚀', 'Walk on ' + current.label, () => enterMars(current.id), 'hero'));
@@ -2753,15 +2836,16 @@ function nav(){
   if (mode === 'home') acts.append(btn('🚀', 'Back to space', launch, 'hero'), btn('📖', 'Bedtime story', bedtime), btn(night ? '☀️' : '🌙', night ? 'Make day' : 'Make night', toggleNight, 'gold'), btn('🔭', "Tonight's sky", tonight), btn('🔊', 'Tell me more', moreFact), btn('🛂', 'Passport', openPassport));
   if (mode === 'sky') acts.append(...(matchMedia('(pointer:fine)').matches ? [] : [skyTilt.on ? btn('✋', 'Stop pointing', () => skyPoint(false), 'hero') : btn('📱', 'Point my phone', () => skyPoint(true), 'hero')]), btn('🏡', 'House', () => { skyPoint(false, true); ++seq; homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); speak(HOME_FACTS[0]); }), btn('🔊', 'Tell me again', () => speak(skyLines(sky))), btn('🚀', 'Back to space', () => { skyPoint(false, true); homeView(); rigFromCamera(new THREE.Vector3(1, 2.9, 1.5)); launch(); }, 'gold'));
   if (mode === 'quiz') acts.append(btn('🔊', 'Again', () => qz && speak(qz.order[qz.i % qz.order.length][1]), 'hero'), btn('🌌', 'All planets', endQuiz), btn('🔄', 'New game', startQuiz, 'gold'));
-  if (mode === 'homes') acts.append(btn('🔊', 'Again', () => qz && speak(homesAsk(qz.an)), 'hero'), btn('🌍', 'Back to Earth', endHomes));
+  if (mode === 'isplanet') acts.append(btn('🔊', 'Again', () => qz && speak(ISP[qz.i % ISP.length][3]), 'hero'), btn('🟤', 'Back to Pluto', endIsp));
+  if (mode === 'homes') acts.append(btn('🔊', 'Again', () => qz && speak(qz.lock ? HOME_OF[qz.an][1] : homesAsk(qz.an)), 'hero'), btn('🌍', 'Back to Earth', endHomes));
   if (mode === 'bigger') acts.append(btn('🔊', 'Again', () => speak(SAY.biggerAsk), 'hero'), btn('🌌', 'All planets', endBigger), btn('📏', 'Sizes', () => { endBigger(); openSizes(); }, 'gold'));
   if (mode === 'parade') acts.append(btn('🌌', 'All planets', endParade), btn('🔄', 'Play again', startParade, 'gold'));
 }
 {
   const strip = $('#strip');
   for (const p of P) {
-    const b = document.createElement('button'); b.className = 'th'; b.dataset.id = p.id;
-    b.innerHTML = `<span>${p.label}</span>`; b.prepend(imgEl(p.thumb));
+    const b = document.createElement('button'); b.className = 'th' + (p.kind ? ' dwarf' : ''); b.dataset.id = p.id;
+    b.innerHTML = `<span>${p.label}</span>` + (p.kind ? '<small class="dw">dwarf</small>' : ''); b.prepend(imgEl(p.thumb));
     b.onclick = () => { audio()?.resume?.(); ++seq; openPlanet(p); b.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' }); };
     strip.append(b);
   }
@@ -5859,10 +5943,10 @@ SAY.phasesDone = 'You found every phase! The Moon goes all the way around the Ea
 const phx = { on: false, raf: 0, seen: new Set(), last: -1, from: null };
 function openPhases(){
   phx.from = current; ++seq; stopJump(); mode = 'phases'; nav(); layout(); $('#pill').textContent = 'Moon Phases';
-  $('#phases').hidden = false; $('#phslide').value = 40; phx.seen = new Set(); phx.last = -1; phx.done = false; phx.on = true; $('#top').style.zIndex = 4; $('#bottom').style.zIndex = 4;
+  $('#phases').hidden = false; $('#phslide').value = 40; phx.seen = new Set(); phx.last = -1; phx.done = false; phx.on = true; $('#top').style.zIndex = 4; $('#bottom').style.zIndex = 4; $('#backbtn').style.zIndex = 5; $('#mutebtn').style.zIndex = 5;
   speak(SAY.phasesIn); drawPhases();
 }
-function closePhases(){ phx.on = false; cancelAnimationFrame(phx.raf); $('#phases').hidden = true; $('#top').style.zIndex = ''; $('#bottom').style.zIndex = ''; focus(phx.from || moon, true); }
+function closePhases(){ hush(); clearTimeout(phx.nameT); phx.on = false; cancelAnimationFrame(phx.raf); $('#phases').hidden = true; $('#top').style.zIndex = ''; $('#bottom').style.zIndex = ''; $('#backbtn').style.zIndex = ''; $('#mutebtn').style.zIndex = ''; focus(phx.from || moon, true); }
 function moonShape(g, cx, cy, r, e){   // the Moon as seen from Earth at elongation e, which is 0 at new Moon and PI at full; waxing is lit on the right in the northern sky
   const k = Math.cos(e), side = Math.sin(e) >= 0 ? 1 : -1;
   g.fillStyle = '#2b2a3a'; g.beginPath(); g.arc(cx, cy, r, 0, 7); g.fill();
@@ -5885,7 +5969,8 @@ function drawPhases(){
   g.strokeStyle = '#ffd166'; g.lineWidth = 2; g.beginPath(); g.moveTo(ex, dy); g.lineTo(mx, my); g.stroke();   // the way we look from Earth
   const bigR = Math.min(w * .22, avail * .17), by = top + avail * .8; moonShape(g, w / 2, by, bigR, e);   // what we see from Earth
   const deg = (e * 180 / Math.PI + 22.5) % 360, i = Math.floor(deg / 45) % 8;
-  if (i !== phx.last) { phx.last = i; phx.seen.add(i); speak(PHASES[i][1], true); if (phx.seen.size === 8 && !phx.done) { phx.done = true; award('phases'); burst(); setTimeout(() => speak(SAY.phasesDone), 3500); } }
+  if (i !== phx.last) { phx.last = i; clearTimeout(phx.nameT); phx.nameT = setTimeout(() => { if (!phx.on || phx.last !== i) return; phx.seen.add(i); speak(PHASES[i][1]);   // she rests on a phase: say its name, then it counts
+    if (phx.seen.size === 8 && !phx.done) { phx.done = true; award('phases'); burst(); const my = seq; setTimeout(() => { if (phx.on && my === seq) speak(SAY.phasesDone); }, 3500); } }, 450); }
   phx.raf = requestAnimationFrame(drawPhases);
 }
 function closeEclipse(){ ecl.on = false; cancelAnimationFrame(ecl.raf); $('#eclipse').hidden = true; $('#top').style.zIndex = ''; $('#bottom').style.zIndex = ''; focus(ecl.from || moon, true); }
@@ -5941,7 +6026,7 @@ function drawEclipse(){
 const STAMPS = [
   ...P.map(p => ({ id: 'p:' + p.id, img: p.thumb, label: p.label })),
   { id: 'eclipse', em: '🌑', label: 'Eclipse' }, { id: 'home', em: '🏡', label: 'Home' }, { id: 'landing', em: '🪂', label: 'Landing' }, { id: 'launch', em: '🚀', label: 'Blast off' }, { id: 'sky', em: '🔭', label: "Tonight's sky" },
-  { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'bigger', em: '⚖️', label: 'Size expert' }, { id: 'highway', em: '🛣️', label: 'Highway hero' }, { id: 'europarocks', em: '🧊', label: 'Europa explorer' }, { id: 'phases', em: '🌗', label: 'Moon phases' }, { id: 'homes', em: '🦒', label: 'Animal homes' }, { id: 'titanrocks', em: '🟠', label: 'Titan explorer' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
+  { id: 'iss', em: '🛰️', label: 'Space Station' }, { id: 'story', em: '📖', label: 'Bedtime story' }, { id: 'warp', em: '⏩', label: 'Time zoom' }, { id: 'lineup', em: '🎯', label: 'Line-up' }, { id: 'quiz', em: '❓', label: 'Riddle whiz' }, { id: 'bigger', em: '⚖️', label: 'Size expert' }, { id: 'highway', em: '🛣️', label: 'Highway hero' }, { id: 'europarocks', em: '🧊', label: 'Europa explorer' }, { id: 'phases', em: '🌗', label: 'Moon phases' }, { id: 'homes', em: '🦒', label: 'Animal homes' }, { id: 'isplanet', em: '🔭', label: 'Pluto pal' }, { id: 'titanrocks', em: '🟠', label: 'Titan explorer' }, { id: 'jump', em: '🤸', label: 'Space jump' }, { id: 'comet', em: '☄️', label: 'Comet' },
   { id: 'belt', em: '🪨', label: 'Asteroids' }, { id: 'toy', em: '🧭', label: 'Explorer Earth' }, { id: 'pilot', em: '✈️', label: 'Pilot' }, { id: 'rings', em: '💫', label: 'Ring champ' }, { id: 'globetrotter', em: '🛂', label: 'World explorer' }, { id: 'missions', em: '🎯', label: 'Mission ace' }, { id: 'sparkles', em: '✨', label: 'Sparkle finder' }, { id: 'placequiz', em: '🧠', label: 'Place quiz' }, { id: 'daily', em: '🌟', label: 'Daily mission' }, { id: 'moonwalk', em: '🧑‍🚀', label: 'Moonwalker' }, { id: 'sizes', em: '📏', label: 'Size explorer' }, { id: 'jumper', em: '🛹', label: 'Ramp jumper' }, { id: 'moonrocks', em: '🌕', label: 'Moon rock hunter' }, { id: 'stars', em: '⭐', label: 'Star hunter' }, { id: 'animals', em: '🦘', label: 'Animal friends' }, { id: 'build', em: '🧱', label: 'Builder' }, { id: 'states', em: '🗺️', label: 'State finder' }, { id: 'point', em: '📱', label: 'Sky pointer' }, { id: 'explore', em: '🔍', label: 'Explorer' }, { id: 'drive', em: '🚗', label: 'Mars driver' }, { id: 'mars', em: '💎', label: 'Rock hunter' },
   { id: 'roadtrip', em: '🚗', label: 'Road tripper' }, { id: 'cityhopper', em: '🏙️', label: 'City hopper' }, { id: 'balloons', em: '🎈', label: 'Balloons' }, { id: 'aurora', em: '🌌', label: 'Northern lights' },
   ...LM.map(l => ({ id: 'l:' + l.id, em: l.em, label: l.name.replace('Pyramids of Giza', 'Pyramids').replace('Great Wall of China', 'Great Wall').replace('Sydney Opera House', 'Opera House').replace('Kennedy Space Center', 'Space Center').replace('Amazon Rainforest', 'Rainforest') })),
@@ -6033,7 +6118,7 @@ function updateSpace(dt, t){
   for (const p of P) {
     if (p.id === 'moon' || p.parent) continue;
     p.ang += p.w * dt * orbitRate * tWarp;
-    p.anchor.position.set(Math.sin(p.ang) * p.d, 0, Math.cos(p.ang) * p.d);
+    const inc = (p.inc || 0) * DEG; p.anchor.position.set(Math.sin(p.ang) * p.d, Math.cos(p.ang) * p.d * Math.sin(inc), Math.cos(p.ang) * p.d * Math.cos(inc));
     if (p.id !== 'sun') p.anchor.scale.setScalar(boost);
     if (p.spinGoal != null) p.mesh.rotation.y += angDiff(p.spinGoal, p.mesh.rotation.y) * Math.min(1, dt * 2.4);
     else if (!(p === earth && earthSpinGoal !== null)) p.mesh.rotation.y += p.spin * dt;
@@ -6044,10 +6129,10 @@ function updateSpace(dt, t){
   if (moon.spinGoal != null) moon.mesh.rotation.y += angDiff(moon.spinGoal, moon.mesh.rotation.y) * Math.min(1, dt * 2.4); else moon.mesh.rotation.y = moon.ang + Math.PI;
   for (const q of P) if (q.parent && q.spinGoal != null) q.mesh.rotation.y += angDiff(q.spinGoal, q.mesh.rotation.y) * Math.min(1, dt * 2.4);
   if (tour) tourMark.material.opacity = .75 + .25 * Math.sin(t * 5);
-  for (const q of P) if (q.parent) {   // Europa and Titan circle their planets
+  for (const q of P) if (q.parent) {   // Europa, Titan and Charon circle their worlds
     const par = byId[q.parent]; q.ang += dt * (current === q ? 0 : .08 + .25 * orbitRate);
     q.anchor.scale.setScalar(boost);
-    q.anchor.position.set(par.anchor.position.x + Math.sin(q.ang) * q.d * boost, .3, par.anchor.position.z + Math.cos(q.ang) * q.d * boost);
+    q.anchor.position.set(par.anchor.position.x + Math.sin(q.ang) * q.d * boost, par.anchor.position.y + .3, par.anchor.position.z + Math.cos(q.ang) * q.d * boost);
   }
   clouds.rotation.y += dt * .012;
   if (earthSpinGoal !== null) earth.mesh.rotation.y += angDiff(earthSpinGoal, earth.mesh.rotation.y) * Math.min(1, dt * 2.4);
@@ -6110,7 +6195,7 @@ function updateSpace(dt, t){
     tmp2.copy(camera.position).sub(tmp).normalize();
     p.face.position.copy(tmp).addScaledVector(tmp2, r * 1.03);
     p.face.scale.setScalar(r * (p.id === 'sun' ? 1.35 : 1.25));
-    p.face.material.opacity = blocking || style === 'real' || (tour && tour.p === p) || (p === earth && (mode === 'flying' || mode === 'launch' || mode === 'world')) ? 0 : clamp((px - 16) / 18, 0, 1);
+    p.face.material.opacity = blocking || p.id === 'pluto' || style === 'real' || (tour && tour.p === p) || (p === earth && (mode === 'flying' || mode === 'launch' || mode === 'world')) ? 0 : clamp((px - 16) / 18, 0, 1);
     p.face.visible = p.face.material.opacity > .01;
     if (p.id !== 'sun') {
       p.blinkAt -= dt;
@@ -6249,6 +6334,8 @@ window.__startRoadMission = () => { const F = toy.fly; F.mission = null; const m
 window.__perf = () => { const f = (window.__ft || []).slice(-300).filter(x => x > 0 && x < 2), m = f.reduce((a, b) => a + b, 0) / Math.max(1, f.length), sorted = [...f].sort((a, b) => a - b), p95 = sorted[Math.floor(sorted.length * .95)] || 0, i = renderer.info; return { fps: +(1 / Math.max(1e-6, m)).toFixed(1), p95ms: +(p95 * 1000).toFixed(1), calls: i.render.calls, tris: i.render.triangles, geos: i.memory.geometries, texs: i.memory.textures, heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, mode, sceneMode }; };
 window.__phases = v => { if (v != null) $('#phslide').value = v; return { on: phx.on, last: phx.last, seen: phx.seen.size, done: !!phx.done, mode }; };
 window.__drawBreakdown = () => { const nm = new Map(toy ? [[toy.lms, 'landmarks'], [toy.planet, 'planet'], [toy.stars, 'stars'], ...Object.entries(toy).flatMap(([k, v]) => v && v.isObject3D ? [[v, k]] : Array.isArray(v) ? v.filter(x => x && x.isObject3D).map(x => [x, k + '[]']) : [])] : []), sc = sceneMode === 'toy' ? toy.s : sceneMode === 'site' && site ? site.sc : sceneMode === 'mars' ? marsScene : space, out = {}; for (const top of sc.children) { let n = 0; top.traverseVisible(o => { if (o.isMesh || o.isPoints || o.isSprite || o.isLine) n++; }); if (n) { const k = (nm.get(top) || top.name || top.type) + (top.isInstancedMesh ? '[inst]' : '') + (top.type === 'Group' && !nm.get(top) ? '#' + sc.children.indexOf(top) + ':' + top.children.length + 'ch:' + ((top.children[0] && top.children[0].geometry && top.children[0].geometry.type) || (top.children[0] && top.children[0].type) || '') : ''); out[k] = (out[k] || 0) + n; } } return Object.entries(out).sort((a, b) => b[1] - a[1]).slice(0, 25); };
+window.__isp = () => qz && qz.kind === 'isp' && { id: qz.id, ans: ISP[qz.i % ISP.length][2], right: qz.right, i: qz.i, mode };
+window.__homesNext = () => { if (qz && qz.kind === 'homes') nextHome(); return [qz.an, HOME_OF[qz.an][0], [...document.querySelectorAll('#qtray .pl')].map(b => b.dataset.id), HOME_ALSO[qz.an] || []]; };
 window.__homes = () => qz && qz.kind === 'homes' && { an: qz.an, right: qz.right, home: HOME_OF[qz.an][0], mode };
 window.__voicePick = l => voicePick(l);
 window.__camZoom = z => { if (toy) { if (z != null) toy.camZoom = z; return toy.camZoom || 1; } };
@@ -6280,6 +6367,7 @@ window.__allLines = () => {
   LM.forEach(l => { s.add(l.name + '!'); s.add(missionLine({ lm: l }, false)); s.add(missionLine({ lm: l }, true)); }); Object.keys(ANIMALS).forEach(an => s.add(missionLine({ an })));   // said when your plane flies over it
   Object.entries(US_ROAD_CITIES).forEach(([r, n]) => { s.add(roadLine(r, n[0])); s.add(roadLine(r, n[n.length - 1])); });
   Object.entries(HOME_OF).forEach(([a, [, l]]) => { s.add(l); s.add(homesAsk(a)); });
+  ISP.forEach(x => { s.add(x[3]); s.add(x[4]); });
   [...PHASES.map(p => p[1]), ...EUROPA_ROCKS, ...TITAN_ROCKS, jumpLine(byId.europa), jumpLine(byId.titan), ...Object.values(TRIP_SAY), ...Object.values(ROAD_SAY), ...Object.values(BIOME_SAY), ...CITY_STOPS.map(c => c.say)].forEach(x => s.add(x)); Object.values(US_ROAD_CITIES).flat().forEach(n => { if (n) s.add('Welcome to ' + n + '!'); });   // road-trip narration
   DIRS.forEach(d => { s.add(moonWhere(d)); SKY_PLANETS.forEach(id => s.add(planetWhere(id, d))); });
   for (const l of [...s]) { const d = deskLine(l); if (d !== l) s.add(d); }   // desktop versions of tap/swipe lines

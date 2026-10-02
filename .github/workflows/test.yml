@@ -13,7 +13,7 @@ jobs:
         flows:
           - "start places discover landing ramp high countries where landview audio pets drive mars blue camzoom roadtrip wherefix launchfly bigger minimap drawbudget homes deskvoice"
           - "planets sparkles daily sizes sound uturn moonframe coaststart earthtap memory arrow back home skycard allsites skyglare moonplay roadmission kscstart"
-          - "explorer placequiz moon weather fly passport voice tapguard hover livingworld ride states chaos realclouds spacefix focusbtns walkworlds nextworld phases"
+          - "explorer placequiz moon weather fly passport voice tapguard hover livingworld ride states chaos realclouds spacefix focusbtns walkworlds nextworld phases pluto homesfair"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
