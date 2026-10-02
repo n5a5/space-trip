@@ -1493,8 +1493,9 @@ self.addEventListener('install', e => e.waitUntil(caches.open(VERSION).then(asyn
 // before dropping an old version, copy over any file the new one couldn't fetch (so offline play keeps working)
 const WANT = new Set(ASSETS.map(a => new URL(a, self.registration.scope).href));
 self.addEventListener('activate', e => e.waitUntil(caches.open(VERSION).then(async now => {
+  const have = new Set((await now.keys()).map(r => r.url.split('?')[0]));   // one pass: a search per file took a minute on 1500 files, and page loads wait for activation
   for (const k of (await caches.keys()).filter(k => k !== VERSION)) { const old = await caches.open(k);
-    for (const req of await old.keys()) if (WANT.has(req.url.split('?')[0]) && !(await now.match(req, { ignoreSearch: true }))) { const r = await old.match(req); if (r) await now.put(req, r); }
+    for (const req of await old.keys()) { const u = req.url.split('?')[0]; if (WANT.has(u) && !have.has(u)) { const r = await old.match(req); if (r) { await now.put(req, r); have.add(u); } } }
     await caches.delete(k); }
 }).then(() => self.clients.claim())));
 self.addEventListener('fetch', e => {

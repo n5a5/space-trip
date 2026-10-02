@@ -31,8 +31,11 @@ const tail = `
 <script>
 if ('serviceWorker' in navigator) addEventListener('load', () => {
   const had = !!navigator.serviceWorker.controller, t = document.getElementById('updtoast');
-  t.onclick = () => location.reload();
-  navigator.serviceWorker.addEventListener('controllerchange', () => { if (!had) return; const g = document.getElementById('go'); if (g && g.offsetParent) location.reload(); else t.hidden = false; });
+  t.onclick = () => { t.textContent = '✨ Updating…'; location.reload(); };
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (!had) return; const c = navigator.serviceWorker.controller;
+    const show = () => { const g = document.getElementById('go'); if (g && g.offsetParent) location.reload(); else t.hidden = false; };
+    if (!c || c.state === 'activated') show(); else c.addEventListener('statechange', function f(){ if (c.state === 'activated') { c.removeEventListener('statechange', f); show(); } });   // offer the update only once it can load at once
+  });
   navigator.serviceWorker.register('sw.js').then(r => setInterval(() => r.update().catch(() => {}), 30 * 60 * 1000)).catch(() => {});
 });
 </script>
@@ -58,8 +61,9 @@ self.addEventListener('install', e => e.waitUntil(caches.open(VERSION).then(asyn
 // before dropping an old version, copy over any file the new one couldn't fetch (so offline play keeps working)
 const WANT = new Set(ASSETS.map(a => new URL(a, self.registration.scope).href));
 self.addEventListener('activate', e => e.waitUntil(caches.open(VERSION).then(async now => {
+  const have = new Set((await now.keys()).map(r => r.url.split('?')[0]));   // one pass: a search per file took a minute on 1500 files, and page loads wait for activation
   for (const k of (await caches.keys()).filter(k => k !== VERSION)) { const old = await caches.open(k);
-    for (const req of await old.keys()) if (WANT.has(req.url.split('?')[0]) && !(await now.match(req, { ignoreSearch: true }))) { const r = await old.match(req); if (r) await now.put(req, r); }
+    for (const req of await old.keys()) { const u = req.url.split('?')[0]; if (WANT.has(u) && !have.has(u)) { const r = await old.match(req); if (r) { await now.put(req, r); have.add(u); } } }
     await caches.delete(k); }
 }).then(() => self.clients.claim())));
 self.addEventListener('fetch', e => {

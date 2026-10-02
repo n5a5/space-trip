@@ -6898,8 +6898,11 @@ $('#gotoy').onclick = () => { audio()?.resume?.(); pickVoice(); $('#start').hidd
 <script>
 if ('serviceWorker' in navigator) addEventListener('load', () => {
   const had = !!navigator.serviceWorker.controller, t = document.getElementById('updtoast');
-  t.onclick = () => location.reload();
-  navigator.serviceWorker.addEventListener('controllerchange', () => { if (!had) return; const g = document.getElementById('go'); if (g && g.offsetParent) location.reload(); else t.hidden = false; });
+  t.onclick = () => { t.textContent = '✨ Updating…'; location.reload(); };
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (!had) return; const c = navigator.serviceWorker.controller;
+    const show = () => { const g = document.getElementById('go'); if (g && g.offsetParent) location.reload(); else t.hidden = false; };
+    if (!c || c.state === 'activated') show(); else c.addEventListener('statechange', function f(){ if (c.state === 'activated') { c.removeEventListener('statechange', f); show(); } });   // offer the update only once it can load at once
+  });
   navigator.serviceWorker.register('sw.js').then(r => setInterval(() => r.update().catch(() => {}), 30 * 60 * 1000)).catch(() => {});
 });
 </script>
