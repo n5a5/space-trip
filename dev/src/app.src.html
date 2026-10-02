@@ -219,6 +219,11 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #passport p,#grown .phead p{margin:4px 0 0;font:700 14px/1 var(--body);color:var(--muted)}
 #pclose,#gclose{flex:0 0 auto;width:48px;height:48px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:rgba(255,255,255,.1);color:var(--ink);font:700 22px/1 var(--body);cursor:pointer}
 #grown .phead{max-width:440px;margin:0 auto 14px}
+.gcampus h3{margin:14px 0 6px;font:700 18px/1.2 var(--display);color:var(--gold)}
+.gcampus table{width:100%;border-collapse:collapse;font:600 14px/1.3 var(--body)}
+.gcampus td,.gcampus th{padding:5px 6px;border-bottom:1px solid rgba(255,255,255,.12);text-align:left}
+.gcampus .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.gcampus .gnote{font:600 13px/1.35 var(--body);color:var(--muted)}
 .gnote2{font:600 13px/1.35 var(--body);color:var(--muted);margin:10px 0 0}
 /* desktop and laptop: mouse and keyboard, wide screens */
 @media (hover:hover) and (pointer:fine){
@@ -319,8 +324,10 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
       <label class="gtoggle"><input id="gawake" type="checkbox"> Keep the screen on while playing</label>
       <button id="gfull" class="gbtn">⛶ Full screen</button>
       <button id="gstk" class="gbtn danger">Reset stickers</button>
+      <button id="gcmp" class="gbtn danger">Clear learning record</button>
       <button id="gbld" class="gbtn danger">Clear Explorer Earth building</button>
       <p class="gnote2">MIT and Harvard appear in the app as real places only. The app is not made, sponsored or endorsed by either school.</p>
+      <div id="gcampus" class="gcampus"></div>
       <p class="gver" id="gver"></p>
     </div>
   </section>
@@ -2788,7 +2795,7 @@ function labExp(kind){   // one experiment: what to show, the choices, the right
   if (kind === 'more') { const d = Math.random() < .5 ? 1 : -1, n = d > 0 ? ri(1, 9) : ri(2, 10), m = n + d;
     const mo = c => `<span class="moonDot ${c}"></span>`, show = `<div class="labRow">${Array.from({ length: n }, (_, k) => mo(d < 0 && k === n - 1 ? 'labGone' : '')).join('')}${d > 0 ? '<span class="plus">+</span>' + mo('labNew') : ''}</div>`;   // drawn moons: the full-moon emoji is missing on some phones
     return { std: 'MA.K.AR.1.3', show, opts: numOpts(m, 1, 10), ans: String(m), ask: moonsAsk(n, d), yes: moonsYes(m), reveal: moonsShow(n, d) }; }
-  if (kind === 'add') { const d = Math.random() < .5 ? 1 : -1; let a, b; if (d > 0) { a = ri(1, 5); b = ri(1, Math.min(5, 10 - a)); } else { a = ri(3, 9); b = ri(1, Math.min(3, a - 1)); }
+  if (kind === 'add') { const d = Math.random() < .5 ? 1 : -1; let a, b; const mx = qz.pq ? qz.pq.addMax : 5; if (d > 0) { a = ri(1, mx === 10 ? 5 : 3); b = ri(1, Math.min(5, mx - a)); } else { a = ri(3, mx === 10 ? 9 : 5); b = ri(1, Math.min(3, a - 1)); }
     const c = a + d * b, show = d > 0 ? `<div class="labRow">🚀<span class="grp">${Array.from({ length: a }, () => '<span>🧑‍🚀</span>').join('')}</span><span class="plus">+</span><span class="grp">${Array.from({ length: b }, () => '<span class="labNew">🧑‍🚀</span>').join('')}</span></div>`
       : `<div class="labRow">🚀${Array.from({ length: a }, (_, k) => `<span class="${k >= a - b ? 'labGone' : ''}">🧑‍🚀</span>`).join('')}</div>`;
     return { std: 'MA.K.AR.1.3', show, opts: numOpts(c, 0, 10), ans: String(c), ask: astroAsk(a, b, d), yes: astroYes(c), reveal: astroShow(a, b, d) }; }
@@ -2802,7 +2809,7 @@ function labExp(kind){   // one experiment: what to show, the choices, the right
 function startLab(){
   ++seq; mode = 'lab'; $('#pill').textContent = 'Number Lab'; $('#app').classList.add('game');
   $('#quiz').hidden = false; $('#quiz').classList.add('lab'); const rest = LAB_KINDS.slice(1).sort(() => Math.random() - .5);
-  qz = { kind: 'lab', right: 0, cups: 0, miss: 0, lock: false, order: ['count', ...rest], r: 0 }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextLab(true);
+  qz = { pq: pqProgress(), kind: 'lab', right: 0, cups: 0, miss: 0, lock: false, order: ['count', ...rest], r: 0 }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextLab(true);
 }
 let keyUser = false; addEventListener('keydown', () => { keyUser = true; }, true); addEventListener('pointerdown', () => { keyUser = false; }, true);
 const focusTray = () => { if (keyUser) setTimeout(() => { const f = document.querySelector('#qtray .pl'); f && f.focus({ preventScroll: true }); }, 50); };
@@ -2818,6 +2825,7 @@ function answerLab(b, k){
   if (k !== e.ans) { qz.wrongId = k; qz.wrongT = performance.now(); bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); qz.miss++;
     b.classList.add('out'); b.setAttribute('aria-disabled', 'true'); const rt = document.querySelector(`#qtray .pl[data-id="${e.ans}"]`); if (rt && qz.miss >= 2) rt.classList.add('hint');   // first miss: that one dims and the question comes again; second miss: the answer glows   // first miss: the right one glows
     if (qz.miss < 2) { speak([].concat(SAY.labNo, e.ask)); return; } b = rt; }   // second miss: Luna shows and explains it
+  campusLog(e.std, qz.miss === 0);
   qz.lock = true; if (qz.miss === 0) { chime(); qz.right++; } else pop(); b && b.classList.add('hint');   // stars are for first tries; a fixed answer still moves on
   $('#qstars').textContent = '🏆'.repeat(qz.cups) + (qz.cups ? ' ' : '') + '★'.repeat(Math.min(5, qz.right)) + '☆'.repeat(Math.max(0, 5 - qz.right));
   const done = qz.right === 5, say = qz.miss === 0 ? e.yes : e.reveal; speak(done ? [say, SAY.labDone] : say); if (done) { burst(); award('numberlab'); }
@@ -2825,6 +2833,7 @@ function answerLab(b, k){
 }
 // Reading Room at Harvard: five quick reading items per visit (Florida B.E.S.T. Kindergarten ELA; codes on each kind).
 // Sight words and decodable sentences are copied from Princess Quest; three sentences whose pictures didn't match (yak, jam, mop) are left out and three pictures are clearer (content/sight-words.json, content/sentences.json), so she sees the same words in both apps.
+const PQ_PRIMER = ["all", "am", "are", "at", "ate", "be", "black", "brown", "but", "came", "did", "do", "eat", "four", "get", "good", "have", "he", "into", "like", "must", "new", "no", "now", "on", "our", "out", "please", "pretty", "ran", "ride", "saw", "say", "she", "so", "soon", "that", "there", "they", "this", "too", "under", "want", "was", "well", "went", "what", "white", "who", "will", "with", "yes"];   // Princess Quest's primer list (content/sight-words.json)
 const PQ_SIGHT = ["a", "and", "away", "big", "blue", "can", "come", "down", "find", "for", "funny", "go", "help", "here", "I", "in", "is", "it", "jump", "little", "look", "make", "me", "my", "not", "one", "play", "red", "run", "said", "see", "the", "three", "to", "two", "up", "we", "where", "yellow", "you"];
 const PQ_SENT = [{"s": "a", "t": "The cat is in the hat.", "c": [["🐱🎩", 1], ["🐶🎩", 0], ["🐱👜", 0]]}, {"s": "a", "t": "I can see a rat.", "c": [["🐀", 1], ["🐱", 0], ["🐷", 0]]}, {"s": "a", "t": "Dad is in the van.", "c": [["👨🚐", 1], ["👨🚕", 0], ["🐱🚐", 0]]}, {"s": "a", "t": "The man can see a map.", "c": [["👨🗺️", 1], ["👨🧢", 0], ["👩🗺️", 0]]}, {"s": "a", "t": "I see a bat and a cat.", "c": [["🦇🐱", 1], ["🦇🐀", 0], ["🐶🐱", 0]]}, {"s": "a", "t": "The cat is sad.", "c": [["🐱😢", 1], ["🐱😊", 0], ["🐶😢", 0]]}, {"s": "a", "t": "I see a cab and a van.", "c": [["🚕🚐", 1], ["🚕🚌", 0], ["🚗🚐", 0]]}, {"s": "a", "t": "The ram can nap.", "c": [["🐏😴", 1], ["🐏🏃", 0], ["🐱😴", 0]]}, {"s": "b", "t": "The pig is in the tub.", "c": [["🐷🛁", 1], ["🐷🛏️", 0], ["🐶🛁", 0]]}, {"s": "b", "t": "The dog can dig.", "c": [["🐶🕳️", 1], ["🐶😴", 0], ["🐷🕳️", 0]]}, {"s": "b", "t": "The hen is on the bed.", "c": [["🐔🛏️", 1], ["🐔🪺", 0], ["🐱🛏️", 0]]}, {"s": "b", "t": "A bug is in my cup.", "c": [["🐛☕", 1], ["🐛📦", 0], ["🐝☕", 0]]}, {"s": "b", "t": "The fox is in the box.", "c": [["🦊📦", 1], ["🦊🛏️", 0], ["🐶📦", 0]]}, {"s": "b", "t": "I can see a jet and a bus.", "c": [["✈️🚌", 1], ["✈️🚂", 0], ["🚕🚌", 0]]}, {"s": "b", "t": "The kid can hug the dog.", "c": [["🧒🐶", 1], ["🧒🐱", 0], ["👵🐶", 0]]}, {"s": "b", "t": "The sun is up.", "c": [["🌅", 1], ["🌙", 0], ["☔", 0]]}, {"s": "b", "t": "Dad and I can run.", "c": [["👨‍👧🏃", 1], ["👨‍👧😴", 0], ["🐶🏃", 0]]}, {"s": "c", "t": "The fish is in the dish.", "c": [["🐟🍽️", 1], ["🐟🛁", 0], ["🐱🍽️", 0]]}, {"s": "c", "t": "The ship is big.", "c": [["🚢", 1], ["🛶", 0], ["✈️", 0]]}, {"s": "c", "t": "I can see a chip on the dish.", "c": [["🍟🍽️", 1], ["🍟📦", 0], ["🐟🍽️", 0]]}, {"s": "c", "t": "The cat is in the bath.", "c": [["🐱🛀", 1], ["🐱🛏️", 0], ["🐶🛀", 0]]}, {"s": "c", "t": "We can wash the dog.", "c": [["🧼🐶", 1], ["🧼🐱", 0], ["🐶😴", 0]]}, {"s": "c", "t": "Hush! The kid is in bed.", "c": [["🤫🧒🛏️", 1], ["🧒🏃", 0], ["👨🛏️", 0]]}, {"s": "c", "t": "The bug is on the bush.", "c": [["🐛🌳", 1], ["🐛☕", 0], ["🐝🌳", 0]]}, {"s": "c", "t": "I see a fish and a ship.", "c": [["🐟🚢", 1], ["🐟🛶", 0], ["🐙🚢", 0]]}, {"s": "d", "t": "The ant is on my hand.", "c": [["🐜✋", 1], ["🐜🦵", 0], ["🐛✋", 0]]}, {"s": "d", "t": "The gift is in the tent.", "c": [["🎁🏕️", 1], ["🎁🛏️", 0], ["🐶🏕️", 0]]}, {"s": "d", "t": "The fish is in the pond.", "c": [["🐟🪷", 1], ["🐟🛁", 0], ["🐸🪷", 0]]}, {"s": "d", "t": "The kid can jump.", "c": [["🧒🤸", 1], ["🧒😴", 0], ["🐶🤸", 0]]}, {"s": "d", "t": "The milk is on the desk.", "c": [["🥛🖥️", 1], ["🥛🛏️", 0], ["☕🖥️", 0]]}, {"s": "d", "t": "The lamp is on the desk.", "c": [["🪔🖥️", 1], ["🪔🛏️", 0], ["🎁🖥️", 0]]}, {"s": "d", "t": "The mask is in the sand.", "c": [["🎭🏖️", 1], ["🎭📦", 0], ["🐚🏖️", 0]]}, {"s": "d", "t": "We can camp in the tent.", "c": [["🏕️", 1], ["🏠", 0], ["🚌", 0]]}];
 const RHYME = [['moon', '🌙', 'spoon', '🥄', [['star', '⭐'], ['cat', '🐱']]], ['star', '⭐', 'car', '🚗', [['sun', '☀️'], ['dog', '🐶']]], ['sky', '🌤️', 'pie', '🥧', [['moon', '🌙'], ['fish', '🐟']]],
@@ -2842,6 +2851,31 @@ SAY.readIn = "Welcome to the Reading Room, in the brick yard at Harvard! Let's r
 SAY.readNo = "Let's look again. Take your time!";
 SAY.readDone = "Five reading treasures! You're a Reading Room star!";
 SAY.sentAsk = 'Read the sentence. Then find its picture!'; SAY.sentYes = 'Yes! You read it!';
+const PQ_ALL = [...PQ_SIGHT, ...PQ_PRIMER], PQ_START = ['I', 'a', 'the', 'see', 'is', 'can', 'go', 'we', 'my', 'me', 'up', 'it'];   // starter words in Princess Quest's order
+function pqProgress(){   // Princess Quest keeps its save under 'arcade.v3' on this same site; we only ever read it
+  const out = { found: false, words: false, learning: [], known: [], stage: 'b', addMax: 5 };
+  try {
+    const d = JSON.parse(localStorage.getItem('arcade.v3') || 'null');
+    if (!d || typeof d !== 'object' || Array.isArray(d)) return out;
+    const sw = d.sightWords && typeof d.sightWords === 'object' && !Array.isArray(d.sightWords) ? d.sightWords : {};
+    for (const [w, e] of Object.entries(sw)) { if (!PQ_ALL.includes(w) || !e || typeof e !== 'object' || !Number.isFinite(e.box)) continue; (e.box >= 4 ? out.known : e.box >= 1 ? out.learning : []).push(w); }
+    const sub = d.subskills && typeof d.subskills === 'object' ? d.subskills : {}, st = k => sub[k] && Number.isFinite(sub[k].stage) ? Math.max(0, Math.min(9, Math.trunc(sub[k].stage))) : null;
+    const dr = st('decodable-reading'); if (dr !== null) out.stage = 'abcd'[Math.min(3, dr)];
+    const as = st('add-sub'); if (as !== null) out.addMax = as >= 1 ? 10 : 5;
+    out.words = out.learning.length + out.known.length > 0; out.found = out.words || dr !== null || as !== null;
+  } catch {}
+  return out;
+}
+const CAMPUS_STD = ['MA.K.NSO.1.1', 'MA.K.NSO.2.1', 'MA.K.AR.1.3', 'MA.K.GR.1.1', 'MA.K.M.1.2', 'ELA.K.F.1.2', 'ELA.K.F.1.3', 'ELA.K.F.1.4', 'ELA.K.R.2.2'];
+function campusRead(){   // only known skills, and only [tried, right] as whole numbers with right <= tried; anything else is dropped
+  const out = { since: null }; let v = null; try { v = JSON.parse(localStorage.getItem('ast-campus') || 'null'); } catch {}
+  if (v && typeof v === 'object' && !Array.isArray(v)) { for (const k of CAMPUS_STD) { const e = v[k]; if (Array.isArray(e) && e.length === 2 && e.every(n => Number.isInteger(n) && n >= 0 && n < 1e6) && e[1] <= e[0]) out[k] = [e[0], e[1]]; }
+    if (typeof v.since === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v.since)) out.since = v.since; }
+  return out;
+}
+let campus = campusRead();
+function campusLog(std, ok){ campus = campusRead(); if (!CAMPUS_STD.includes(std)) return; const e = campus[std] = campus[std] || [0, 0]; e[0]++; if (ok) e[1]++; if (!campus.since) campus.since = todayKey().replace(/-(\d)(?!\d)/g, '-0$1');   // read, add, write: two open windows don't wipe each other's counts
+  try { localStorage.setItem('ast-campus', JSON.stringify(campus)); } catch {} }
 const READ_KINDS = ['rhyme', 'first', 'sight', 'sentence', 'story'];
 const picOpt = (id, pic, word, show = true) => ({ id, label: word, html: `<span class="hem">${pic}</span>${show ? `<span>${word}</span>` : ''}` });
 function readItem(kind){
@@ -2849,9 +2883,10 @@ function readItem(kind){
     const opts = [picOpt(r, rp, r, false), ...foils.map(([w, p2]) => picOpt(w, p2, w, false))].sort(() => Math.random() - .5), ws = opts.map(o => o.id);
     return { std: 'ELA.K.F.1.2', show: `<div class="rdT"><span class="hem">${tp}</span><b>${t}</b></div>`, opts, ans: r,
       ask: kind === 'rhyme' ? rhAsk(t, ws) : fsAsk(t, ws), yes: kind === 'rhyme' ? rhYes(t, r) : fsYes(t, r), reveal: kind === 'rhyme' ? rhShow(t, r) : fsShow(t, r) }; }
-  if (kind === 'sight') { const w = PQ_SIGHT[Math.random() * PQ_SIGHT.length | 0], SOUND_SAME = { to: 'two', two: 'to' }, others = PQ_SIGHT.filter(x => x !== w && x.toLowerCase() !== w.toLowerCase() && SOUND_SAME[w] !== x).sort(() => Math.random() - .5).slice(0, 2);
+  if (kind === 'sight') { const pq = qz.pq, fill = a => { const o = [...a]; for (const x of [...pq.known, ...PQ_START]) if (o.length < 3 && !o.includes(x)) o.push(x); return o; };
+    const base = pq.learning.length && Math.random() < .75 ? fill(pq.learning) : pq.known.length ? fill(pq.known) : pq.learning.length ? fill(pq.learning) : PQ_START, pool = base.filter(x => x !== qz.lastSight), w = pool[Math.random() * pool.length | 0]; qz.lastSight = w; const SOUND_SAME = { to: 'two', two: 'to' }, others = PQ_ALL.filter(x => x !== w && x.toLowerCase() !== w.toLowerCase() && SOUND_SAME[w] !== x).sort(() => Math.random() - .5).slice(0, 2);
     return { std: 'ELA.K.F.1.4', show: '<div class="rdT"><span class="hem">🔎</span></div>', opts: [w, ...others].sort(() => Math.random() - .5).map(x => ({ id: x, html: `<span class="rdW">${x}</span>` })), ans: w, ask: swAsk(w), yes: swYes(w), reveal: swShow(w) }; }
-  if (kind === 'sentence') { const easy = PQ_SENT.filter(x => x.s === 'a' || x.s === 'b'), x = easy[Math.random() * easy.length | 0];
+  if (kind === 'sentence') { const now = PQ_SENT.filter(x => x.s === qz.pq.stage), easy = now.length && Math.random() < .6 ? now : PQ_SENT.filter(x => x.s <= qz.pq.stage), x = easy[Math.random() * easy.length | 0];
     return { std: 'ELA.K.F.1.3', show: `<div class="rdS">${x.t}</div>`, opts: x.c.map(([pic, ok], k) => ({ id: ok ? 'ok' : 'no' + k, html: `<span class="hem">${pic}</span>` })).sort(() => Math.random() - .5), ans: 'ok', ask: SAY.sentAsk, yes: SAY.sentYes, reveal: x.t }; }
   const [pics, lines, q, ch, yes] = STORIES[Math.random() * STORIES.length | 0];
   return { std: 'ELA.K.R.2.2', show: `<div class="rdStory">${pics.map((x, k) => `<span style="animation-delay:${k * 2.4}s">${x}</span>`).join('')}</div>`, opts: ch.map(([p2, w, ok], k) => ({ ...picOpt(ok ? 'ok' : 'no' + k, p2, w) })).sort(() => Math.random() - .5), ans: 'ok', ask: [...lines, q], again: [...lines, q], yes, reveal: yes.replace('Yes! ', '') };
@@ -2859,7 +2894,7 @@ function readItem(kind){
 function startRead(){
   ++seq; mode = 'read'; $('#pill').textContent = 'Reading Room'; $('#app').classList.add('game');
   $('#quiz').hidden = false; $('#quiz').classList.add('lab', 'read'); const rest = READ_KINDS.slice(1).sort(() => Math.random() - .5);
-  qz = { kind: 'read', right: 0, cups: 0, miss: 0, lock: false, order: ['rhyme', ...rest], r: 0 }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextRead(true);
+  qz = { pq: pqProgress(), kind: 'read', right: 0, cups: 0, miss: 0, lock: false, order: ['rhyme', ...rest], r: 0 }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextRead(true);
 }
 function nextRead(first){
   const kind = qz.order[qz.r++ % qz.order.length], e = readItem(kind); qz.e = e; qz.exp = kind; qz.miss = 0; qz.wrongId = null; qz.lock = false;
@@ -2873,6 +2908,7 @@ function answerRead(b, k){
   if (k !== e.ans) { qz.wrongId = k; qz.wrongT = performance.now(); bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); qz.miss++;
     b.classList.add('out'); b.setAttribute('aria-disabled', 'true'); const rt = document.querySelector(`#qtray .pl[data-id="${e.ans}"]`); if (rt && qz.miss >= 2) rt.classList.add('hint');   // first miss: that one dims and the question comes again; second miss: the answer glows
     if (qz.miss < 2) { speak([].concat(SAY.readNo, (e.again || e.ask))); return; } b = rt; }
+  campusLog(e.std, qz.miss === 0);
   qz.lock = true; if (qz.miss === 0) { chime(); qz.right++; } else pop(); b && b.classList.add('hint');   // stars are for first tries; a fixed answer still moves on
   $('#qstars').textContent = '🏆'.repeat(qz.cups) + (qz.cups ? ' ' : '') + '★'.repeat(Math.min(5, qz.right)) + '☆'.repeat(Math.max(0, 5 - qz.right));
   const done = qz.right === 5, say = qz.miss === 0 ? e.yes : e.reveal; speak(done ? [say, SAY.readDone] : say); if (done) { burst(); award('reading'); }
@@ -6566,6 +6602,7 @@ window.__startRoadMission = () => { const F = toy.fly; F.mission = null; const m
 window.__perf = () => { const f = (window.__ft || []).slice(-300).filter(x => x > 0 && x < 2), m = f.reduce((a, b) => a + b, 0) / Math.max(1, f.length), sorted = [...f].sort((a, b) => a - b), p95 = sorted[Math.floor(sorted.length * .95)] || 0, i = renderer.info; return { fps: +(1 / Math.max(1e-6, m)).toFixed(1), p95ms: +(p95 * 1000).toFixed(1), calls: i.render.calls, tris: i.render.triangles, geos: i.memory.geometries, texs: i.memory.textures, heapMB: performance.memory ? +(performance.memory.usedJSHeapSize / 1048576).toFixed(1) : null, mode, sceneMode }; };
 window.__phases = v => { if (v != null) $('#phslide').value = v; return { on: phx.on, last: phx.last, seen: phx.seen.size, done: !!phx.done, mode }; };
 window.__drawBreakdown = () => { const nm = new Map(toy ? [[toy.lms, 'landmarks'], [toy.planet, 'planet'], [toy.stars, 'stars'], ...Object.entries(toy).flatMap(([k, v]) => v && v.isObject3D ? [[v, k]] : Array.isArray(v) ? v.filter(x => x && x.isObject3D).map(x => [x, k + '[]']) : [])] : []), sc = sceneMode === 'toy' ? toy.s : sceneMode === 'site' && site ? site.sc : sceneMode === 'mars' ? marsScene : space, out = {}; for (const top of sc.children) { let n = 0; top.traverseVisible(o => { if (o.isMesh || o.isPoints || o.isSprite || o.isLine) n++; }); if (n) { const k = (nm.get(top) || top.name || top.type) + (top.isInstancedMesh ? '[inst]' : '') + (top.type === 'Group' && !nm.get(top) ? '#' + sc.children.indexOf(top) + ':' + top.children.length + 'ch:' + ((top.children[0] && top.children[0].geometry && top.children[0].geometry.type) || (top.children[0] && top.children[0].type) || '') : ''); out[k] = (out[k] || 0) + n; } } return Object.entries(out).sort((a, b) => b[1] - a[1]).slice(0, 25); };
+window.__pq = () => pqProgress(); window.__campus = () => JSON.parse(JSON.stringify(campusRead()));
 window.__read = () => qz && qz.kind === 'read' && { ask: [].concat(qz.e.ask).join(' '), opts: qz.e.opts.map(o => o.id), exp: qz.exp, ans: qz.e.ans, right: qz.right, miss: qz.miss, std: qz.e.std, mode };
 window.__lab = () => qz && qz.kind === 'lab' && { exp: qz.exp, ans: qz.e.ans, n: qz.n, right: qz.right, miss: qz.miss, std: qz.e.std, mode };
 window.__voiceGaps = () => voiceReady.then(() => window.__allLines().filter(l => !(VOICE.has && VOICE.has(voiceHash(l)))));   // spoken lines with no recording
@@ -6610,7 +6647,7 @@ window.__allLines = () => {
   for (let k = 3; k <= 10; k++) { s.add(cdAsk(k)); s.add(cdYes(k - 3)); s.add(cdShow(k - 3)); }
   const perms = a => [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]].map(o => o.map(i => a[i]));
   [...RHYME].forEach(([t, , r, , f]) => { perms([r, f[0][0], f[1][0]]).forEach(ws => s.add(rhAsk(t, ws))); s.add(rhYes(t, r)); s.add(rhShow(t, r)); }); FIRST.forEach(([t, , a, , f]) => { perms([a, f[0][0], f[1][0]]).forEach(ws => s.add(fsAsk(t, ws))); s.add(fsYes(t, a)); s.add(fsShow(t, a)); });
-  PQ_SIGHT.forEach(w => { s.add(swAsk(w)); s.add(swYes(w)); s.add(swShow(w)); }); PQ_SENT.forEach(x => s.add(x.t)); STORIES.forEach(([, l, q, , y]) => { l.forEach(x => s.add(x)); s.add(q); s.add(y); s.add(y.replace('Yes! ', '')); });
+  PQ_ALL.forEach(w => { s.add(swAsk(w)); s.add(swYes(w)); s.add(swShow(w)); }); PQ_SENT.forEach(x => s.add(x.t)); STORIES.forEach(([, l, q, , y]) => { l.forEach(x => s.add(x)); s.add(q); s.add(y); s.add(y.replace('Yes! ', '')); });
   Object.keys(SHAPES).forEach(t => { s.add(SHAPES[t]); s.add(shapeAsk(t)); s.add(shapeShow(t)); }); s.add('How many rockets?');
   [...PHASES.map(p => p[1]), ...EUROPA_ROCKS, ...TITAN_ROCKS, jumpLine(byId.europa), jumpLine(byId.titan), ...Object.values(TRIP_SAY), ...Object.values(ROAD_SAY), ...Object.values(BIOME_SAY), ...CITY_STOPS.map(c => c.say)].forEach(x => s.add(x)); Object.values(US_ROAD_CITIES).flat().forEach(n => { if (n) s.add('Welcome to ' + n + '!'); });   // road-trip narration
   DIRS.forEach(d => { s.add(moonWhere(d)); SKY_PLANETS.forEach(id => s.add(planetWhere(id, d))); });
@@ -6684,12 +6721,25 @@ addEventListener('resize', () => { layout(); if (mode === 'space') overview(); e
 $('#pclose').onclick = () => { $('#passport').hidden = true; };
 // grown-up settings
 const savePrefs = () => { try { localStorage.setItem('ast-prefs', JSON.stringify(prefs)); } catch {} };
+const STD_NAME = { 'MA.K.NSO.1.1': 'Counting', 'MA.K.NSO.2.1': 'Counting back', 'MA.K.AR.1.3': 'Adding and taking away', 'MA.K.GR.1.1': 'Shapes', 'MA.K.M.1.2': 'Taller and shorter', 'ELA.K.F.1.2': 'Rhymes and first sounds', 'ELA.K.F.1.3': 'Reading sentences', 'ELA.K.F.1.4': 'Sight words', 'ELA.K.R.2.2': 'True stories' };
+function campusTable(){   // built as elements and text, never from stored strings as HTML
+  campus = campusRead(); const box = document.createElement('div'), el = (t, txt, attrs = {}) => { const e = document.createElement(t); if (txt != null) e.textContent = txt; for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
+  box.append(el('h3', 'At MIT and Harvard'));
+  const keys = Object.keys(STD_NAME).filter(k => campus[k] && campus[k][0]);
+  if (keys.length) { const t = el('table'), head = el('thead'), hr = el('tr'), body = el('tbody'); t.append(el('caption', 'Number Lab and Reading Room, right on the first try', { class: 'sr' }));
+    for (const h of ['Skill', 'Florida standard', 'Right first try']) hr.append(el('th', h, { scope: 'col' })); head.append(hr); t.append(head);
+    for (const k of keys) { const r = el('tr'); r.append(el('td', STD_NAME[k]), el('td', k), el('td', `${campus[k][1]} of ${campus[k][0]}`)); body.append(r); } t.append(body); box.append(t);
+    box.append(el('p', `All time on this device${campus.since ? ', since ' + campus.since : ''}. A wrong pick before the right one is not counted as first try.`, { class: 'gnote' })); }
+  else box.append(el('p', 'No Number Lab or Reading Room visits yet.'));
+  const pq = pqProgress(); box.append(el('p', (pq.words ? 'Sight words follow her Princess Quest progress on this device.' : 'No Princess Quest word progress was found on this device, so starter words are used.') + ' Nothing leaves this device.', { class: 'gnote' }));
+  return box;
+}
 function openGrown(){
-  const g = $('#grown'); g.hidden = false;
+  const g = $('#grown'); g.hidden = false; $('#gcampus').replaceChildren(campusTable());
   $('#grate').value = prefs.rate; $('#gvol').value = prefs.vol; $('#gcap').checked = prefs.captions; $('#gmusic').checked = prefs.music !== false; $('#gawake').checked = !!prefs.awake;
   $('#grateo').textContent = prefs.rate.toFixed(2) + '×'; $('#gvolo').textContent = Math.round(prefs.vol * 100) + '%';
   $('#gfull').hidden = !document.documentElement.requestFullscreen; $('#gver').textContent = 'Version ' + APP_VERSION;
-  for (const b of ['#gstk', '#gbld']) { $(b).classList.remove('sure'); $(b).dataset.sure = ''; }
+  for (const b of ['#gstk', '#gbld', '#gcmp']) { $(b).classList.remove('sure'); $(b).dataset.sure = ''; }
 }
 $('#gogrown').onclick = openGrown; $('#pgrown').onclick = openGrown; $('#gclose').onclick = () => { $('#grown').hidden = true; };
 $('#grate').oninput = e => { prefs.rate = +e.target.value; $('#grateo').textContent = prefs.rate.toFixed(2) + '×'; savePrefs(); };
@@ -6700,6 +6750,7 @@ $('#gmusic').onchange = e => { prefs.music = e.target.checked; savePrefs(); };
 $('#gawake').onchange = e => { prefs.awake = e.target.checked; savePrefs(); stayAwake(prefs.awake); };
 $('#gfull').onclick = () => { document.documentElement.requestFullscreen?.().catch(() => {}); };
 const confirmTap = (b, done, label) => () => { const el = $(b); if (el.dataset.sure) { done(); el.textContent = label + ' ✓'; el.classList.remove('sure'); el.dataset.sure = ''; } else { el.dataset.sure = '1'; el.classList.add('sure'); el.textContent = 'Tap again to confirm'; } };
+$('#gcmp').onclick = confirmTap('#gcmp', () => { try { localStorage.removeItem('ast-campus'); } catch {} campus = campusRead(); $('#gcampus').replaceChildren(campusTable()); }, 'Learning record cleared');
 $('#gstk').onclick = confirmTap('#gstk', () => { stamps = new Set(); try { localStorage.removeItem('ast-passport'); } catch {} }, 'Stickers reset');
 $('#gbld').onclick = confirmTap('#gbld', () => { try { localStorage.removeItem('ast-toybuild'); } catch {} if (toy) { toy.buildList = []; toyRebuild(); } }, 'Building cleared');
 // keep the screen from dimming (bedtime story, or always if the grown-up asks)
