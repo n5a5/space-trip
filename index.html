@@ -6811,7 +6811,7 @@ async function stayAwake(on, ms){
     if (ms && !prefs.awake) wakeT = setTimeout(() => stayAwake(false), ms); }
   else if (wakeLock && !prefs.awake) { try { await wakeLock.release(); } catch {} wakeLock = null; }
 }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && prefs.awake) stayAwake(true); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { if (prefs.awake) stayAwake(true); if (ac && ac.state === 'suspended' && !prefs.muted) ac.resume().catch(() => {}); } else { hush(); if (ac && ac.state === 'running') ac.suspend().catch(() => {}); } });   // phone locked or app switched: Luna stops talking and every sound pauses
 if (prefs.awake) addEventListener('pointerdown', () => stayAwake(true), { once: true });
 $('#backbtn').onclick = () => { audio()?.resume?.(); goBack(); };
 function setMute(m){
