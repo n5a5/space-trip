@@ -1,0 +1,31 @@
+// The skill ladder (Number Lab): 3 first-try rights in a row climb a rung, at most one move per visit; 2 misses in 3 drop one; the level survives a reload;
+// a corrupt save is ignored; every rung of every activity makes a valid item with the right Florida benchmark and recorded lines.
+module.exports=async({pg,S,W,visit})=>{const act=t=>pg.evaluate(t=>{const b=[...document.querySelectorAll('#actions .act')].find(b=>b.textContent.includes(t));b&&b.click();return !!b;},t),L=()=>pg.evaluate(()=>window.__ladder()),now=()=>pg.evaluate(()=>window.__labNow());
+const tap=id=>pg.evaluate(id=>{const b=document.querySelector(`#qtray .pl[data-id="${id}"]`);b&&b.click();return !!b},id);
+const next=async prev=>{for(let i=0;i<40;i++){await W(400);const n=await now();if(n&&n.ans!==undefined&&!(await pg.evaluate(()=>!!document.querySelector('#qtray .pl.hint'))))return n;}throw new Error('no next item');};
+const right=async()=>{await W(700);const n=await now();if(!(await tap(n.ans)))throw new Error('no answer card '+n.ans);await next();};
+const missThenRight=async()=>{await W(700);const n=await now();const w=await pg.evaluate(a=>[...document.querySelectorAll('#qtray .pl')].map(b=>b.dataset.id).find(k=>k!==a),n.ans);await tap(w);await W(1000);await tap(n.ans);await next();};
+await pg.click('#go');await W(1500);await pg.click('.th[data-id="earth"]');await W(2500);if(await pg.isVisible('.th[data-id="earth"]'))await pg.click('.th[data-id="earth"]');await W(11000);
+await pg.click('#actions >> text=Places');await W(14000);await visit('college');await W(22000);
+const enter=async()=>{if(!(await act('Number Lab')))throw new Error('no Number Lab');await W(4000);await pg.evaluate(()=>window.__labOrder(['count']));};
+await enter();let n=await now();console.log('first',JSON.stringify(n));if(n.exp!=='count'||n.rung!==0)throw new Error('should start at count rung 0');
+for(let k=0;k<3;k++)await right();let l=await L();console.log('after 3 right',JSON.stringify(l.count));if(l.count.r!==1)throw new Error('no promotion after 3 first-try rights');await S('ld_up');
+for(let k=0;k<3;k++)await right();l=await L();console.log('3 more',JSON.stringify(l.count));if(l.count.r!==1)throw new Error('moved twice in one visit');
+await act('Back to campus');await W(3000);await enter();await right();l=await L();console.log('new visit',JSON.stringify(l.count));if(l.count.r!==2)throw new Error('streak did not carry to the next visit');
+await act('Back to campus');await W(3000);await enter();await missThenRight();await right();await missThenRight();l=await L();console.log('2 misses in 3',JSON.stringify(l.count));if(l.count.r!==1)throw new Error('no drop after 2 misses in 3');
+await act('Back to campus');await W(3000);await enter();for(let k=0;k<3;k++)await right();await missThenRight();await missThenRight();l=await L();console.log('up, then 2 misses in the same visit',JSON.stringify(l.count));
+await act('Back to campus');await W(3000);await enter();await right();const l2=await L();console.log('next visit, right first try',JSON.stringify(l2.count));if(l2.count.r<l.count.r)throw new Error('a right answer dropped a level');
+await pg.evaluate(()=>localStorage.setItem('ast-ladder',JSON.stringify({groups:{r:0,s:0,h:[]},count:{r:1,s:0,h:[]}})));await act('Back to campus');await W(3000);if(!(await act('Number Lab')))throw new Error('no lab');await W(4000);await pg.evaluate(()=>window.__labOrder(['groups']));await pg.evaluate(()=>window.__itemShow('groups',false));await W(1500);
+for(let k=0;k<3;k++)await right();let g=await L();console.log('groups after 3 (two cards)',JSON.stringify(g.groups));if(g.groups.r!==0)throw new Error('two-card rung climbed after 3');await right();g=await L();if(g.groups.r!==1)throw new Error('two-card rung did not climb after 4');
+await pg.evaluate(()=>localStorage.setItem('ast-ladder',JSON.stringify({count:{r:1,s:0,h:[]}})));
+await pg.reload();await W(4000);l=await L();console.log('after reload',JSON.stringify(l));if(!l.count||l.count.r!==1)throw new Error('level lost on reload');
+for(const bad of ['{"count":{"r":99,"s":1,"h":[]},"add":"x"}','not json','[1,2]','{"count":{"r":1,"s":7,"h":[1]}}','{"count":{"r":1,"s":0,"h":[2]}}']){await pg.evaluate(b=>localStorage.setItem('ast-ladder',b),bad);const r=await L();if(Object.keys(r).length)throw new Error('corrupt save accepted: '+bad);}
+await pg.click('#go');await W(1500);await pg.click('.th[data-id="earth"]');await W(2500);if(await pg.isVisible('.th[data-id="earth"]'))await pg.click('.th[data-id="earth"]');await W(11000);
+await pg.click('#actions >> text=Places');await W(14000);await visit('college');await W(22000);await enter();n=await now();if(n.rung!==0)throw new Error('corrupt save not reset to rung 0');
+const all=new Set(await pg.evaluate(()=>window.__allLines()));const R={count:4,groups:3,numline:2,add:3,make10:2,countdown:3,shape:3,compare:3},RD={rhyme:2,first:2,syll:2,sight:2,sentence:4};const stds=new Set();
+for(const [set,rd] of [[R,false],[RD,true]])for(const [k,nr] of Object.entries(set))for(let r=0;r<nr;r++){await pg.evaluate(([k,r])=>localStorage.setItem('ast-ladder',JSON.stringify({[k]:{r,s:0,h:[]}})),[k,r]);
+  for(let i=0;i<12;i++){const g=await pg.evaluate(([k,rd])=>window.__gen(k,rd),[k,rd]);stds.add(k+r+':'+g.std);if(!g.ids.includes(g.ans))throw new Error(k+' rung '+r+' answer not offered');if(new Set(g.ids).size!==g.ids.length)throw new Error(k+' rung '+r+' duplicate options');
+    const miss=g.lines.filter(x=>!all.has(x));if(miss.length)throw new Error(k+' rung '+r+' unrecorded line: '+miss[0]);}}
+console.log('rungs',[...stds].join(' '));
+await pg.evaluate(()=>localStorage.setItem('ast-ladder',JSON.stringify({count:{r:1,s:0,h:[]}})));const late=await pg.evaluate(()=>{window.__itemShow('count',false);const n=window.__labNow();const w=[...document.querySelectorAll('#qtray .pl')].find(b=>b.dataset.id!==n.ans);w.click();return n.ans;});
+await W(900);await tap(late);await next();const lt=await L();console.log('tap carried from the last question, then right',JSON.stringify(lt.count));if(lt.count.h[lt.count.h.length-1]!==1)throw new Error('a tap in the first moment of a new question counted as a miss');await pg.evaluate(()=>localStorage.removeItem('ast-ladder'));};

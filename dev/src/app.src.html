@@ -94,8 +94,8 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 @keyframes ispIn{to{opacity:1}}
 #quiz.isp #qtray{grid-template-columns:repeat(3,1fr);max-width:440px}
 #quiz.isp #qtray .pl{min-height:104px;justify-content:center;gap:4px}
-#quiz.lab #qtray{grid-template-columns:repeat(3,1fr);max-width:400px}
-#quiz.lab #qtray .pl{min-height:96px;justify-content:center}
+#quiz.lab #qtray{grid-template-columns:repeat(3,minmax(0,1fr));max-width:400px}#qtray .pl .hem.multi{white-space:nowrap;font-size:clamp(22px,8.4vw,34px);letter-spacing:-1px}#qtray .pl .hem.m3{font-size:clamp(18px,6.4vw,30px)}.lvlup{position:fixed;left:50%;top:34%;transform:translateX(-50%);z-index:9;padding:12px 24px;border-radius:999px;background:#ffd166;color:#2b0b24;font:800 28px/1 var(--display);box-shadow:0 6px 24px #0008;pointer-events:none;animation:labIn .4s both}
+#quiz.lab #qtray .pl{min-height:96px;justify-content:center}#quiz.lab #qtray .pl:has(.rk){justify-content:flex-end}#quiz.lab #qtray .pl:has(.bar){align-items:flex-start}
 .labN{font:700 46px/1 var(--display)}
 .tenf{display:grid;grid-template-columns:repeat(5,52px);grid-auto-rows:52px;gap:6px;justify-content:center;margin:0 auto}
 .labRow{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;align-items:center;font-size:34px;max-width:340px;margin:0 auto;line-height:1.15}
@@ -138,7 +138,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 #quiz.homes #qtray{grid-template-columns:repeat(3,1fr);max-width:440px;align-items:stretch}
 #quiz.homes #qtray .pl{min-height:120px;justify-content:center;gap:4px}
 .hem{font-size:52px;line-height:1.1}
-.homesAn{font-size:96px;line-height:1}.pbw{filter:grayscale(1) brightness(1.9)}
+.homesAn{font-size:96px;line-height:1}.tenf2{display:flex;gap:10px;justify-content:center;align-items:center}.teenN{min-width:64px;text-align:center}.tenf2 .tenf{grid-template-columns:repeat(5,30px);grid-auto-rows:30px;gap:3px;margin:0}.tenf2 .tenf span{font-size:19px;border-radius:6px}.grpB{display:grid;grid-template-columns:repeat(5,18px);gap:1px;justify-content:center;font-size:15px;line-height:18px}.grpB i{font-style:normal}.nl{display:flex;justify-content:center;max-width:380px;margin:0 auto;padding:0 4px 8px;border-bottom:4px solid #ffd166}.nl span{flex:1;min-width:0;text-align:center;font:700 17px/1 var(--display);position:relative}.nl span::after{content:'';position:absolute;left:50%;bottom:-12px;width:2px;height:8px;background:#ffd166}.nl .q{color:#ffd166;font-size:24px}.nl .blank{color:#8a86b8}.s3{display:block;width:60px;height:60px}.bal{display:block;width:220px;max-width:70vw;margin:0 auto}.box{display:block;width:46px;height:40px;border-radius:6px}.bar{display:block;height:22px;border-radius:6px;margin:30px 0 30px 6px;background:repeating-linear-gradient(90deg,#ff7eb6 0 18px,#241a3a 18px 21px)}.clap{font-size:24px;letter-spacing:-2px}.pbw{filter:grayscale(1) brightness(1.9)}
 #quiz.bigger #qtray{grid-template-columns:1fr 1fr;max-width:400px;align-items:end}
 #quiz.bigger #qtray .pl{min-height:190px;justify-content:flex-end}
 #quiz.bigger #qtray .pl img{width:130px;height:130px;transition:width 1.2s cubic-bezier(.3,1.4,.5,1),height 1.2s cubic-bezier(.3,1.4,.5,1)}
@@ -180,7 +180,7 @@ button:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
 .card p{margin:0;font:700 16px/1.45 var(--body);color:var(--muted)}
 #gotoy{margin-top:14px;font:600 20px/1 var(--display);padding:12px 22px;border-radius:999px;border:2px solid var(--gold);background:transparent;color:var(--gold);cursor:pointer}
 #go{margin-top:8px;font:600 30px/1 var(--display);padding:18px 34px 20px;border-radius:999px;border:0;background:var(--pink);color:#2b0b24;box-shadow:0 6px 0 #b23a78,0 10px 30px rgba(255,126,182,.4);cursor:pointer}
-#go:active{transform:translateY(4px);box-shadow:0 2px 0 #b23a78}
+#go:active{transform:translateY(4px);box-shadow:0 2px 0 #b23a78}#go.wait{opacity:.75;animation:goWait 1.2s ease-in-out infinite}#go.ready{animation:goWait .8s ease-in-out 3}@keyframes goWait{50%{transform:scale(1.06)}}@media (prefers-reduced-motion:reduce){#go.wait,#go.ready{animation:none}}
 .card small{font:700 12px/1.4 var(--body);color:var(--muted);opacity:.8}
 #err{max-width:24em;text-align:center;font:700 15px/1.5 var(--body);color:var(--ink)}
 #count{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;font:700 min(46vw,240px)/1 var(--display);color:var(--gold);text-shadow:0 8px 0 #b3541e,0 0 60px rgba(255,209,102,.6)}
@@ -378,6 +378,7 @@ import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 window.__ok = true;
+for (const id of ['go', 'gotoy']) { const g = document.getElementById(id); if (g) g.onclick = () => { const go = document.getElementById('go'); go.dataset.at = performance.now(); go.dataset.to = id; go.textContent = '🚀 Getting ready…'; go.classList.add('wait'); }; }   // a tap before the 3D world is ready is remembered, and she sees it was heard
 await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));   // paint the splash first; the 3D set-up below takes a few seconds on slow phones
 
 /* ---------- data ---------- */
@@ -450,7 +451,7 @@ const byId = Object.fromEntries(P.map(p => [p.id, p]));
 const ORDER = ['mercury','venus','earth','mars','jupiter','saturn','uranus','neptune'];
 const ORD = ['first','second','third','fourth','fifth','sixth','seventh','eighth'];
 const ORDN = ['1st','2nd','3rd','4th','5th','6th','7th','8th'];
-const NUM = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+const NUM = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty','twenty-one','twenty-two','twenty-three','twenty-four','twenty-five','twenty-six','twenty-seven','twenty-eight','twenty-nine','thirty'];
 const HOME_FACTS = [
   "This is Amelia's house, on planet Earth. Earth is the third planet from the Sun.",
   "The Sun in our sky is the same star we visited in space. It looks small because it's very, very far away.",
@@ -572,7 +573,7 @@ const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const angDiff = (a, b) => { let d = (a - b) % (Math.PI * 2); if (d > Math.PI) d -= Math.PI * 2; if (d < -Math.PI) d += Math.PI * 2; return d; };
 function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-const rnd = mulberry32(20200830);
+const rnd0 = mulberry32(20200830); let rndN = 0; const rnd = () => (rndN++, rnd0());   // counted, so a cached planet texture can skip ahead by the same amount
 const DEG = Math.PI / 180;
 
 /* ---------- sound ---------- */
@@ -946,7 +947,7 @@ function glowCanvas(inner, outer, core = .35){
 }
 // round thumbnails for the strip and the game
 function thumb(p, pc, k = 1){   // k > 1: a sharper copy for big on-screen sizes
-  const S = 160, c = mkCanvas(S * k, S * k), g = c.getContext('2d'); g.scale(k, k); const R = p.id === 'saturn' ? 44 : p.id === 'sun' ? 62 : 58;
+  const S = 160, c = mkCanvas(S * k, S * k, true), g = c.getContext('2d'); g.scale(k, k); const R = p.id === 'saturn' ? 44 : p.id === 'sun' ? 62 : 58;   // CPU-side like the planet canvas: drawing CPU to GPU took about a second per thumbnail on start-up
   const drawRing = front => {
     g.save(); g.translate(80, 80); g.rotate(-.35); g.beginPath();
     g.ellipse(0, 0, 78, 22, 0, front ? 0 : Math.PI, front ? Math.PI : Math.PI * 2);
@@ -1055,14 +1056,27 @@ const hits = [];
 const canvases = {};
 const ATMO = { titan: ['#e8a24a', 2.4, 1.2, 1.08], earth: ['#62b8ff', 3.2, 1.3, 1.05], venus: ['#ffd9a0', 3.5, .9, 1.035], mars: ['#ff9f80', 4, .5, 1.03], uranus: ['#a8f2f5', 3.5, .8, 1.035], neptune: ['#6f9bff', 3.5, .9, 1.035] };
 
+// Painting the planet textures is the slowest part of start-up. The pictures are the same every time, so after the first visit they come
+// from a cache on this device (cleared with each new version); one planet per task, so the phone can breathe in between.
+const TEX_KEY = 'ast-tex-' + (s => { let h = 2166136261; for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 16777619); return (h >>> 0).toString(36); })([planetCanvas, fbm, pixels, warp, shade, bands, dots, tintWhere, mix, sst].map(String).join('|') + TW + 'x' + TH);
+const texStore = await (async () => { try { if (!('caches' in self) || !self.createImageBitmap) return null; const c = await caches.open(TEX_KEY); caches.keys().then(ks => ks.filter(k => k.startsWith('ast-tex-') && k !== TEX_KEY).forEach(k => caches.delete(k))).catch(() => {}); return c; } catch { return null; } })();
+const texFresh = [];
 for (const p of P) {
-  const pc = canvases[p.id] = planetCanvas(p.id);
+  await new Promise(r => setTimeout(r, 0));
+  let pc = null;
+  if (texStore) try {   // earth also needs its land mask back
+    const load = async k => { const r = await texStore.match('tex-' + k); if (!r) return null; const bm = await createImageBitmap(await r.blob()), c = mkCanvas(TW, TH, true); c.getContext('2d').drawImage(bm, 0, 0); bm.close && bm.close(); return [c, +r.headers.get('x-rnd') || 0]; };
+    const a = await load(p.id), m = p.id === 'earth' && a ? await load('earthmask') : null;
+    if (a && (p.id !== 'earth' || m)) { pc = a[0]; if (m) earthMask = m[0]; for (let i = 0; i < a[1]; i++) rnd(); }
+  } catch { pc = null; }
+  if (!pc) { const n0 = rndN; pc = planetCanvas(p.id); if (texStore) { texFresh.push([p.id, pc, rndN - n0]); if (p.id === 'earth') texFresh.push(['earthmask', earthMask, 0]); } }
+  canvases[p.id] = pc;
   p.thumb = thumb(p, pc);
   p.anchor = new THREE.Group(); space.add(p.anchor);
   p.tiltG = new THREE.Group(); p.tiltG.rotation.z = p.tilt * DEG; p.anchor.add(p.tiltG);
   let mat;
   if (p.id === 'sun') mat = sunMat;
-  else if (p.id === 'earth') { const rc = mkCanvas(TW, TH), rg = rc.getContext('2d'); rg.fillStyle = '#a6a6a6'; rg.fillRect(0, 0, TW, TH); rg.drawImage(earthMask, 0, 0); mat = std({ map: tex(pc), roughnessMap: new THREE.CanvasTexture(rc), roughness: 1 }); }
+  else if (p.id === 'earth') { const rc = mkCanvas(TW, TH, true), rg = rc.getContext('2d'); rg.fillStyle = '#a6a6a6'; rg.fillRect(0, 0, TW, TH); rg.drawImage(earthMask, 0, 0); mat = std({ map: tex(pc), roughnessMap: new THREE.CanvasTexture(rc), roughness: 1 }); }
   else if (['mercury', 'mars', 'moon'].includes(p.id)) { const t = tex(pc); mat = std({ map: t, bumpMap: t, bumpScale: p.id === 'mars' ? 1.2 : 2.2, roughness: .95 }); }
   else mat = std({ map: tex(pc), roughness: GAS_IDS.includes(p.id) ? .75 : .95 });
   p.mesh = new THREE.Mesh(sphereGeo, mat); p.mesh.scale.setScalar(p.r); p.tiltG.add(p.mesh);
@@ -1079,6 +1093,7 @@ for (const p of P) {
     const ol = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), p.kind ? new THREE.LineDashedMaterial({ color: 0xc9b8ff, transparent: true, opacity: .35, dashSize: .9, gapSize: .7 }) : new THREE.LineBasicMaterial({ color: 0x9d90ff, transparent: true, opacity: .28 })); if (p.kind) ol.computeLineDistances(); space.add(ol); orbitLines.push(ol);
   }
 }
+if (texFresh.length) setTimeout(() => (window.requestIdleCallback || (f => f()))(() => { for (const [id, c, n] of texFresh) c.toBlob(b => { if (b) texStore.put('tex-' + id, new Response(b, { headers: { 'content-type': 'image/png', 'x-rnd': String(n) } })).catch(() => {}); }, 'image/png'); }, { timeout: 20000 }), 8000);   // keep the painted textures for next time, once she's playing
 const sunGlows = [];
 {
   const sa = byId.sun.anchor;
@@ -2786,42 +2801,140 @@ SAY.labNo = "Let's look again. Take your time!";
 SAY.labDone = "Five experiments! You're a Number Lab scientist!";
 SAY.tallAsk = 'Which rocket is taller?'; SAY.shortAsk = 'Which rocket is shorter?';
 SAY.tallYes = 'Yes! That rocket is taller!'; SAY.shortYes = 'Yes! That rocket is shorter!'; SAY.tallShow = 'This one is taller.'; SAY.shortShow = 'This one is shorter.';
-const LAB_KINDS = ['count', 'more', 'add', 'countdown', 'shape', 'compare'];
+// The skill ladder: each activity has rungs (each tagged with its Florida B.E.S.T. benchmark). Three first-try rights in a row climb one rung;
+// two misses in the last three drop one; at most one move per activity per visit. Saved on this device only; Princess Quest only sets the first rung.
+const LADDER = {
+  count: [['Count to 5', 'MA.K.NSO.1.1'], ['Count to 10', 'MA.K.NSO.1.1'], ['Count to 20', 'MA.K.NSO.1.1'], ['Teens: ten and some more', 'MA.K.NSO.2.2']],
+  groups: [['More, up to 10', 'MA.K.NSO.1.4'], ['More or fewer, up to 20', 'MA.K.NSO.1.4'], ['More, or the same', 'MA.K.NSO.1.4']],
+  numline: [['Number line, 0 to 10', 'MA.K.NSO.2.3'], ['Number line, 10 to 20', 'MA.K.NSO.2.3']],
+  add: [['Add and take away within 5', 'MA.K.AR.1.3'], ['Add and take away within 10', 'MA.K.AR.1.3'], ['Story problems', 'MA.K.AR.1.3']],
+  make10: [['Make 10 from 5 to 9', 'MA.K.AR.1.1'], ['Make 10 from 1 to 9', 'MA.K.AR.1.1']],
+  countdown: [['Count back from 10', 'MA.K.NSO.2.1'], ['Count on, up to 30', 'MA.K.NSO.2.1'], ['Count back from 20', 'MA.K.NSO.2.1']],
+  shape: [['Flat shapes', 'MA.K.GR.1.1'], ['Solid shapes', 'MA.K.GR.1.1'], ['Shapes in real things', 'MA.K.GR.1.4']],
+  compare: [['Taller and shorter', 'MA.K.M.1.2'], ['Longer, heavier, holds more', 'MA.K.M.1.2'], ['Tallest and shortest of three (a step past Kindergarten)', 'MA.K.M.1.2']],
+  rhyme: [['Rhymes, first set', 'ELA.K.F.1.2'], ['Rhymes, all', 'ELA.K.F.1.2']],
+  first: [['First sounds', 'ELA.K.F.1.2'], ['Last sounds', 'ELA.K.F.1.2']],
+  syll: [['Clap 1 or 2', 'ELA.K.F.1.2'], ['Clap 1 to 3', 'ELA.K.F.1.2']],
+  sight: [['Sight words, pre-primer', 'ELA.K.F.1.4'], ['Sight words, primer', 'ELA.K.F.1.4']],
+  sentence: [['Sentences, stage A', 'ELA.K.F.1.3'], ['Sentences, stage B', 'ELA.K.F.1.3'], ['Sentences, stage C', 'ELA.K.F.1.3'], ['Sentences, stage D', 'ELA.K.F.1.3']],
+};
+const ACT_NAME = { count: 'Counting', groups: 'Comparing groups', numline: 'Number line', add: 'Adding and taking away', make10: 'Pairs that make 10', countdown: 'Counting back and on', shape: 'Shapes', compare: 'Measuring', rhyme: 'Rhymes', first: 'First and last sounds', syll: 'Clapping syllables', sight: 'Sight words', sentence: 'Reading sentences' };
+function ladderRead(){   // only known activities, a rung that exists, a streak 0-2 and up to three 0/1 results; anything else is dropped
+  const out = {}; let v = null; try { v = JSON.parse(localStorage.getItem('ast-ladder') || 'null'); } catch {}
+  if (v && typeof v === 'object' && !Array.isArray(v)) for (const k of Object.keys(LADDER)) { const e = v[k];
+    if (e && typeof e === 'object' && Number.isInteger(e.r) && e.r >= 0 && e.r < LADDER[k].length && Number.isInteger(e.s) && e.s >= 0 && e.s <= 3 && Array.isArray(e.h) && e.h.length <= 3 && e.h.every(x => x === 0 || x === 1)) out[k] = { r: e.r, s: e.s, h: [...e.h] }; }
+  return out;
+}
+function ladderStart(k, pq){   // no save yet: start where her Princess Quest progress says (never a cap), else at the bottom
+  if (!pq || !pq.found) return 0;
+  if (k === 'sight') return pq.known.filter(w => PQ_SIGHT.includes(w)).length >= 30 ? 1 : 0;   // primer once most pre-primer words are known
+  if (k === 'sentence') return pq.stageFound ? Math.max(0, 'abcd'.indexOf(pq.stage)) : 0;
+  if (k === 'add') return pq.addMax === 10 ? 1 : 0;
+  return 0;
+}
+const rung = k => { const L = ladderRead(); return L[k] ? L[k].r : ladderStart(k, qz && qz.pq); };
+function ladderLog(k, first){
+  if (!LADDER[k] || !qz) return 0; const L = ladderRead(), e = L[k] || { r: ladderStart(k, qz.pq), s: 0, h: [] }; let move = 0;
+  const need = qz.e && qz.e.opts && qz.e.opts.length === 2 ? 4 : 3;   // two cards: four in a row, so guessing can't climb
+  e.h = [...e.h, first ? 1 : 0].slice(-3); e.s = first ? e.s + 1 : 0;
+  if (!qz.moved[k]) { if (e.s >= need && e.r < LADDER[k].length - 1) move = 1; else if (!first && e.h.filter(x => !x).length >= 2 && e.r > 0) move = -1; }   // only a miss can drop a level
+  if (move) { e.r += move; e.s = 0; e.h = []; qz.moved[k] = move; } else e.s = Math.min(e.s, need - 1);
+  L[k] = e; try { localStorage.setItem('ast-ladder', JSON.stringify(L)); } catch {}
+  return move;
+}
+function lvlBadge(k){ const d = document.createElement('div'); d.className = 'lvlup'; d.setAttribute('role', 'status'); d.textContent = `⬆️ Level ${rung(k) + 1}!`; document.body.append(d); setTimeout(() => d.remove(), 3200); }   // seen as well as heard, and different from the five-star cup
+SAY.levelUp = "Level up! You're ready for a bigger challenge!";
+const pick1 = a => a[Math.random() * a.length | 0], shuffle = a => [...a].sort(() => Math.random() - .5);
+const tenF = n => `<div class="tenf">${Array.from({ length: 10 }, (_, k) => `<span>${k < n ? '🚀' : ''}</span>`).join('')}</div>`;
+const teenAsk = n => `${Cap(NWd(n))} is ten and how many more?`, teenYes = n => `Yes! ${Cap(NWd(n))} is ten and ${NWd(n - 10)} more!`, teenShow = k => `Ten and ${NWd(k)} more is ${NWd(10 + k)}.`;
+SAY.grpMoreAsk = 'Which group has more stars?'; SAY.grpFewAsk = 'Which group has fewer stars?'; SAY.grpEqAsk = 'Which group has more stars? If they are the same, tap the equal sign.';
+SAY.grpMoreYes = 'Yes! That group has more!'; SAY.grpFewYes = 'Yes! That group has fewer!'; SAY.grpEqYes = 'Yes! They have the same number of stars!';
+SAY.grpMoreShow = 'This group has more. Count them and see!'; SAY.grpFewShow = 'This group has fewer. Count them and see!'; SAY.grpEqShow = 'They are the same. Count them and see!';
+SAY.nlAsk = 'Which number is missing on the number line?'; const nlShow = m => `The missing number is ${NWd(m)}.`;
+SAY.tenAsk = 'How many more rockets make ten?'; const tenYes = n => `Yes! ${Cap(NWd(n))} and ${NWd(10 - n)} make ten!`, tenShow = n => `${Cap(NWd(n))} and ${NWd(10 - n)} make ten. Count the empty boxes!`;
+const upAsk = k => `Count up! ${Cap(NWd(k))}, ${NWd(k + 1)}, ${NWd(k + 2)}. What comes next?`;
+const spAsk = (a, b, d) => d > 0 ? `Amelia finds ${nn(a, 'shiny gem', 'shiny gems')} on the Moon. Then she finds ${NWd(b)} more. How many gems does she have now?`
+  : `${Cap(NWd(a))} friendly aliens are playing. ${Cap(NWd(b))} ${b === 1 ? 'flies' : 'fly'} home in a flying saucer. How many aliens are still playing?`;
+const spYes = (c, d) => d > 0 ? `Yes! ${Cap(nn(c, 'gem', 'gems'))}!` : `Yes! ${Cap(nn(c, 'alien', 'aliens'))}!`;
+const SHAPES3 = { sphere: "Yes! That's a sphere! A ball is a sphere.", cube: "Yes! That's a cube! It has six flat sides, and each one is a square.", cone: "Yes! That's a cone! It's round at the bottom and pointy at the top.", cylinder: "Yes! That's a cylinder! A can is a cylinder." };
+const SVG3 = {   // solid shapes drawn with light and shade, so they read as 3D
+  sphere: '<svg class="s3" viewBox="0 0 60 60" aria-hidden="true"><defs><radialGradient id="g3s" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#fff6cc"/><stop offset="1" stop-color="#d99a00"/></radialGradient></defs><circle cx="30" cy="31" r="26" fill="url(#g3s)"/></svg>',
+  cube: '<svg class="s3" viewBox="0 0 60 60" aria-hidden="true"><path d="M8 19 30 8 52 19 30 30Z" fill="#ffe8a8"/><path d="M8 19 30 30 30 55 8 44Z" fill="#ffd166"/><path d="M52 19 30 30 30 55 52 44Z" fill="#d99a00"/></svg>',
+  cone: '<svg class="s3" viewBox="0 0 60 60" aria-hidden="true"><defs><linearGradient id="g3c" x1="0" x2="1"><stop offset="0" stop-color="#ffe8a8"/><stop offset=".6" stop-color="#ffd166"/><stop offset="1" stop-color="#c98a00"/></linearGradient></defs><ellipse cx="30" cy="46" rx="22" ry="9" fill="#b07800"/><path d="M30 3 8 46A22 9 0 0 0 52 46Z" fill="url(#g3c)"/><path d="M8 46A22 9 0 0 0 52 46" fill="none" stroke="#8a5d00" stroke-width="1.5"/></svg>',
+  cylinder: '<svg class="s3" viewBox="0 0 60 60" aria-hidden="true"><defs><linearGradient id="g3y" x1="0" x2="1"><stop offset="0" stop-color="#ffe8a8"/><stop offset=".6" stop-color="#ffd166"/><stop offset="1" stop-color="#c98a00"/></linearGradient></defs><path d="M12 13V48A18 6 0 0 0 48 48V13Z" fill="url(#g3y)"/><ellipse cx="30" cy="13" rx="18" ry="6" fill="#fff0c2" stroke="#d99a00" stroke-width="1.5"/></svg>' };
+const REAL3 = [['a ball', '⚽', 'sphere'], ['Earth', '🌍', 'sphere'], ['an ice cube', '🧊', 'cube'], ['an ice cream cone', '🍦', 'cone'], ['a drum', '🥁', 'cylinder'], ['a can of soup', '🥫', 'cylinder']];
+const realAsk = o => `This is ${o}. What shape is it?`, realYes = (o, t) => `Yes! ${Cap(o)} is shaped like a ${t}!`, realShow = (o, t) => `${Cap(o)} is shaped like a ${t}.`;
+SAY.longAsk = 'Which train is longer?'; SAY.shortLAsk = 'Which train is shorter?'; SAY.longYes = 'Yes! That train is longer!'; SAY.shortLYes = 'Yes! That train is shorter!'; SAY.longShow = 'This train is longer.'; SAY.shortLShow = 'This train is shorter.';
+SAY.holdAsk = 'Which jar holds more water?'; SAY.holdLessAsk = 'Which jar holds less water?'; SAY.holdYes = 'Yes! The big jar holds more!'; SAY.holdLessYes = 'Yes! The small jar holds less!'; SAY.holdShow = 'The big jar holds more water.'; SAY.holdLessShow = 'The small jar holds less water.';
+SAY.heavyAsk = 'The heavier box makes its side go down. Which box is heavier?'; SAY.heavyYes = 'Yes! That box is heavier! Its side went down.'; SAY.heavyShow = 'This box is heavier. Its side went down.';
+SAY.tallestAsk = 'Which rocket is the tallest?'; SAY.shortestAsk = 'Which rocket is the shortest?'; SAY.tallestYes = 'Yes! That rocket is the tallest!'; SAY.shortestYes = 'Yes! That rocket is the shortest!'; SAY.tallestShow = 'This one is the tallest.'; SAY.shortestShow = 'This one is the shortest.';
+const LAB_KINDS = ['count', 'groups', 'numline', 'add', 'make10', 'countdown', 'shape', 'compare', 'more'];
 const ri = (a, b) => a + (Math.random() * (b - a + 1) | 0);
 const numOpts = (ans, lo, hi) => { const set = new Set([ans]); let g = 0; while (set.size < 3 && g++ < 50) { const d = ans + [-2, -1, 1, 2][Math.random() * 4 | 0]; if (d >= lo && d <= hi) set.add(d); } return [...set].sort((x, y) => x - y).map(k => ({ id: String(k), html: `<span class="labN">${k}</span>` })); };
 const emRow = (em, n, cls = '') => `<div class="labRow">${Array.from({ length: n }, () => `<span class="${cls}">${em}</span>`).join('')}</div>`;
 function labExp(kind){   // one experiment: what to show, the choices, the right one, and what Luna says
-  if (kind === 'count') { const n = ri(1, 10), f = `<div class="tenf">${Array.from({ length: 10 }, (_, k) => `<span>${k < n ? '🚀' : ''}</span>`).join('')}</div>`;
-    return { std: 'MA.K.NSO.1.1', show: f, opts: numOpts(n, 1, 10), ans: String(n), ask: 'How many rockets?', yes: labYes(n), reveal: labCount(n), n }; }
+  if (kind === 'count') { const r = rung('count');
+    if (r === 3) { const k = ri(0, 10), n = 10 + k; return { std: 'MA.K.NSO.2.2', show: `<div class="tenf2"><span class="labN teenN">${n}</span>${tenF(10)}</div>`, opts: numOpts(k, 0, 10), ans: String(k), ask: teenAsk(n), yes: teenYes(n), reveal: teenShow(k), n }; }
+    const n = r === 2 ? ri(11, 20) : ri(1, r ? 10 : 5), f = r === 2 ? `<div class="tenf2">${tenF(10)}${tenF(n - 10)}</div>` : tenF(n);
+    return { std: 'MA.K.NSO.1.1', show: f, opts: numOpts(n, 1, r === 2 ? 20 : 10), ans: String(n), ask: 'How many rockets?', yes: labYes(n), reveal: labCount(n), n }; }
+  if (kind === 'groups') { const r = rung('groups'), mx = r ? 20 : 10, eq = r === 2 && Math.random() < .3, fewer = r === 1 && Math.random() < .5; let a = ri(1, mx), b = a;
+    if (!eq) do b = ri(1, mx); while (Math.abs(a - b) < (r ? 1 : 2));
+    const want = eq ? 'eq' : fewer ? (a < b ? 'a' : 'b') : (a > b ? 'a' : 'b'), grp = n => `<span class="grpB">${'<i>⭐</i>'.repeat(n)}</span>`;
+    const opts = [{ id: 'a', label: `left group, ${nn(a, 'star', 'stars')}`, html: grp(a) }, { id: 'b', label: `right group, ${nn(b, 'star', 'stars')}`, html: grp(b) }]; if (r === 2) opts.push({ id: 'eq', label: 'the same', html: '<span class="labN">=</span>' });
+    return { std: 'MA.K.NSO.1.4', show: '', opts, ans: want, ask: r === 2 ? SAY.grpEqAsk : fewer ? SAY.grpFewAsk : SAY.grpMoreAsk, yes: eq ? SAY.grpEqYes : fewer ? SAY.grpFewYes : SAY.grpMoreYes, reveal: eq ? SAY.grpEqShow : fewer ? SAY.grpFewShow : SAY.grpMoreShow }; }
+  if (kind === 'numline') { const r = rung('numline'), lo = r ? 10 : 0, m = ri(lo + 1, lo + 9);
+    const op = numOpts(m, lo, lo + 10), hid = op.map(o => +o.id);
+    return { std: 'MA.K.NSO.2.3', show: `<div class="nl">${Array.from({ length: 11 }, (_, k) => k + lo === m ? '<span class="q">?</span>' : hid.includes(k + lo) ? '<span class="blank">·</span>' : `<span>${k + lo}</span>`).join('')}</div>`, opts: op, ans: String(m), ask: SAY.nlAsk, yes: cdYes(m), reveal: nlShow(m) }; }
+  if (kind === 'make10') { const r = rung('make10'), n = r ? ri(1, 9) : ri(5, 9), m = 10 - n;
+    return { std: 'MA.K.AR.1.1', show: tenF(n), opts: numOpts(m, 1, 9), ans: String(m), ask: SAY.tenAsk, yes: tenYes(n), reveal: tenShow(n) }; }
   if (kind === 'more') { const d = Math.random() < .5 ? 1 : -1, n = d > 0 ? ri(1, 9) : ri(2, 10), m = n + d;
     const mo = c => `<span class="moonDot ${c}"></span>`, show = `<div class="labRow">${Array.from({ length: n }, (_, k) => mo(d < 0 && k === n - 1 ? 'labGone' : '')).join('')}${d > 0 ? '<span class="plus">+</span>' + mo('labNew') : ''}</div>`;   // drawn moons: the full-moon emoji is missing on some phones
     return { std: 'MA.K.AR.1.3', show, opts: numOpts(m, 1, 10), ans: String(m), ask: moonsAsk(n, d), yes: moonsYes(m), reveal: moonsShow(n, d) }; }
-  if (kind === 'add') { const d = Math.random() < .5 ? 1 : -1; let a, b; const mx = qz.pq ? qz.pq.addMax : 5; if (d > 0) { a = ri(1, mx === 10 ? 5 : 3); b = ri(1, Math.min(5, mx - a)); } else { a = ri(3, mx === 10 ? 9 : 5); b = ri(1, Math.min(3, a - 1)); }
+  if (kind === 'add' && rung('add') === 2) { const d = Math.random() < .5 ? 1 : -1; let a, b; if (d > 0) { a = ri(2, 6); b = ri(1, Math.min(4, 10 - a)); } else { a = ri(4, 10); b = ri(1, Math.min(4, a - 1)); } const c = a + d * b;   // story problems
+    const show = d > 0 ? `<div class="labRow"><span class="grp">${'<span>💎</span>'.repeat(a)}</span><span class="plus">+</span><span class="grp">${'<span class="labNew">💎</span>'.repeat(b)}</span></div>`
+      : `<div class="labRow">${Array.from({ length: a }, (_, k) => `<span class="${k >= a - b ? 'labGone' : ''}">👽</span>`).join('')}<span>🛸</span></div>`;
+    return { std: 'MA.K.AR.1.3', show, opts: numOpts(c, 0, 10), ans: String(c), ask: spAsk(a, b, d), yes: spYes(c, d), reveal: astroShow(a, b, d) }; }
+  if (kind === 'add') { const d = Math.random() < .5 ? 1 : -1; let a, b; const mx = rung('add') ? 10 : 5; if (d > 0) { a = ri(1, mx === 10 ? 5 : 3); b = ri(1, Math.min(5, mx - a)); } else { a = ri(3, mx === 10 ? 9 : 5); b = ri(1, Math.min(3, a - 1)); }
     const c = a + d * b, show = d > 0 ? `<div class="labRow">🚀<span class="grp">${Array.from({ length: a }, () => '<span>🧑‍🚀</span>').join('')}</span><span class="plus">+</span><span class="grp">${Array.from({ length: b }, () => '<span class="labNew">🧑‍🚀</span>').join('')}</span></div>`
       : `<div class="labRow">🚀${Array.from({ length: a }, (_, k) => `<span class="${k >= a - b ? 'labGone' : ''}">🧑‍🚀</span>`).join('')}</div>`;
     return { std: 'MA.K.AR.1.3', show, opts: numOpts(c, 0, 10), ans: String(c), ask: astroAsk(a, b, d), yes: astroYes(c), reveal: astroShow(a, b, d) }; }
-  if (kind === 'countdown') { const k = ri(3, 10), m = k - 3;
-    return { std: 'MA.K.NSO.2.1', show: `<div class="labRow cd"><span>${k}</span><span>${k - 1}</span><span>${k - 2}</span><span class="q">?</span></div>`, opts: [m, ...[...Array(11).keys()].filter(x => x !== m && x < k - 2 || x > k).sort((x, y) => Math.abs(x - m) - Math.abs(y - m) || Math.random() - .5).slice(0, 2)].sort((x, y) => x - y).map(x => ({ id: String(x), html: `<span class="labN">${x}</span>` })), ans: String(m), ask: cdAsk(k), yes: cdYes(m), reveal: cdShow(m) }; }
+  if (kind === 'countdown') { const r = rung('countdown'), up = r === 1, k = up ? ri(4, 26) : r ? ri(12, 20) : ri(3, 10), m = up ? k + 3 : k - 3, s3 = up ? [k, k + 1, k + 2] : [k, k - 1, k - 2];
+    return { std: 'MA.K.NSO.2.1', show: `<div class="labRow cd">${s3.map(x => `<span>${x}</span>`).join('')}<span class="q">?</span></div>`, opts: (up ? [m, m + 1, m - 4] : r ? [m, m - 1, m + 4] : [m, ...[...Array(31).keys()].filter(x => x !== m && !s3.includes(x)).sort((x, y) => Math.abs(x - m) - Math.abs(y - m) || Math.random() - .5).slice(0, 2)]).sort((x, y) => x - y).map(x => ({ id: String(x), html: `<span class="labN">${x}</span>` })), ans: String(m), ask: up ? upAsk(k) : cdAsk(k), yes: cdYes(m), reveal: cdShow(m) }; }
+  if (kind === 'shape' && rung('shape') === 1) { const ks = Object.keys(SVG3), t = pick1(ks), o = [t, ...shuffle(ks.filter(x => x !== t)).slice(0, 2)];
+    return { std: 'MA.K.GR.1.1', show: '', opts: shuffle(o).map(x => ({ id: x, label: x, html: SVG3[x] })), ans: t, ask: shapeAsk(t), yes: SHAPES3[t], reveal: shapeShow(t) }; }
+  if (kind === 'shape' && rung('shape') === 2) { const [ob, em, t] = pick1(REAL3), ks = Object.keys(SVG3), o = [t, ...shuffle(ks.filter(x => x !== t)).slice(0, 2)];
+    return { std: 'MA.K.GR.1.4', show: `<div class="rdT"><span class="hem">${em}</span></div>`, opts: shuffle(o).map(x => ({ id: x, label: x, html: SVG3[x] })), ans: t, ask: realAsk(ob), yes: realYes(ob, t), reveal: realShow(ob, t) }; }
   if (kind === 'shape') { const ks = Object.keys(SHAPES), t = ks[Math.random() * 4 | 0], others = ks.filter(x => x !== t && !(t === 'rectangle' && x === 'square')).sort(() => Math.random() - .5).slice(0, 2);
     return { std: 'MA.K.GR.1.1', show: '', opts: [t, ...others].sort(() => Math.random() - .5).map(x => ({ id: x, label: x, html: `<span class="shp ${x}"></span>` })), ans: t, ask: shapeAsk(t), yes: SHAPES[t], reveal: shapeShow(t) }; }
+  const cr = kind === 'compare' ? rung('compare') : 0;
+  const c1 = Math.random();
+  if (cr === 1 && c1 < 1 / 3) { const big = Math.random() < .5 ? 0 : 1, more = Math.random() < .5, want = more ? big : 1 - big, jar = (k, w, h) => `<svg class="s3" viewBox="0 0 70 70" aria-hidden="true"><path d="M${35 - w / 2} ${66 - h}v${h - 6}q0 6 6 6h${w - 12}q6 0 6-6v-${h - 6}" fill="rgba(125,226,209,.35)" stroke="#e8e6ff" stroke-width="3"/></svg>`;   // the same jar, small and big
+    return { std: 'MA.K.M.1.2', show: '', opts: [0, 1].map(k => ({ id: String(k), label: k === big ? 'the big jar' : 'the small jar', html: k === big ? jar(k, 52, 58) : jar(k, 28, 30) })), ans: String(want), ask: more ? SAY.holdAsk : SAY.holdLessAsk, yes: more ? SAY.holdYes : SAY.holdLessYes, reveal: more ? SAY.holdShow : SAY.holdLessShow }; }
+  if (cr === 1 && c1 < 2 / 3) { const lng = Math.random() < .5, w = shuffle([ri(70, 95), ri(135, 165)]), want = lng ? (w[0] > w[1] ? 0 : 1) : (w[0] < w[1] ? 0 : 1);
+    return { std: 'MA.K.M.1.2', show: '', opts: w.map((x, k) => ({ id: String(k), label: `train ${k + 1}, ${Math.round(x / 21)} cars long`, html: `<span class="bar" style="width:${x}px"></span>` })), ans: String(want), ask: lng ? SAY.longAsk : SAY.shortLAsk, yes: lng ? SAY.longYes : SAY.shortLYes, reveal: lng ? SAY.longShow : SAY.shortLShow }; }
+  if (cr === 1) { const hv = Math.random() < .5 ? 'a' : 'b', col = { a: '#ff7eb6', b: '#5aa9ff' };   // a balance: the heavier box's side goes down
+    const show = `<svg class="bal" viewBox="0 0 220 120" role="img" aria-label="a balance with a pink box and a blue box; the ${hv === 'a' ? 'pink' : 'blue'} side is lower"><polygon points="100,116 120,116 110,70" fill="#9aa3c7"/><g transform="rotate(${hv === 'a' ? -12 : 12} 110 70)"><rect x="18" y="66" width="184" height="8" rx="4" fill="#cfd4ea"/><rect x="26" y="34" width="40" height="32" rx="5" fill="${col.a}"/><rect x="154" y="34" width="40" height="32" rx="5" fill="${col.b}"/></g></svg>`;
+    return { std: 'MA.K.M.1.2', show, opts: ['a', 'b'].map(k => ({ id: k, label: k === 'a' ? 'pink box' : 'blue box', html: `<span class="box" style="background:${col[k]}"></span>` })), ans: hv, ask: SAY.heavyAsk, yes: SAY.heavyYes, reveal: SAY.heavyShow }; }
+  if (cr === 2) { const tall = Math.random() < .5, h = shuffle([ri(45, 60), ri(72, 88), ri(100, 120)]), want = h.indexOf(tall ? Math.max(...h) : Math.min(...h));
+    return { std: 'MA.K.M.1.2', show: '', opts: h.map((x, k) => ({ id: String(k), label: `rocket ${k + 1}, ${Math.round(x / 12)} blocks tall`, html: `<span class="rk" style="height:${x}px"><b></b></span>` })), ans: String(want), ask: tall ? SAY.tallestAsk : SAY.shortestAsk, yes: tall ? SAY.tallestYes : SAY.shortestYes, reveal: tall ? SAY.tallestShow : SAY.shortestShow }; }
   const tall = Math.random() < .5, h = [ri(50, 70), ri(95, 120)].sort(() => Math.random() - .5), want = tall ? (h[0] > h[1] ? 0 : 1) : (h[0] < h[1] ? 0 : 1);   // compare
   return { std: 'MA.K.M.1.2', show: '', opts: h.map((x, k) => ({ id: String(k), label: 'rocket ' + (k + 1), html: `<span class="rk" style="height:${x}px"><b></b></span>` })), ans: String(want), ask: tall ? SAY.tallAsk : SAY.shortAsk, yes: tall ? SAY.tallYes : SAY.shortYes, reveal: tall ? SAY.tallShow : SAY.shortShow };
 }
 function startLab(){
   ++seq; mode = 'lab'; $('#pill').textContent = 'Number Lab'; $('#app').classList.add('game');
   $('#quiz').hidden = false; $('#quiz').classList.add('lab'); const rest = LAB_KINDS.slice(1).sort(() => Math.random() - .5);
-  qz = { pq: pqProgress(), kind: 'lab', right: 0, cups: 0, miss: 0, lock: false, order: ['count', ...rest], r: 0 }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextLab(true);
+  qz = { pq: pqProgress(), kind: 'lab', right: 0, cups: 0, miss: 0, lock: false, order: ['count', ...rest], r: 0, moved: {} }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextLab(true);
 }
 let keyUser = false; addEventListener('keydown', () => { keyUser = true; }, true); addEventListener('pointerdown', () => { keyUser = false; }, true);
 const focusTray = () => { if (keyUser) setTimeout(() => { const f = document.querySelector('#qtray .pl'); f && f.focus({ preventScroll: true }); }, 50); };
 function nextLab(first){
-  const kind = qz.order[qz.r++ % qz.order.length], e = labExp(kind); qz.e = e; qz.exp = kind; qz.miss = 0; qz.wrongId = null; qz.lock = false; qz.n = e.n;
+  const kind = qz.order[qz.r++ % qz.order.length], e = labExp(kind); qz.e = e; qz.exp = kind; qz.miss = 0; qz.wrongId = null; qz.lock = false; qz.n = e.n; qz.shownAt = performance.now();
   $('#qask').innerHTML = e.show; const tray = $('#qtray'); tray.innerHTML = ''; tray.classList.toggle('two', e.opts.length === 2);
   for (const o of e.opts) { const b = document.createElement('button'); b.className = 'pl'; b.dataset.id = o.id; b.innerHTML = o.html; if (o.label) b.setAttribute('aria-label', o.label); b.onclick = () => answerLab(b, o.id); tray.append(b); }
   speak(first ? [SAY.labIn, e.ask] : e.ask); focusTray();
 }
 function answerLab(b, k){
-  if (!qz || qz.lock || performance.now() - (qz.wrongT || 0) < 800) return; const e = qz.e;
+  if (!qz || qz.lock || performance.now() - (qz.wrongT || 0) < 800 || performance.now() - (qz.shownAt || 0) < 600) return; const e = qz.e;   // a tap still going from the last question doesn't count on this one
   if (k !== e.ans && qz.wrongId === k) { bloop(); return; }   // the same wrong card again: not a new try
   if (k !== e.ans) { qz.wrongId = k; qz.wrongT = performance.now(); bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); qz.miss++;
     b.classList.add('out'); b.setAttribute('aria-disabled', 'true'); const rt = document.querySelector(`#qtray .pl[data-id="${e.ans}"]`); if (rt && qz.miss >= 2) rt.classList.add('hint');   // first miss: that one dims and the question comes again; second miss: the answer glows   // first miss: the right one glows
@@ -2829,24 +2942,38 @@ function answerLab(b, k){
   campusLog(e.std, qz.miss === 0);
   qz.lock = true; if (qz.miss === 0) { chime(); qz.right++; } else pop(); b && b.classList.add('hint');   // stars are for first tries; a fixed answer still moves on
   $('#qstars').textContent = '🏆'.repeat(qz.cups) + (qz.cups ? ' ' : '') + '★'.repeat(Math.min(5, qz.right)) + '☆'.repeat(Math.max(0, 5 - qz.right));
-  const done = qz.right === 5, say = qz.miss === 0 ? e.yes : e.reveal; speak(done ? [say, SAY.labDone] : say); if (done) { burst(); award('numberlab'); }
-  const my = seq; setTimeout(() => { if (my !== seq) return;  if (mode === 'lab' && qz) { if (done) { qz.right = 0; qz.cups++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextLab(); } }, done ? 7000 : qz.miss < 2 ? 3600 : 6500);
+  const mv = ladderLog(qz.exp, qz.miss === 0), done = qz.right === 5, say = [].concat(qz.miss === 0 ? e.yes : e.reveal, mv > 0 ? [SAY.levelUp] : []); speak(done ? [...say, SAY.labDone] : say); if (done) { burst(); award('numberlab'); } if (mv > 0) { burst(); chime(); lvlBadge(qz.exp); }
+  const my = seq; setTimeout(() => { if (my !== seq) return;  if (mode === 'lab' && qz) { if (done) { qz.right = 0; qz.cups++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextLab(); } }, (done ? 7000 : qz.miss < 2 ? 3600 : 6500) + (mv > 0 ? 2600 : 0));
 }
 // Reading Room at Harvard: five quick reading items per visit (Florida B.E.S.T. Kindergarten ELA; codes on each kind).
 // Sight words and decodable sentences are copied from Princess Quest; three sentences whose pictures didn't match (yak, jam, mop) are left out and three pictures are clearer (content/sight-words.json, content/sentences.json), so she sees the same words in both apps.
 const PQ_PRIMER = ["all", "am", "are", "at", "ate", "be", "black", "brown", "but", "came", "did", "do", "eat", "four", "get", "good", "have", "he", "into", "like", "must", "new", "no", "now", "on", "our", "out", "please", "pretty", "ran", "ride", "saw", "say", "she", "so", "soon", "that", "there", "they", "this", "too", "under", "want", "was", "well", "went", "what", "white", "who", "will", "with", "yes"];   // Princess Quest's primer list (content/sight-words.json)
 const PQ_SIGHT = ["a", "and", "away", "big", "blue", "can", "come", "down", "find", "for", "funny", "go", "help", "here", "I", "in", "is", "it", "jump", "little", "look", "make", "me", "my", "not", "one", "play", "red", "run", "said", "see", "the", "three", "to", "two", "up", "we", "where", "yellow", "you"];
-const PQ_SENT = [{"s": "a", "t": "The cat is in the hat.", "c": [["🐱🎩", 1], ["🐶🎩", 0], ["🐱👜", 0]]}, {"s": "a", "t": "I can see a rat.", "c": [["🐀", 1], ["🐱", 0], ["🐷", 0]]}, {"s": "a", "t": "Dad is in the van.", "c": [["👨🚐", 1], ["👨🚕", 0], ["🐱🚐", 0]]}, {"s": "a", "t": "The man can see a map.", "c": [["👨🗺️", 1], ["👨🧢", 0], ["👩🗺️", 0]]}, {"s": "a", "t": "I see a bat and a cat.", "c": [["🦇🐱", 1], ["🦇🐀", 0], ["🐶🐱", 0]]}, {"s": "a", "t": "The cat is sad.", "c": [["🐱😢", 1], ["🐱😊", 0], ["🐶😢", 0]]}, {"s": "a", "t": "I see a cab and a van.", "c": [["🚕🚐", 1], ["🚕🚌", 0], ["🚗🚐", 0]]}, {"s": "a", "t": "The ram can nap.", "c": [["🐏😴", 1], ["🐏🏃", 0], ["🐱😴", 0]]}, {"s": "b", "t": "The pig is in the tub.", "c": [["🐷🛁", 1], ["🐷🛏️", 0], ["🐶🛁", 0]]}, {"s": "b", "t": "The dog can dig.", "c": [["🐶🕳️", 1], ["🐶😴", 0], ["🐷🕳️", 0]]}, {"s": "b", "t": "The hen is on the bed.", "c": [["🐔🛏️", 1], ["🐔🪺", 0], ["🐱🛏️", 0]]}, {"s": "b", "t": "A bug is in my cup.", "c": [["🐛☕", 1], ["🐛📦", 0], ["🐝☕", 0]]}, {"s": "b", "t": "The fox is in the box.", "c": [["🦊📦", 1], ["🦊🛏️", 0], ["🐶📦", 0]]}, {"s": "b", "t": "I can see a jet and a bus.", "c": [["✈️🚌", 1], ["✈️🚂", 0], ["🚕🚌", 0]]}, {"s": "b", "t": "The kid can hug the dog.", "c": [["🧒🐶", 1], ["🧒🐱", 0], ["👵🐶", 0]]}, {"s": "b", "t": "The sun is up.", "c": [["🌅", 1], ["🌙", 0], ["☔", 0]]}, {"s": "b", "t": "Dad and I can run.", "c": [["👨‍👧🏃", 1], ["👨‍👧😴", 0], ["🐶🏃", 0]]}, {"s": "c", "t": "The fish is in the dish.", "c": [["🐟🍽️", 1], ["🐟🛁", 0], ["🐱🍽️", 0]]}, {"s": "c", "t": "The ship is big.", "c": [["🚢", 1], ["🛶", 0], ["✈️", 0]]}, {"s": "c", "t": "I can see a chip on the dish.", "c": [["🍟🍽️", 1], ["🍟📦", 0], ["🐟🍽️", 0]]}, {"s": "c", "t": "The cat is in the bath.", "c": [["🐱🛀", 1], ["🐱🛏️", 0], ["🐶🛀", 0]]}, {"s": "c", "t": "We can wash the dog.", "c": [["🧼🐶", 1], ["🧼🐱", 0], ["🐶😴", 0]]}, {"s": "c", "t": "Hush! The kid is in bed.", "c": [["🤫🧒🛏️", 1], ["🧒🏃", 0], ["👨🛏️", 0]]}, {"s": "c", "t": "The bug is on the bush.", "c": [["🐛🌳", 1], ["🐛☕", 0], ["🐝🌳", 0]]}, {"s": "c", "t": "I see a fish and a ship.", "c": [["🐟🚢", 1], ["🐟🛶", 0], ["🐙🚢", 0]]}, {"s": "d", "t": "The ant is on my hand.", "c": [["🐜✋", 1], ["🐜🦵", 0], ["🐛✋", 0]]}, {"s": "d", "t": "The gift is in the tent.", "c": [["🎁🏕️", 1], ["🎁🛏️", 0], ["🐶🏕️", 0]]}, {"s": "d", "t": "The fish is in the pond.", "c": [["🐟🪷", 1], ["🐟🛁", 0], ["🐸🪷", 0]]}, {"s": "d", "t": "The kid can jump.", "c": [["🧒🤸", 1], ["🧒😴", 0], ["🐶🤸", 0]]}, {"s": "d", "t": "The milk is on the desk.", "c": [["🥛🖥️", 1], ["🥛🛏️", 0], ["☕🖥️", 0]]}, {"s": "d", "t": "The lamp is on the desk.", "c": [["🪔🖥️", 1], ["🪔🛏️", 0], ["🎁🖥️", 0]]}, {"s": "d", "t": "The mask is in the sand.", "c": [["🎭🏖️", 1], ["🎭📦", 0], ["🐚🏖️", 0]]}, {"s": "d", "t": "We can camp in the tent.", "c": [["🏕️", 1], ["🏠", 0], ["🚌", 0]]}];
+const PQ_SENT = [{"s": "a", "t": "The cat is in the hat.", "c": [["🐱🎩", 1], ["🐶🎩", 0], ["🐱👜", 0]]}, {"s": "a", "t": "I can see a rat.", "c": [["🐀", 1], ["🐱", 0], ["🐷", 0]]}, {"s": "a", "t": "Dad is in the van.", "c": [["👨🚐", 1], ["👨🚕", 0], ["🐱🚐", 0]]}, {"s": "a", "t": "The man can see a map.", "c": [["👨🗺️", 1], ["👨🧢", 0], ["👩🗺️", 0]]}, {"s": "a", "t": "I see a bat and a cat.", "c": [["🦇🐱", 1], ["🦇🐀", 0], ["🐶🐱", 0]]}, {"s": "a", "t": "The cat is sad.", "c": [["🐱😢", 1], ["🐱😊", 0], ["🐶😢", 0]]}, {"s": "a", "t": "I see a cab and a van.", "c": [["🚕🚐", 1], ["🚕🚌", 0], ["🚗🚐", 0]]}, {"s": "a", "t": "The ram can nap.", "c": [["🐏😴", 1], ["🐏🏃", 0], ["🐱😴", 0]]}, {"s": "b", "t": "The pig is in the tub.", "c": [["🐷🛁", 1], ["🐷🛏️", 0], ["🐶🛁", 0]]}, {"s": "b", "t": "The dog can dig.", "c": [["🐶🕳️", 1], ["🐶😴", 0], ["🐷🕳️", 0]]}, {"s": "b", "t": "The hen is on the bed.", "c": [["🐔🛏️", 1], ["🐔🪺", 0], ["🐱🛏️", 0]]}, {"s": "b", "t": "A bug is in my cup.", "c": [["🐛☕", 1], ["🐛📦", 0], ["🐝☕", 0]]}, {"s": "b", "t": "The fox is in the box.", "c": [["🦊📦", 1], ["🦊🛏️", 0], ["🐶📦", 0]]}, {"s": "b", "t": "I can see a jet and a bus.", "c": [["✈️🚌", 1], ["✈️🚂", 0], ["🚕🚌", 0]]}, {"s": "b", "t": "The kid can hug the dog.", "c": [["🧒🐶", 1], ["🧒🐱", 0], ["👵🐶", 0]]}, {"s": "b", "t": "The sun is up.", "c": [["🌅", 1], ["🌙", 0], ["☔", 0]]}, {"s": "b", "t": "Dad and I can run.", "c": [["👨‍👧🏃", 1], ["👨‍👧😴", 0], ["🐶🏃", 0]]}, {"s": "c", "t": "The fish is in the dish.", "c": [["🐟🍽️", 1], ["🐟🛁", 0], ["🐱🍽️", 0]]}, {"s": "c", "t": "The ship is big.", "c": [["🚢", 1], ["🛶", 0], ["✈️", 0]]}, {"s": "c", "t": "I can see a chip on the dish.", "c": [["🍟🍽️", 1], ["🍟📦", 0], ["🐟🍽️", 0]]}, {"s": "c", "t": "The cat is in the bath.", "c": [["🐱🛀", 1], ["🐱🛏️", 0], ["🐶🛀", 0]]}, {"s": "c", "t": "We can wash the dog.", "c": [["🧼🐶", 1], ["🧼🐱", 0], ["🐶😴", 0]]}, {"s": "c", "t": "Hush! The kid is in bed.", "c": [["🤫🧒🛏️", 1], ["🧒🏃", 0], ["👨🛏️", 0]]}, {"s": "c", "t": "The bug is on the bush.", "c": [["🐛🌳", 1], ["🐛☕", 0], ["🐝🌳", 0]]}, {"s": "c", "t": "I see a fish and a ship.", "c": [["🐟🚢", 1], ["🐟🛶", 0], ["🐙🚢", 0]]}, {"s": "d", "t": "The ant is on my hand.", "c": [["🐜✋", 1], ["🐜🦵", 0], ["🐛✋", 0]]}, {"s": "d", "t": "The gift is in the tent.", "c": [["🎁🏕️", 1], ["🎁🛏️", 0], ["🐶🏕️", 0]]}, {"s": "d", "t": "The fish is in the pond.", "c": [["🐟🪷", 1], ["🐟🛁", 0], ["🐸🪷", 0]]}, {"s": "d", "t": "The kid can jump.", "c": [["🧒🤸", 1], ["🧒😴", 0], ["🐶🤸", 0]]}, {"s": "d", "t": "The milk is on the desk.", "c": [["🥛🖥️", 1], ["🥛🛏️", 0], ["☕🖥️", 0]]}, {"s": "d", "t": "The mask is in the sand.", "c": [["🎭🏖️", 1], ["🎭📦", 0], ["🐚🏖️", 0]]}, {"s": "d", "t": "We can camp in the tent.", "c": [["🏕️", 1], ["🏠", 0], ["🚌", 0]]}];
 const RHYME = [['moon', '🌙', 'spoon', '🥄', [['star', '⭐'], ['cat', '🐱']]], ['star', '⭐', 'car', '🚗', [['sun', '☀️'], ['dog', '🐶']]], ['sky', '🌤️', 'pie', '🥧', [['moon', '🌙'], ['fish', '🐟']]],
   ['night', '🌃', 'kite', '🪁', [['bed', '🛏️'], ['star', '⭐']]], ['space', '🌌', 'face', '😀', [['cup', '🥤'], ['sock', '🧦']]]];
 const FIRST = [['moon', '🌙', 'mouse', '🐭', [['sun', '☀️'], ['fish', '🐟']]], ['sun', '☀️', 'sock', '🧦', [['moon', '🌙'], ['cat', '🐱']]], ['rocket', '🚀', 'robot', '🤖', [['cup', '🥤'], ['sun', '☀️']]], ['planet', '🪐', 'pig', '🐷', [['moon', '🌙'], ['fish', '🐟']]], ['comet', '☄️', 'cat', '🐱', [['dog', '🐶'], ['sun', '☀️']]]];
-const STORIES = [   // true and simple (NASA mission pages): [pictures, the story, the question, [picture, word, right?] x3, the answer]
-  [['🚀', '👨‍🚀', '👣', '🌍'], ['Long ago, in 1969, astronauts flew a rocket all the way to the Moon.', 'Neil Armstrong stepped out first.', 'He left footprints in the moon dust.', 'Then the astronauts flew home to Earth.'], 'Where did Neil Armstrong walk?', [['🌙', 'Moon', 1], ['🌍', 'Earth', 0], ['☀️', 'Sun', 0]], 'Yes! He walked on the Moon!'],
+const STORIES = [   // true and simple (NASA, NPS and NOAA pages; each source is in assets-log.md): [pictures, the story, the question, [picture, word, right?] x3, the answer]
+  [['🚀', '👨‍🚀', '👣', '🌍'], ['Long ago, in 1969, astronauts flew a rocket all the way to the Moon.', 'Neil Armstrong stepped out first.', 'He left footprints in the moon dust.', 'Then the astronauts flew home to Earth.'], 'Where did Neil Armstrong walk?', [['🌙', 'Moon', 1], ['🔴', 'Mars', 0], ['☀️', 'Sun', 0]], 'Yes! He walked on the Moon!'],
   [['👩‍🚀', '✨', '🌍'], ['In 1983, Sally Ride flew into space.', 'She was the first American woman to go to space.', 'She rode on a space shuttle, which blasted off like a rocket.', 'She worked and floated around inside it!'], 'How did Sally Ride get to space?', [['🚀', 'Space shuttle', 1], ['✈️', 'Airplane', 0], ['🎈', 'Balloon', 0]], 'Yes! A space shuttle took her to space!'],
   [['🪐', '✨', '☀️'], ['In 1977, a spacecraft called Voyager 1 blasted off.', 'It flew past Jupiter and Saturn and took pictures.', 'It is still flying, far away from the Sun.', 'Nothing people ever made has gone farther!'], 'What is Voyager 1?', [['🛰️', 'Spacecraft', 1], ['🪐', 'Planet', 0], ['⭐', 'Star', 0]], 'Yes! Voyager 1 is a spacecraft!']];
+// bigger banks (v42): pictures only, checked for one clear name each; sources and reviews in assets-log.md
+const keyOf = x => x[0] + '|' + x[2];
+for (const x of [["moon", "🌙", "spoon", "🥄", [["drum", "🥁"], ["bird", "🐦"]]], ["star", "⭐", "car", "🚗", [["octopus", "🐙"], ["cookie", "🍪"]]], ["balloon", "🎈", "moon", "🌙", [["box", "📦"], ["cake", "🎂"]]], ["guitar", "🎸", "star", "⭐", [["pig", "🐷"], ["ant", "🐜"]]], ["cat", "🐱", "hat", "🎩", [["apple", "🍎"], ["key", "🔑"]]], ["dog", "🐶", "frog", "🐸", [["moon", "🌙"], ["grapes", "🍇"]]], ["bee", "🐝", "tree", "🌳", [["fish", "🐟"], ["hat", "🎩"]]], ["cake", "🎂", "snake", "🐍", [["egg", "🥚"], ["ghost", "👻"]]], ["bear", "🐻", "pear", "🍐", [["dog", "🐶"], ["soap", "🧼"]]], ["goat", "🐐", "boat", "⛵", [["tree", "🌳"], ["rose", "🌹"]]], ["mouse", "🐭", "house", "🏠", [["bone", "🦴"], ["nose", "👃"]]], ["bell", "🔔", "shell", "🐚", [["corn", "🌽"], ["umbrella", "☂️"]]], ["clock", "⏰", "sock", "🧦", [["pig", "🐷"], ["cow", "🐄"]]], ["key", "🔑", "bee", "🐝", [["milk", "🥛"], ["leg", "🦵"]]], ["fox", "🦊", "box", "📦", [["house", "🏠"], ["bed", "🛏️"]]], ["nose", "👃", "rose", "🌹", [["car", "🚗"], ["book", "📖"]]], ["snail", "🐌", "whale", "🐳", [["pie", "🥧"], ["bus", "🚌"]]], ["bed", "🛏️", "sled", "🛷", [["duck", "🦆"], ["cat", "🐱"]]], ["bat", "🦇", "cat", "🐱", [["kite", "🪁"], ["horse", "🐴"]]], ["bone", "🦴", "phone", "📱", [["sun", "☀️"], ["bell", "🔔"]]], ["chair", "🪑", "bear", "🐻", [["sock", "🧦"], ["lion", "🦁"]]], ["egg", "🥚", "leg", "🦵", [["goat", "🐐"], ["heart", "❤️"]]], ["pie", "🥧", "eye", "👁️", [["soap", "🧼"], ["sock", "🧦"]]], ["duck", "🦆", "truck", "🚚", [["lion", "🦁"], ["fish", "🐟"]]], ["crown", "👑", "clown", "🤡", [["apple", "🍎"], ["goat", "🐐"]]], ["plane", "✈️", "train", "🚂", [["grapes", "🍇"], ["heart", "❤️"]]], ["ear", "👂", "deer", "🦌", [["horse", "🐴"], ["bus", "🚌"]]]]) if (!RHYME.some(y => keyOf(y) === keyOf(x))) RHYME.push(x);
+for (const x of [["moon", "🌙", "mouse", "🐭", [["pie", "🥧"], ["cow", "🐄"]]], ["sun", "☀️", "sock", "🧦", [["hat", "🎩"], ["book", "📖"]]], ["rocket", "🚀", "rainbow", "🌈", [["grapes", "🍇"], ["bell", "🔔"]]], ["car", "🚗", "key", "🔑", [["house", "🏠"], ["moon", "🌙"]]], ["cat", "🐱", "kite", "🪁", [["bee", "🐝"], ["fish", "🐟"]]], ["dog", "🐶", "duck", "🦆", [["bed", "🛏️"], ["bone", "🦴"]]], ["bear", "🐻", "bell", "🔔", [["heart", "❤️"], ["horse", "🐴"]]], ["pig", "🐷", "pear", "🍐", [["goat", "🐐"], ["car", "🚗"]]], ["fish", "🐟", "fox", "🦊", [["drum", "🥁"], ["nose", "👃"]]], ["goat", "🐐", "gift", "🎁", [["sun", "☀️"], ["dog", "🐶"]]], ["hat", "🎩", "house", "🏠", [["sock", "🧦"], ["corn", "🌽"]]], ["lion", "🦁", "lemon", "🍋", [["cookie", "🍪"], ["fox", "🦊"]]], ["bus", "🚌", "bone", "🦴", [["ghost", "👻"], ["duck", "🦆"]]], ["tiger", "🐯", "turtle", "🐢", [["soap", "🧼"], ["key", "🔑"]]], ["milk", "🥛", "monkey", "🐒", [["kite", "🪁"], ["cat", "🐱"]]], ["penguin", "🐧", "pizza", "🍕", [["milk", "🥛"], ["rose", "🌹"]]], ["cow", "🐄", "corn", "🌽", [["leg", "🦵"], ["bird", "🐦"]]], ["leg", "🦵", "lock", "🔒", [["tree", "🌳"], ["box", "📦"]]], ["hammer", "🔨", "hat", "🎩", [["lion", "🦁"], ["cake", "🎂"]]], ["tooth", "🦷", "tent", "⛺", [["bus", "🚌"], ["pig", "🐷"]]], ["ghost", "👻", "guitar", "🎸", [["tent", "⛺"], ["bee", "🐝"]]], ["rose", "🌹", "ring", "💍", [["drum", "🥁"], ["milk", "🥛"]]], ["frog", "🐸", "fire", "🔥", [["bus", "🚌"], ["bell", "🔔"]]], ["whale", "🐳", "watermelon", "🍉", [["horse", "🐴"], ["bone", "🦴"]]], ["donut", "🍩", "dinosaur", "🦕", [["kite", "🪁"], ["bird", "🐦"]]], ["sheep", "🐑", "shoe", "👟", [["grapes", "🍇"], ["fish", "🐟"]]], ["cheese", "🧀", "cherry", "🍒", [["tent", "⛺"], ["fox", "🦊"]]], ["pumpkin", "🎃", "popcorn", "🍿", [["rose", "🌹"], ["cookie", "🍪"]]], ["kangaroo", "🦘", "carrot", "🥕", [["bed", "🛏️"], ["sock", "🧦"]]], ["bunny", "🐰", "banana", "🍌", [["moon", "🌙"], ["key", "🔑"]]], ["lizard", "🦎", "leaf", "🍃", [["car", "🚗"], ["soap", "🧼"]]], ["hippo", "🦛", "helicopter", "🚁", [["corn", "🌽"], ["lion", "🦁"]]]]) if (!FIRST.some(y => keyOf(y) === keyOf(x))) FIRST.push(x);
+const FINAL = [["cat", "🐱", "boat", "⛵", [["cake", "🎂"], ["umbrella", "☂️"]]], ["sun", "☀️", "moon", "🌙", [["ant", "🐜"], ["ghost", "👻"]]], ["rocket", "🚀", "hat", "🎩", [["bee", "🐝"], ["sock", "🧦"]]], ["dog", "🐶", "pig", "🐷", [["drum", "🥁"], ["apple", "🍎"]]], ["bus", "🚌", "house", "🏠", [["pig", "🐷"], ["bird", "🐦"]]], ["bed", "🛏️", "bird", "🐦", [["dog", "🐶"], ["bus", "🚌"]]], ["book", "📖", "duck", "🦆", [["sun", "☀️"], ["tree", "🌳"]]], ["sheep", "🐑", "cap", "🧢", [["heart", "❤️"], ["book", "📖"]]], ["goat", "🐐", "kite", "🪁", [["house", "🏠"], ["key", "🔑"]]], ["egg", "🥚", "frog", "🐸", [["grapes", "🍇"], ["horse", "🐴"]]], ["bell", "🔔", "snail", "🐌", [["cookie", "🍪"], ["cow", "🐄"]]], ["lion", "🦁", "spoon", "🥄", [["leg", "🦵"], ["pie", "🥧"]]], ["mouse", "🐭", "dice", "🎲", [["lion", "🦁"], ["bone", "🦴"]]], ["cake", "🎂", "sock", "🧦", [["cat", "🐱"], ["corn", "🌽"]]], ["drum", "🥁", "broom", "🧹", [["rose", "🌹"], ["kite", "🪁"]]]];
+const SYLL = [["sun", "☀️", 1, "sun"], ["moon", "🌙", 1, "moon"], ["star", "⭐", 1, "star"], ["cat", "🐱", 1, "cat"], ["dog", "🐶", 1, "dog"], ["fish", "🐟", 1, "fish"], ["bee", "🐝", 1, "bee"], ["cake", "🎂", 1, "cake"], ["rocket", "🚀", 2, "rock, et"], ["planet", "🪐", 2, "plan, et"], ["monkey", "🐒", 2, "mon, key"], ["pizza", "🍕", 2, "pee, za"], ["rainbow", "🌈", 2, "rain, bow"], ["turtle", "🐢", 2, "tur, tle"], ["robot", "🤖", 2, "ro, bot"], ["pumpkin", "🎃", 2, "pump, kin"], ["banana", "🍌", 3, "ba, na, na"], ["potato", "🥔", 3, "po, tay, to"], ["kangaroo", "🦘", 3, "kang, ga, roo"], ["octopus", "🐙", 3, "oc, to, pus"], ["butterfly", "🦋", 3, "but, ter, fly"], ["elephant", "🐘", 3, "el, uh, fant"], ["tomato", "🍅", 3, "to, may, to"], ["pineapple", "🍍", 3, "pine, ap, ple"]];   // [word, picture, claps, the word said in claps]
+STORIES.push(...[[["🚀", "🌍", "⭐"], ["In 1990, a space shuttle blasted off from Florida.", "It took a big telescope up into space.", "The telescope is named Hubble.", "Hubble goes around Earth and takes pictures of stars and planets."], "What did the space shuttle take into space?", [["🔭", "telescope", 1], ["🚗", "car", 0], ["🌳", "tree", 0]], "Yes! The shuttle took the Hubble telescope into space."], [["🛰️", "🏠", "⏰"], ["The space station is a home in space.", "Astronauts live and work there.", "People have lived there every day since 2000.", "It zooms all the way around Earth in about 90 minutes!"], "What does the space station go around?", [["🌍", "Earth", 1], ["🌙", "the Moon", 0], ["☀️", "the Sun", 0]], "Yes! The space station goes around Earth."], [["🔴", "🤖", "✨"], ["In 2021, a rover named Perseverance landed on Mars.", "A tiny helicopter rode under the rover.", "The helicopter was named Ingenuity.", "It was the first helicopter to fly on another planet!"], "What flew on Mars?", [["🚁", "helicopter", 1], ["🐦", "bird", 0], ["🎈", "balloon", 0]], "Yes! The Ingenuity helicopter flew on Mars."], [["🚀", "🌍", "⭐"], ["Mae Jemison was a doctor.", "Then she became an astronaut.", "In 1992, she flew into space on a space shuttle.", "She was the first African American woman in space."], "What was Mae Jemison's job before she was an astronaut?", [["🩺", "doctor", 1], ["🚒", "firefighter", 0], ["🚌", "bus driver", 0]], "Yes! Mae Jemison was a doctor, and then she flew in space."], [["🏖️", "⏱️", "☁️"], ["Long ago, two brothers built an airplane.", "Their names were Orville and Wilbur Wright.", "In 1903, Orville flew it over the sand for 12 seconds.", "It was the first airplane flight with an engine!"], "What did the Wright brothers build?", [["✈️", "airplane", 1], ["🚗", "car", 0], ["⛵", "boat", 0]], "Yes! The Wright brothers built the first airplane that flew."], [["🚀", "🌍", "🌊"], ["In 1962, John Glenn blasted off from Florida.", "His spaceship was named Friendship 7.", "He went around Earth three times.", "Then his spaceship splashed down in the ocean."], "How many times did John Glenn go around Earth?", [["3️⃣", "three", 1], ["1️⃣", "one", 0], ["🔟", "ten", 0]], "Yes! John Glenn went around Earth three times."], [["🚀", "🌌", "⭐"], ["In 2021, a giant telescope went to space.", "It is named Webb.", "Its big mirror is gold.", "Webb can see light that our eyes cannot see."], "What color is Webb's big mirror?", [["🟡", "gold", 1], ["🔵", "blue", 0], ["🟢", "green", 0]], "Yes! Webb's big mirror is gold."], [["🚀", "🌑", "📷"], ["A spaceship named New Horizons flew for more than nine years.", "In 2015, it flew past Pluto.", "It took the first close pictures of Pluto.", "The pictures showed a big shape like a heart!"], "What shape did New Horizons see on Pluto?", [["❤️", "heart", 1], ["⭐", "star", 0], ["🌙", "moon", 0]], "Yes! Pluto has a big heart shape."], [["🚀", "🪐", "⭐"], ["A spaceship named Juno went to Jupiter.", "Jupiter is the biggest planet.", "Juno gets its power from the Sun.", "It has three big solar panels like wings."], "Where does Juno get its power?", [["☀️", "the Sun", 1], ["🌙", "the Moon", 0], ["🔥", "a fire", 0]], "Yes! Juno gets its power from the Sun."], [["🛰️", "🌀", "🌊"], ["Weather satellites fly around Earth, high up.", "They take pictures of clouds and storms.", "They help people see hurricanes coming.", "They can watch storms in the day and at night."], "What do weather satellites take pictures of?", [["☁️", "clouds", 1], ["🐶", "dogs", 0], ["🏠", "houses", 0]], "Yes! Weather satellites take pictures of clouds and storms."]]);
+const STORY_TOPIC = [['🌙', 'the first Moon landing', '🎂', 'a birthday party', '🐄', 'a farm'], ['🚀', 'a trip to space', '🐶', 'a dog', '🏖️', 'the beach'], ['🛰️', 'a spacecraft', '🐟', 'a fish', '🌳', 'a tree'],
+  ['🔭', 'a telescope', '🚂', 'a train', '🍎', 'an apple'], ['🧑‍🚀', 'living in space', '🏰', 'a castle', '🚲', 'a bike'], ['🚁', 'a helicopter on Mars', '⛵', 'a boat', '🐱', 'a cat'],
+  ['👩‍🚀', 'an astronaut', '🍕', 'a pizza', '🌧️', 'the rain'], ['✈️', 'the first airplane', '🚗', 'a car', '🐴', 'a horse'], ['🧑‍🚀', 'a trip around Earth', '🍉', 'a watermelon', '🚌', 'a bus'],
+  ['🔭', 'a telescope', '🦆', 'a duck', '👟', 'a shoe'], ['🛰️', 'a spaceship', '🎂', 'a cake', '🐸', 'a frog'], ['🛰️', 'a spaceship', '🐄', 'a cow', '🪁', 'a kite'], ['⛈️', 'watching the weather from space', '🌻', 'a garden', '🐶', 'a puppy']];   // ELA.K.R.2.2: the topic, not only details
+SAY.topicAsk = 'What is this story mostly about?'; const topicYes = t => `Yes! This story is mostly about ${t}.`, topicShow = t => `This story is mostly about ${t}.`;
 const orList = ws => `${Cap(ws[0])}, ${ws[1]}, or ${ws[2]}?`;
 const rhAsk = (t, ws) => `What rhymes with ${t}? ${orList(ws)}`, rhYes = (t, r) => `Yes! ${Cap(t)} and ${r} rhyme!`, rhShow = (t, r) => `Listen. ${Cap(t)}, ${r}. They rhyme!`;
 const fsAsk = (t, ws) => `Which one starts like ${t}? ${orList(ws)}`, fsYes = (t, a) => `Yes! ${Cap(t)} and ${a} start the same way!`, fsShow = (t, a) => `Listen. ${Cap(t)}, ${a}. They start the same way!`;
+const feAsk = (t, ws) => `Which one ends like ${t}? ${orList(ws)}`, feYes = (t, a) => `Yes! ${Cap(t)} and ${a} end the same way!`, feShow = (t, a) => `Listen. ${Cap(t)}, ${a}. They end the same way!`;
+const syAsk = w => `Clap the word ${w}! How many claps?`, syYes = (w, n) => `Yes! ${Cap(w)} has ${nn(n, 'clap', 'claps')}!`, syShow = (w, n, sp) => `Let's clap it. ${Cap(sp)}. ${Cap(nn(n, 'clap', 'claps'))}!`;
 const swAsk = w => `Find the word ${w}!`, swYes = w => `Yes! That word is ${w}!`, swShow = w => `This word is ${w}.`;
 SAY.readIn = "Welcome to the Reading Room, in the brick yard at Harvard! Let's read and listen together.";
 SAY.readNo = "Let's look again. Take your time!";
@@ -2861,13 +2988,13 @@ function pqProgress(){   // Princess Quest keeps its save under 'arcade.v3' on t
     const sw = d.sightWords && typeof d.sightWords === 'object' && !Array.isArray(d.sightWords) ? d.sightWords : {};
     for (const [w, e] of Object.entries(sw)) { if (!PQ_ALL.includes(w) || !e || typeof e !== 'object' || !Number.isFinite(e.box)) continue; (e.box >= 4 ? out.known : e.box >= 1 ? out.learning : []).push(w); }
     const sub = d.subskills && typeof d.subskills === 'object' ? d.subskills : {}, st = k => sub[k] && Number.isFinite(sub[k].stage) ? Math.max(0, Math.min(9, Math.trunc(sub[k].stage))) : null;
-    const dr = st('decodable-reading'); if (dr !== null) out.stage = 'abcd'[Math.min(3, dr)];
+    const dr = st('decodable-reading'); if (dr !== null) { out.stage = 'abcd'[Math.min(3, dr)]; out.stageFound = true; }
     const as = st('add-sub'); if (as !== null) out.addMax = as >= 1 ? 10 : 5;
     out.words = out.learning.length + out.known.length > 0; out.found = out.words || dr !== null || as !== null;
   } catch {}
   return out;
 }
-const CAMPUS_STD = ['MA.K.NSO.1.1', 'MA.K.NSO.2.1', 'MA.K.AR.1.3', 'MA.K.GR.1.1', 'MA.K.M.1.2', 'ELA.K.F.1.2', 'ELA.K.F.1.3', 'ELA.K.F.1.4', 'ELA.K.R.2.2'];
+const CAMPUS_STD = ['MA.K.NSO.1.1', 'MA.K.NSO.1.4', 'MA.K.NSO.2.1', 'MA.K.NSO.2.2', 'MA.K.NSO.2.3', 'MA.K.AR.1.1', 'MA.K.AR.1.3', 'MA.K.GR.1.1', 'MA.K.GR.1.4', 'MA.K.M.1.2', 'ELA.K.F.1.2', 'ELA.K.F.1.3', 'ELA.K.F.1.4', 'ELA.K.R.2.2'];
 function campusRead(){   // only known skills, and only [tried, right] as whole numbers with right <= tried; anything else is dropped
   const out = { since: null }; let v = null; try { v = JSON.parse(localStorage.getItem('ast-campus') || 'null'); } catch {}
   if (v && typeof v === 'object' && !Array.isArray(v)) { for (const k of CAMPUS_STD) { const e = v[k]; if (Array.isArray(e) && e.length === 2 && e.every(n => Number.isInteger(n) && n >= 0 && n < 1e6) && e[1] <= e[0]) out[k] = [e[0], e[1]]; }
@@ -2877,34 +3004,40 @@ function campusRead(){   // only known skills, and only [tried, right] as whole 
 let campus = campusRead();
 function campusLog(std, ok){ campus = campusRead(); if (!CAMPUS_STD.includes(std)) return; const e = campus[std] = campus[std] || [0, 0]; e[0]++; if (ok) e[1]++; if (!campus.since) campus.since = todayKey().replace(/-(\d)(?!\d)/g, '-0$1');   // read, add, write: two open windows don't wipe each other's counts
   try { localStorage.setItem('ast-campus', JSON.stringify(campus)); } catch {} }
-const READ_KINDS = ['rhyme', 'first', 'sight', 'sentence', 'story'];
+const READ_KINDS = ['rhyme', 'first', 'syll', 'sight', 'sentence', 'story'];
 const picOpt = (id, pic, word, show = true) => ({ id, label: word, html: `<span class="hem">${pic}</span>${show ? `<span>${word}</span>` : ''}` });
 function readItem(kind){
-  if (kind === 'rhyme' || kind === 'first') { const L = kind === 'rhyme' ? RHYME : FIRST, [t, tp, r, rp, foils] = L[Math.random() * L.length | 0];
+  if (kind === 'syll') { const r = rung('syll'), pool = SYLL.filter(x => r || x[2] <= 2), [w, pic, n, sp] = pick1(pool), ks = r ? [1, 2, 3] : [1, 2];
+    return { std: 'ELA.K.F.1.2', show: `<div class="rdT"><span class="hem">${pic}</span><b>${w}</b></div>`, opts: ks.map(k => ({ id: String(k), label: nn(k, 'clap', 'claps'), html: `<span class="clap">${'👏'.repeat(k)}</span><span class="labN">${k}</span>` })), ans: String(n), ask: syAsk(w), yes: syYes(w, n), reveal: syShow(w, n, sp) }; }
+  if (kind === 'first' && rung('first') === 1 && Math.random() < .7) { const [t, tp, r, rp, foils] = pick1(FINAL), opts = shuffle([picOpt(r, rp, r, false), ...foils.map(([w, p2]) => picOpt(w, p2, w, false))]), ws = opts.map(o => o.id);
+    return { std: 'ELA.K.F.1.2', show: `<div class="rdT"><span class="hem">${tp}</span><b>${t}</b></div>`, opts, ans: r, ask: feAsk(t, ws), yes: feYes(t, r), reveal: feShow(t, r) }; }
+  if (kind === 'rhyme' || kind === 'first') { const L = kind === 'rhyme' && !rung('rhyme') ? RHYME.slice(0, 15) : kind === 'rhyme' ? RHYME : FIRST, [t, tp, r, rp, foils] = L[Math.random() * L.length | 0];
     const opts = [picOpt(r, rp, r, false), ...foils.map(([w, p2]) => picOpt(w, p2, w, false))].sort(() => Math.random() - .5), ws = opts.map(o => o.id);
     return { std: 'ELA.K.F.1.2', show: `<div class="rdT"><span class="hem">${tp}</span><b>${t}</b></div>`, opts, ans: r,
       ask: kind === 'rhyme' ? rhAsk(t, ws) : fsAsk(t, ws), yes: kind === 'rhyme' ? rhYes(t, r) : fsYes(t, r), reveal: kind === 'rhyme' ? rhShow(t, r) : fsShow(t, r) }; }
   if (kind === 'sight') { const pq = qz.pq, fill = a => { const o = [...a]; for (const x of [...pq.known, ...PQ_START]) if (o.length < 3 && !o.includes(x)) o.push(x); return o; };
-    const base = pq.learning.length && Math.random() < .75 ? fill(pq.learning) : pq.known.length ? fill(pq.known) : pq.learning.length ? fill(pq.learning) : PQ_START, pool = base.filter(x => x !== qz.lastSight), w = pool[Math.random() * pool.length | 0]; qz.lastSight = w; const SOUND_SAME = { to: 'two', two: 'to' }, others = PQ_ALL.filter(x => x !== w && x.toLowerCase() !== w.toLowerCase() && SOUND_SAME[w] !== x).sort(() => Math.random() - .5).slice(0, 2);
+    const lv = rung('sight') ? PQ_PRIMER : PQ_SIGHT, ln = pq.learning, kn = pq.known.filter(x => lv.includes(x));   // the rung picks the list; her Princess Quest words in it come first
+    const base = ln.length && Math.random() < .75 ? fill(ln) : kn.length ? fill(kn) : ln.length ? fill(ln) : lv === PQ_SIGHT ? PQ_START : lv, pool0 = base.filter(x => x !== qz.lastSight), pool = pool0.length ? pool0 : base, w = pool[Math.random() * pool.length | 0]; qz.lastSight = w; const SOUND_SAME = { to: 'two', two: 'to' }, others = lv.filter(x => x !== w && x.toLowerCase() !== w.toLowerCase() && SOUND_SAME[w] !== x).sort(() => Math.random() - .5).slice(0, 2);
     return { std: 'ELA.K.F.1.4', show: '<div class="rdT"><span class="hem">🔎</span></div>', opts: [w, ...others].sort(() => Math.random() - .5).map(x => ({ id: x, html: `<span class="rdW">${x}</span>` })), ans: w, ask: swAsk(w), yes: swYes(w), reveal: swShow(w) }; }
-  if (kind === 'sentence') { const now = PQ_SENT.filter(x => x.s === qz.pq.stage), easy = now.length && Math.random() < .6 ? now : PQ_SENT.filter(x => x.s <= qz.pq.stage), x = easy[Math.random() * easy.length | 0];
-    return { std: 'ELA.K.F.1.3', show: `<div class="rdS">${x.t}</div>`, opts: x.c.map(([pic, ok], k) => ({ id: ok ? 'ok' : 'no' + k, html: `<span class="hem">${pic}</span>` })).sort(() => Math.random() - .5), ans: 'ok', ask: SAY.sentAsk, yes: SAY.sentYes, reveal: x.t }; }
-  const [pics, lines, q, ch, yes] = STORIES[Math.random() * STORIES.length | 0];
-  return { std: 'ELA.K.R.2.2', show: `<div class="rdStory">${pics.map((x, k) => `<span style="animation-delay:${k * 2.4}s">${x}</span>`).join('')}</div>`, opts: ch.map(([p2, w, ok], k) => ({ ...picOpt(ok ? 'ok' : 'no' + k, p2, w) })).sort(() => Math.random() - .5), ans: 'ok', ask: [...lines, q], again: [...lines, q], yes, reveal: yes.replace('Yes! ', '') };
+  if (kind === 'sentence') { const sg = 'abcd'[rung('sentence')], now = PQ_SENT.filter(x => x.s === sg), easy = now.length && Math.random() < .6 ? now : PQ_SENT.filter(x => x.s <= sg), x = easy[Math.random() * easy.length | 0];
+    return { std: 'ELA.K.F.1.3', show: `<div class="rdS">${x.t}</div>`, opts: x.c.map(([pic, ok], k) => ({ id: ok ? 'ok' : 'no' + k, html: `<span class="hem${(n => n > 2 ? ' multi m3' : n > 1 ? ' multi' : '')([...pic].filter(c => c !== '\uFE0F' && c !== '\u200D').length)}">${pic}</span>` })).sort(() => Math.random() - .5), ans: 'ok', ask: SAY.sentAsk, yes: SAY.sentYes, reveal: x.t }; }
+  const si = Math.random() * STORIES.length | 0, [pics, lines, q0, ch0, yes0] = STORIES[si], tp = STORY_TOPIC[si], topic = tp && Math.random() < .5;
+  const q = topic ? SAY.topicAsk : q0, ch = topic ? [[tp[0], tp[1], 1], [tp[2], tp[3], 0], [tp[4], tp[5], 0]] : ch0, yes = topic ? topicYes(tp[1]) : yes0;
+  return { std: 'ELA.K.R.2.2', show: `<div class="rdStory">${pics.map((x, k) => `<span style="animation-delay:${k * 2.4}s">${x}</span>`).join('')}</div>`, opts: ch.map(([p2, w, ok], k) => ({ ...picOpt(ok ? 'ok' : 'no' + k, p2, w) })).sort(() => Math.random() - .5), ans: 'ok', ask: [...lines, q], again: [...lines, q], yes, reveal: topic ? topicShow(tp[1]) : yes.replace('Yes! ', '') };
 }
 function startRead(){
   ++seq; mode = 'read'; $('#pill').textContent = 'Reading Room'; $('#app').classList.add('game');
   $('#quiz').hidden = false; $('#quiz').classList.add('lab', 'read'); const rest = READ_KINDS.slice(1).sort(() => Math.random() - .5);
-  qz = { pq: pqProgress(), kind: 'read', right: 0, cups: 0, miss: 0, lock: false, order: ['rhyme', ...rest], r: 0 }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextRead(true);
+  qz = { pq: pqProgress(), kind: 'read', right: 0, cups: 0, miss: 0, lock: false, order: ['rhyme', ...rest], r: 0, moved: {} }; $('#qstars').textContent = '☆☆☆☆☆'; nav(); layout(); nextRead(true);
 }
 function nextRead(first){
-  const kind = qz.order[qz.r++ % qz.order.length], e = readItem(kind); qz.e = e; qz.exp = kind; qz.miss = 0; qz.wrongId = null; qz.lock = false;
+  const kind = qz.order[qz.r++ % qz.order.length], e = readItem(kind); qz.e = e; qz.exp = kind; qz.miss = 0; qz.wrongId = null; qz.lock = false; qz.shownAt = performance.now();
   $('#qask').innerHTML = e.show; const tray = $('#qtray'); tray.innerHTML = ''; tray.classList.remove('two');
   for (const o of e.opts) { const b = document.createElement('button'); b.className = 'pl'; b.dataset.id = o.id; b.innerHTML = o.html; if (o.label) b.setAttribute('aria-label', o.label); b.onclick = () => answerRead(b, o.id); tray.append(b); }
   speak(first ? [SAY.readIn, ...[].concat(e.ask)] : e.ask); focusTray();
 }
 function answerRead(b, k){
-  if (!qz || qz.lock || performance.now() - (qz.wrongT || 0) < 800) return; const e = qz.e;
+  if (!qz || qz.lock || performance.now() - (qz.wrongT || 0) < 800 || performance.now() - (qz.shownAt || 0) < 600) return; const e = qz.e;   // a tap still going from the last question doesn't count on this one
   if (k !== e.ans && qz.wrongId === k) { bloop(); return; }   // the same wrong card again: not a new try
   if (k !== e.ans) { qz.wrongId = k; qz.wrongT = performance.now(); bloop(); b.classList.remove('wig'); void b.offsetWidth; b.classList.add('wig'); qz.miss++;
     b.classList.add('out'); b.setAttribute('aria-disabled', 'true'); const rt = document.querySelector(`#qtray .pl[data-id="${e.ans}"]`); if (rt && qz.miss >= 2) rt.classList.add('hint');   // first miss: that one dims and the question comes again; second miss: the answer glows
@@ -2912,8 +3045,8 @@ function answerRead(b, k){
   campusLog(e.std, qz.miss === 0);
   qz.lock = true; if (qz.miss === 0) { chime(); qz.right++; } else pop(); b && b.classList.add('hint');   // stars are for first tries; a fixed answer still moves on
   $('#qstars').textContent = '🏆'.repeat(qz.cups) + (qz.cups ? ' ' : '') + '★'.repeat(Math.min(5, qz.right)) + '☆'.repeat(Math.max(0, 5 - qz.right));
-  const done = qz.right === 5, say = qz.miss === 0 ? e.yes : e.reveal; speak(done ? [say, SAY.readDone] : say); if (done) { burst(); award('reading'); }
-  const my = seq; setTimeout(() => { if (my !== seq) return;  if (mode === 'read' && qz) { if (done) { qz.right = 0; qz.cups++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextRead(); } }, done ? 7000 : qz.miss < 2 ? 3800 : 6500);
+  const mv = ladderLog(qz.exp, qz.miss === 0), done = qz.right === 5, say = [].concat(qz.miss === 0 ? e.yes : e.reveal, mv > 0 ? [SAY.levelUp] : []); speak(done ? [...say, SAY.readDone] : say); if (done) { burst(); award('reading'); } if (mv > 0) { burst(); chime(); lvlBadge(qz.exp); }
+  const my = seq; setTimeout(() => { if (my !== seq) return;  if (mode === 'read' && qz) { if (done) { qz.right = 0; qz.cups++; $('#qstars').textContent = '🏆'.repeat(qz.cups) + ' ☆☆☆☆☆'; } nextRead(); } }, (done ? 7000 : qz.miss < 2 ? 3800 : 6500) + (mv > 0 ? 2600 : 0));
 }
 function endRead(){ hush(); $('#quiz').hidden = true; $('#quiz').classList.remove('lab', 'read'); $('#app').classList.remove('game'); qz = null; mode = 'site'; $('#pill').textContent = LM[wIdx].name; nav(); layout(); }
 function endLab(){ hush(); $('#quiz').hidden = true; $('#quiz').classList.remove('lab'); $('#app').classList.remove('game'); qz = null; mode = 'site'; $('#pill').textContent = LM[wIdx].name; nav(); layout(); }
@@ -5450,7 +5583,7 @@ function updateFly(dt, t){
   if (bl) { const up = featDir(bl.lat, bl.lon), base = up.clone().multiplyScalar(R + Math.max(.03, T.h(bl.lat, bl.lon)));
     B.position.copy(base); B.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), up);
     const u = B.userData; if (!u.tex[bl.id]) { const c = mkCanvas(128, 128), g = c.getContext('2d'); g.fillStyle = '#fff'; g.beginPath(); g.arc(64, 64, 60, 0, 7); g.fill(); g.lineWidth = 8; g.strokeStyle = '#ffb703'; g.stroke(); g.font = '72px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(bl.em, 64, 70); u.tex[bl.id] = new THREE.CanvasTexture(c); }
-    if (u.badge.material.map !== u.tex[bl.id]) { u.badge.material.map = u.tex[bl.id]; u.badge.material.needsUpdate = true; } u.badge.position.set(0, (F.kind === 'car' ? .9 : 1.5) + Math.sin(t * 3) * .08, 0); u.col.visible = !F.landed; u.col.scale.set(1, F.kind === 'car' ? .5 : 1, 1); u.col.material.opacity = (.25 + Math.sin(t * 4) * .1) * sst(.6, 2.2, camera.position.distanceTo(base)); u.badge.material.opacity = F.landed ? 1 : sst(2, 3.2, camera.position.distanceTo(u.badge.getWorldPosition(_bw)));   // the badge fades when the camera is right on it, so it never fills the screen u.badge.material.opacity = F.landed ? .85 : 1;
+    if (u.badge.material.map !== u.tex[bl.id]) { u.badge.material.map = u.tex[bl.id]; u.badge.material.needsUpdate = true; } u.badge.position.set(0, (F.kind === 'car' ? .9 : 1.5) + Math.sin(t * 3) * .08, 0); u.col.visible = !F.landed; u.col.scale.set(1, F.kind === 'car' ? .5 : 1, 1); u.col.material.opacity = (.25 + Math.sin(t * 4) * .1) * sst(.6, 2.2, camera.position.distanceTo(base)); u.badge.material.opacity = F.landed ? .85 : sst(2, 3.2, camera.position.distanceTo(u.badge.getWorldPosition(_bw)));   // the badge fades when the camera is right on it, so it never fills the screen
     if (F.landed) { dodge(base, .35, camera.position, F.kind === 'car' ? .42 : 1.1); T.lms.children.forEach(g => { if (g.userData.lm !== bl && g.position.distanceTo(base) < 2.2) g.scale.setScalar(.3); }); } }   // neighbours (London next to Paris) shrink so the landmark stands alone
   // chase camera: behind and above, looking ahead
   const cz = F.landed ? 1 : (T.camZoom || 1), back = (isCar ? (F.landed ? 1 : .95) : F.landed ? 1.1 + F.landT * .6 : 1.35) * cz, want = pos.clone().addScaledVector(F.f, -back).addScaledVector(F.p, (isCar ? (F.landed ? .6 : .45) : F.landed ? .6 + F.landT * .4 : .55) * (1 + (cz - 1) * 1.15));
@@ -6671,6 +6804,14 @@ window.__allLines = () => {
   [...RHYME].forEach(([t, , r, , f]) => { perms([r, f[0][0], f[1][0]]).forEach(ws => s.add(rhAsk(t, ws))); s.add(rhYes(t, r)); s.add(rhShow(t, r)); }); FIRST.forEach(([t, , a, , f]) => { perms([a, f[0][0], f[1][0]]).forEach(ws => s.add(fsAsk(t, ws))); s.add(fsYes(t, a)); s.add(fsShow(t, a)); });
   PQ_ALL.forEach(w => { s.add(swAsk(w)); s.add(swYes(w)); s.add(swShow(w)); }); PQ_SENT.forEach(x => s.add(x.t)); STORIES.forEach(([, l, q, , y]) => { l.forEach(x => s.add(x)); s.add(q); s.add(y); s.add(y.replace('Yes! ', '')); });
   Object.keys(SHAPES).forEach(t => { s.add(SHAPES[t]); s.add(shapeAsk(t)); s.add(shapeShow(t)); }); s.add('How many rockets?');
+  for (let n = 11; n <= 20; n++) { s.add(labYes(n)); s.add(labCount(n)); } for (let k = 1; k <= 9; k++) { s.add(tenYes(k)); s.add(tenShow(k)); } for (let k = 0; k <= 10; k++) { s.add(teenAsk(10 + k)); s.add(teenYes(10 + k)); s.add(teenShow(k)); }
+  for (let m = 1; m <= 30; m++) { s.add(cdYes(m)); s.add(cdShow(m)); if (m < 20) s.add(nlShow(m)); } for (let k = 12; k <= 20; k++) s.add(cdAsk(k)); for (let k = 4; k <= 26; k++) s.add(upAsk(k));
+  for (let a = 2; a <= 6; a++) for (let b = 1; b <= Math.min(4, 10 - a); b++) { s.add(spAsk(a, b, 1)); s.add(astroShow(a, b, 1)); s.add(spYes(a + b, 1)); }
+  for (let a = 4; a <= 10; a++) for (let b = 1; b <= Math.min(4, a - 1); b++) { s.add(spAsk(a, b, -1)); s.add(astroShow(a, b, -1)); s.add(spYes(a - b, -1)); }
+  Object.keys(SVG3).forEach(t => { s.add(SHAPES3[t]); s.add(shapeAsk(t)); s.add(shapeShow(t)); }); REAL3.forEach(([o, , t]) => { s.add(realAsk(o)); s.add(realYes(o, t)); s.add(realShow(o, t)); });
+  STORY_TOPIC.forEach(t => { s.add(topicYes(t[1])); s.add(topicShow(t[1])); });
+  FINAL.forEach(([t, , a, , f]) => { perms([a, f[0][0], f[1][0]]).forEach(ws => s.add(feAsk(t, ws))); s.add(feYes(t, a)); s.add(feShow(t, a)); });
+  SYLL.forEach(([w, , n, sp]) => { s.add(syAsk(w)); s.add(syYes(w, n)); s.add(syShow(w, n, sp)); });
   [...PHASES.map(p => p[1]), ...EUROPA_ROCKS, ...TITAN_ROCKS, jumpLine(byId.europa), jumpLine(byId.titan), ...Object.values(TRIP_SAY), ...Object.values(ROAD_SAY), ...Object.values(BIOME_SAY), ...CITY_STOPS.map(c => c.say)].forEach(x => s.add(x)); Object.values(US_ROAD_CITIES).flat().forEach(n => { if (n) s.add('Welcome to ' + n + '!'); });   // road-trip narration
   DIRS.forEach(d => { s.add(moonWhere(d)); SKY_PLANETS.forEach(id => s.add(planetWhere(id, d))); });
   for (const l of [...s]) { const d = deskLine(l); if (d !== l) s.add(d); }   // desktop versions of tap/swipe lines
@@ -6679,11 +6820,13 @@ window.__allLines = () => {
 window.__voiceCheck = () => voiceReady.then(() => new Promise(r => { const a = new Audio(voiceSrc(SAY.blastoff)); a.onloadedmetadata = () => r({ n: VOICE.size, dur: a.duration }); a.onerror = () => r('error ' + (a.error && a.error.code)); }));
 window.__wheels = () => roverWheels.length + " r=" + (roverWheels.r || 0).toFixed(3) + " a=" + (roverWheels[0] ? roverWheels[0].rotation.x.toFixed(2) : "-");
 window.__pos = () => P.map(p => p.id + ':' + (p.ang / DEG % 360).toFixed(0));
+window.__ladder = () => ladderRead(); window.__rungOf = k => { if (qz) qz.pq = pqProgress(); return rung(k); }; window.__itemShow = (k, rd) => { if (!qz) return false; qz.order = [k]; qz.r = 0; hush(); rd ? nextRead() : nextLab(); return true; }; window.__gen = (kind, rd) => { const e = rd ? readItem(kind) : labExp(kind), lines = [...[].concat(e.ask), ...[].concat(e.yes), ...[].concat(e.reveal)]; return { std: e.std, ans: e.ans, ids: e.opts.map(o => o.id), lines }; }; window.__labNow = () => qz && qz.e ? { exp: qz.exp, ans: qz.e.ans, std: qz.e.std, rung: LADDER[qz.exp] ? rung(qz.exp) : null, moved: { ...qz.moved } } : null; window.__labOrder = ks => { if (qz) { qz.order = ks; qz.r = 0; } };
 window.__faceClip = () => { const R = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), U = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1), c = new THREE.Vector3(), q = new THREE.Vector3(), d = new THREE.Vector3(), out = [];
   for (const p of P) { if (!p.face.visible || p.face.material.opacity < .5) continue; worldPos(p, c); const rr = p.id === 'sun' ? p.r : p.r * boost * (p.nk ?? 1), sc = p.face.scale.x;
     for (const sx of [-.24, .24]) { q.copy(p.face.position).addScaledVector(R, sx * sc).addScaledVector(U, .08 * sc); { const v = q.clone().project(camera); if (Math.abs(v.x) > 1 || Math.abs(v.y) > 1 || v.z > 1) continue; } d.copy(q).sub(camera.position); const L = d.length(); d.normalize();   // an eye point on screen: is the ball in front of it?
       const oc = camera.position.clone().sub(c), b = oc.dot(d), disc = b * b - (oc.lengthSq() - rr * rr * 1.0); if (disc > 0 && -b - Math.sqrt(disc) < L - 1e-4) out.push(p.id + (sx > 0 ? ':right' : ':left')); } }
   return out; };
+window.__texSig = () => ({ rndN, tex: Object.fromEntries(Object.entries({ ...canvases, earthmask: earthMask }).map(([k, c]) => { const d = c.getContext("2d").getImageData(0, 0, TW, TH).data; let h = 0; for (let i = 0; i < d.length; i += 97) h = (h * 31 + d[i]) >>> 0; return [k, h]; })) });
 window.__regionAt = regionAt; window.__animalEm = animalEm;
 window.__lmCover = () => { if (!toy || !toy.lms) return null; const b = new THREE.Box3(), v = new THREE.Vector3(); let a = 0; const out = []; for (const g of toy.lms.children) { if (!g.visible || g.scale.x < .05) continue; b.makeEmpty(); g.updateMatrixWorld(true); g.traverseVisible(o => { if (o.isMesh && !o.isInstancedMesh && o.geometry) { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); b.union(new THREE.Box3().copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld)); } }); if (b.isEmpty()) continue; let x0 = 1, x1 = -1, y0 = 1, y1 = -1, front = 0; for (let i = 0; i < 8; i++) { v.set(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).project(camera); if (v.z >= 1) front = -1e9; else front++; x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); } if (front < 8) continue; const k = Math.max(0, Math.min(1, x1) - Math.max(-1, x0)) * Math.max(0, Math.min(1, y1) - Math.max(-1, y0)) / 4; if (k > .01) out.push([g.userData.lm && g.userData.lm.id, +k.toFixed(2), +b.getCenter(v).distanceTo(camera.position).toFixed(2), +b.getSize(v).length().toFixed(2)]); a += k; } return { a: +a.toFixed(2), out }; };
 window.__beacon = () => toy && toy.beacon ? { vis: toy.beacon.visible, op: +toy.beacon.userData.badge.material.opacity.toFixed(2), d: +toy.beacon.userData.badge.getWorldPosition(new THREE.Vector3()).distanceTo(camera.position).toFixed(2), near: toy.fly && toy.fly.near && toy.fly.near.id } : null;
@@ -6757,7 +6900,7 @@ addEventListener('resize', () => { vvb(); refit(); }); window.visualViewport?.ad
 $('#pclose').onclick = () => { $('#passport').hidden = true; };
 // grown-up settings
 const savePrefs = () => { try { localStorage.setItem('ast-prefs', JSON.stringify(prefs)); } catch {} };
-const STD_NAME = { 'MA.K.NSO.1.1': 'Counting', 'MA.K.NSO.2.1': 'Counting back', 'MA.K.AR.1.3': 'Adding and taking away', 'MA.K.GR.1.1': 'Shapes', 'MA.K.M.1.2': 'Taller and shorter', 'ELA.K.F.1.2': 'Rhymes and first sounds', 'ELA.K.F.1.3': 'Reading sentences', 'ELA.K.F.1.4': 'Sight words', 'ELA.K.R.2.2': 'True stories' };
+const STD_NAME = { 'MA.K.NSO.1.1': 'Counting', 'MA.K.NSO.1.4': 'Comparing groups', 'MA.K.NSO.2.1': 'Counting back and on', 'MA.K.NSO.2.2': 'Teen numbers', 'MA.K.NSO.2.3': 'Number line', 'MA.K.AR.1.1': 'Pairs that make 10', 'MA.K.AR.1.3': 'Adding and taking away', 'MA.K.GR.1.1': 'Shapes', 'MA.K.GR.1.4': 'Shapes in real things', 'MA.K.M.1.2': 'Measuring: taller, longer, heavier', 'ELA.K.F.1.2': 'Rhymes, sounds and claps', 'ELA.K.F.1.3': 'Reading sentences', 'ELA.K.F.1.4': 'Sight words', 'ELA.K.R.2.2': 'True stories' };
 function campusTable(){   // built as elements and text, never from stored strings as HTML
   campus = campusRead(); const box = document.createElement('div'), el = (t, txt, attrs = {}) => { const e = document.createElement(t); if (txt != null) e.textContent = txt; for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v); return e; };
   box.append(el('h3', 'At MIT and Harvard'));
@@ -6767,6 +6910,12 @@ function campusTable(){   // built as elements and text, never from stored strin
     for (const k of keys) { const r = el('tr'); r.append(el('td', STD_NAME[k]), el('td', k), el('td', `${campus[k][1]} of ${campus[k][0]}`)); body.append(r); } t.append(body); box.append(t);
     box.append(el('p', `All time on this device${campus.since ? ', since ' + campus.since : ''}. A wrong pick before the right one is not counted as first try.`, { class: 'gnote' })); }
   else box.append(el('p', 'No Number Lab or Reading Room visits yet.'));
+  { const L = ladderRead(), ks = Object.keys(LADDER).filter(k => L[k]);
+    box.append(el('h3', 'Levels'));
+    if (ks.length) { const t = el('table'), head = el('thead'), hr = el('tr'), body = el('tbody'); t.append(el('caption', 'The level each activity is at now', { class: 'sr' }));
+      for (const h of ['Activity', 'Level now', 'Florida standard']) hr.append(el('th', h, { scope: 'col' })); head.append(hr); t.append(head);
+      for (const k of ks) { const r = L[k].r, row = el('tr'); row.append(el('td', ACT_NAME[k]), el('td', `${r + 1} of ${LADDER[k].length}: ${LADDER[k][r][0]}`), el('td', LADDER[k][r][1])); body.append(row); } t.append(body); box.append(t); }
+    box.append(el('p', 'Each activity moves up a level after 3 right answers in a row on the first try, and back down after 2 misses in 3, at most one level per visit for each activity. Princess Quest progress, if found, only picks the starting level.', { class: 'gnote' })); }
   const pq = pqProgress(); box.append(el('p', (pq.words ? 'Sight words follow her Princess Quest progress on this device.' : 'No Princess Quest word progress was found on this device, so starter words are used.') + ' Nothing leaves this device.', { class: 'gnote' }));
   return box;
 }
@@ -6786,7 +6935,7 @@ $('#gmusic').onchange = e => { prefs.music = e.target.checked; savePrefs(); };
 $('#gawake').onchange = e => { prefs.awake = e.target.checked; savePrefs(); stayAwake(prefs.awake); };
 $('#gfull').onclick = () => { document.documentElement.requestFullscreen?.().catch(() => {}); };
 const confirmTap = (b, done, label) => () => { const el = $(b); if (el.dataset.sure) { done(); el.textContent = label + ' ✓'; el.classList.remove('sure'); el.dataset.sure = ''; } else { el.dataset.sure = '1'; el.classList.add('sure'); el.textContent = 'Tap again to confirm'; } };
-$('#gcmp').onclick = confirmTap('#gcmp', () => { try { localStorage.removeItem('ast-campus'); } catch {} campus = campusRead(); $('#gcampus').replaceChildren(campusTable()); }, 'Learning record cleared');
+$('#gcmp').onclick = confirmTap('#gcmp', () => { try { localStorage.removeItem('ast-campus'); localStorage.removeItem('ast-ladder'); } catch {} campus = campusRead(); $('#gcampus').replaceChildren(campusTable()); }, 'Learning record cleared');
 $('#gstk').onclick = confirmTap('#gstk', () => { stamps = new Set(); try { localStorage.removeItem('ast-passport'); } catch {} }, 'Stickers reset');
 $('#gbld').onclick = confirmTap('#gbld', () => { try { localStorage.removeItem('ast-toybuild'); } catch {} if (toy) { toy.buildList = []; toyRebuild(); } }, 'Building cleared');
 // keep the screen from dimming (bedtime story, or always if the grown-up asks)
@@ -6876,6 +7025,7 @@ mode = 'intro'; nav(); layout();
 goal.target.set(0, 0, 0); goal.dist = fitDist(37, 1.06, .95) * 1.9; goal.el = .7; goal.az = -.6; snapRig();
 requestAnimationFrame(frame);
 $('#top').style.visibility = 'hidden';   // the start card stands alone
+const goEarly = +($('#go').dataset.at || 0), goTo = $('#go').dataset.to; $('#go').textContent = '🚀 Blast off!'; $('#go').classList.remove('wait'); delete $('#go').dataset.at;
 $('#go').onclick = () => {
   audio()?.resume?.(); pickVoice();
   speak([SAY.hi, SAY.today]);
@@ -6883,4 +7033,5 @@ $('#go').onclick = () => {
   overview(); goal.az = .35;
 };
 $('#gotoy').onclick = () => { audio()?.resume?.(); pickVoice(); $('#start').hidden = true; started = true; $('#top').style.visibility = ''; whooshSfx(); overview(); enterToy(); };
+if (goEarly && performance.now() - goEarly < 4000) $('#' + (goTo === 'gotoy' ? 'gotoy' : 'go')).onclick(); else if (goEarly) $('#go').classList.add('ready');   // tapped while loading: go now (sound still allowed), or ask once more
 </script>

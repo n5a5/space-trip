@@ -15,7 +15,7 @@ const flows = process.argv.slice(2);
     const W = ms => pg.waitForTimeout(ms), S = n => pg.screenshot({ path: `dev/tests/out/${f}-${n}.png`, timeout: 120000 });   // CI renders in software: slow frames
     const visit = async id => { if (await pg.$('#tstrip:not([hidden])')) { await pg.click(`#tstrip .th[data-lm="${id}"]`); await W(2500); await pg.click('#actions >> text=Visit'); } else await pg.click(`#wstrip .th[data-id="${id}"]`); };
     const t0 = Date.now();
-    try { await pg.goto(`http://localhost:${process.env.PORT || 8765}/index.html`); await W(2500); await require(`./flows/${f}.js`)({ pg, S, W, visit }); }
+    try { await pg.goto(`http://localhost:${process.env.PORT || 8765}/index.html`); await pg.waitForFunction(() => window.__q, null, { timeout: 180000, polling: 250 }); await W(1200); await require(`./flows/${f}.js`)({ pg, S, W, visit }); }   // the 3D world is set up a planet at a time: wait until it is ready
     catch (e) { errs.push('flow failed: ' + e.message.split('\n')[0]); }
     console.log(`${errs.length ? '✗' : '✓'} ${f} (${((Date.now() - t0) / 1000).toFixed(0)} s)${errs.length ? '\n  ' + errs.join('\n  ') : ''}`);
     if (errs.length) failed++;
