@@ -6835,7 +6835,7 @@ window.__nk = () => Object.fromEntries(P.map(p => [p.id, +(p.nk ?? 1).toFixed(2)
 window.__scr = id => { const p = P.find(q => q.id === id), v = worldPos(p, new THREE.Vector3()).project(camera); return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight }; };
 window.__crowd = () => { if (!current) return []; const c = worldPos(current, new THREE.Vector3()).sub(camera.position), cA = current.fitR * boost / c.length(); return P.filter(p => p !== current && p.id !== 'sun' && p.anchor.visible && !(current === earth && p === moon) && current.parent !== p.id && p.parent !== current.id).map(p => { const d = worldPos(p, new THREE.Vector3()).sub(camera.position); return { id: p.id, sep: d.angleTo(c) / cA, nk: p.nk ?? 1 }; }).filter(o => o.sep < 2.5 && o.nk > .6); };
 window.__sky = () => { const e = evening(); return { look: e.look.toString(), ph: e.ph, moon: e.moon, planets: e.planets, lines: skyLines(e) }; };
-function frame(now){
+function frameBody(now){
   const raw = (now - last) / 1000, dt = Math.min(.05, raw); last = now; T += dt; engineSound(dt);
   const FT = window.__ft || (window.__ft = []); FT.push(raw); if (FT.length > 600) FT.shift();   // recent frame times, for the grown-ups fps readout and the speed tests
   if (sceneMode === 'space') updateSpace(dt, T); else if (sceneMode === 'site') updateSite(dt, T); else if (sceneMode === 'mars') updateMars(dt, T); else if (sceneMode === 'toy') updateToy(dt, T); else updateHome(dt, T);
@@ -6873,7 +6873,14 @@ function frame(now){
     renderer.render(globe, gCam); renderer.setScissorTest(false); renderer.setViewport(0, 0, W, H);
   }
   adapt(raw); window.__fps = window.__fps * .95 + (1 / Math.max(raw, .001)) * .05;
-  requestAnimationFrame(frame);
+}
+let glLost = false;
+canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); glLost = true; });   // the phone took the graphics away (memory, app switch): wait for it
+canvas.addEventListener('webglcontextrestored', () => { glLost = false; });
+function frame(now){
+  requestAnimationFrame(frame);   // scheduled first, so one bad frame can never stop the world
+  if (glLost) { last = now; return; }
+  try { frameBody(now); } catch (e) { window.__frameErr = String(e && e.message || e); }
 }
 
 

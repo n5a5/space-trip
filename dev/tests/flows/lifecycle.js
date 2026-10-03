@@ -8,9 +8,9 @@ await pg.evaluate(()=>document.querySelector('#strip .th[data-id="saturn"]').cli
 await hide(true);await W(800);const h=await pg.evaluate(()=>({cap:document.querySelector('#caption').textContent,a:window.__audioState().ctx}));console.log('hidden',JSON.stringify(h));
 if(h.cap)throw new Error('Luna still talking while hidden');if(h.a==='running')throw new Error('sound still running while hidden');
 await hide(false);await W(800);const v=await pg.evaluate(()=>window.__audioState().ctx);console.log('visible again',v);if(v==='suspended')throw new Error('sound did not come back');
-for(const where of ['space','explorer']){if(where==='explorer'){await act('Explore Earth');await W(12000);}
+for(const where of ['space','space','space','explorer']){if(where==='explorer'){await act('Explore Earth');await W(12000);}
   const before=await lum();const lost=await pg.evaluate(()=>{const c=document.querySelector('canvas');const g=c.getContext('webgl2')||c.getContext('webgl');const x=g&&g.getExtension('WEBGL_lose_context');if(!x)return false;window.__lc=x;x.loseContext();return true;});if(!lost){console.log('no lose_context here');continue;}
-  await W(1500);await pg.evaluate(()=>window.__lc.restoreContext());await W(5000);const after=await lum();await S('lc_'+where);console.log(where,'picture before',JSON.stringify(before),'after restore',JSON.stringify(after));if(after.sd<before.sd*.4||after.mean<before.mean*.4)throw new Error('the picture did not come back after the context was restored in '+where);}
+  await W(where==='space'?300:1500);await pg.evaluate(()=>window.__lc.restoreContext());await W(5000);const after=await lum();await S('lc_'+where);console.log(where,'picture before',JSON.stringify(before),'after restore',JSON.stringify(after));if(after.sd<before.sd*.4||after.mean<before.mean*.4)throw new Error('the picture did not come back after the context was restored in '+where);}
 await pg.evaluate(()=>{const e=new DOMException('full','QuotaExceededError');Storage.prototype.setItem=function(){throw e;};});
 await act('All planets');await W(1500);await act('Passport');await W(1500);await act('Close');await W(800);
 await pg.addInitScript(()=>{Object.defineProperty(window,'localStorage',{configurable:true,get(){throw new DOMException('blocked','SecurityError');}});});await pg.reload();await W(4000);
