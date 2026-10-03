@@ -6394,7 +6394,7 @@ function openPassport(){
 }
 
 /* ---------- loop ---------- */
-const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), tmp3 = new THREE.Vector3();
+const tmp = new THREE.Vector3(), tmp2 = new THREE.Vector3(), tmp3 = new THREE.Vector3(), camFwd = new THREE.Vector3();
 function updateSpace(dt, t){
   orbitRate += ((mode === 'space' || mode === 'intro' ? 1 : 0) - orbitRate) * Math.min(1, dt * 2);
   boost += ((mode === 'space' || mode === 'intro' ? 1.4 : 1) - boost) * Math.min(1, dt * 2.5);
@@ -6472,7 +6472,7 @@ function updateSpace(dt, t){
     const n = tmp.sub(tmp2).normalize(); goal.az = Math.atan2(n.x, n.z); goal.el = Math.asin(clamp(n.y, -1, 1));
   }
   // faces: painted on the side facing the camera, faded in when a planet looks big enough
-  const tanF = Math.tan(camera.fov * DEG / 2);
+  const tanF = Math.tan(camera.fov * DEG / 2); camera.getWorldDirection(camFwd);
   const focusD = current ? worldPos(current, tmp).distanceTo(camera.position) : Infinity;
   for (const p of P) {
     worldPos(p, tmp); const dist = tmp.distanceTo(camera.position); let r = p.id === 'sun' ? p.r : p.r * boost;
@@ -6483,8 +6483,8 @@ function updateSpace(dt, t){
       let k = 1; if (near) { worldPos(current, tmp3).sub(camera.position); worldPos(p, tmp2).sub(camera.position); const sep = tmp2.angleTo(tmp3), curA = current.fitR * boost / tmp3.length(), pA = r / tmp2.length(); k = clamp((sep - pA * .5) / (curA * 5), .12, 1); } p.nk = (p.nk ?? 1) + (k - (p.nk ?? 1)) * Math.min(1, dt * 3); worldPos(p, tmp); r *= p.nk; }
     const px = r / (dist * tanF) * (H / 2);
     tmp2.copy(camera.position).sub(tmp).normalize();
-    p.face.position.copy(tmp).addScaledVector(tmp2, r * (ATMO[p.id] ? ATMO[p.id][3] + .03 : 1.03));
-    p.face.scale.setScalar(r * (p.id === 'sun' ? 1.35 : 1.25));
+    { const base = ATMO[p.id] ? ATMO[p.id][3] + .03 : 1.03, sinT = Math.min(.95, tmp3.copy(tmp2).cross(camFwd).length()), off = r * (base + (window.__faceNoFix ? 0 : p.id === 'sun' ? .7 : .65) * sinT);   // the face is flat to the screen: off to the side it tilts into the ball and an eye gets cut, so it sits further out there (and smaller, to look the same size)
+      p.face.position.copy(tmp).addScaledVector(tmp2, off); p.face.scale.setScalar(r * (p.id === 'sun' ? 1.35 : 1.25) * Math.max(.05, dist - off) / Math.max(.05, dist - r * base)); }
     p.face.material.opacity = blocking || p.id === 'pluto' || style === 'real' || (tour && tour.p === p) || (p === earth && (mode === 'flying' || mode === 'launch' || mode === 'world')) ? 0 : clamp((px - 16) / 18, 0, 1);
     p.face.visible = p.face.material.opacity > .01;
     if (p.id !== 'sun') {
@@ -6679,6 +6679,11 @@ window.__allLines = () => {
 window.__voiceCheck = () => voiceReady.then(() => new Promise(r => { const a = new Audio(voiceSrc(SAY.blastoff)); a.onloadedmetadata = () => r({ n: VOICE.size, dur: a.duration }); a.onerror = () => r('error ' + (a.error && a.error.code)); }));
 window.__wheels = () => roverWheels.length + " r=" + (roverWheels.r || 0).toFixed(3) + " a=" + (roverWheels[0] ? roverWheels[0].rotation.x.toFixed(2) : "-");
 window.__pos = () => P.map(p => p.id + ':' + (p.ang / DEG % 360).toFixed(0));
+window.__faceClip = () => { const R = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), U = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1), c = new THREE.Vector3(), q = new THREE.Vector3(), d = new THREE.Vector3(), out = [];
+  for (const p of P) { if (!p.face.visible || p.face.material.opacity < .5) continue; worldPos(p, c); const rr = p.id === 'sun' ? p.r : p.r * boost * (p.nk ?? 1), sc = p.face.scale.x;
+    for (const sx of [-.24, .24]) { q.copy(p.face.position).addScaledVector(R, sx * sc).addScaledVector(U, .08 * sc); { const v = q.clone().project(camera); if (Math.abs(v.x) > 1 || Math.abs(v.y) > 1 || v.z > 1) continue; } d.copy(q).sub(camera.position); const L = d.length(); d.normalize();   // an eye point on screen: is the ball in front of it?
+      const oc = camera.position.clone().sub(c), b = oc.dot(d), disc = b * b - (oc.lengthSq() - rr * rr * 1.0); if (disc > 0 && -b - Math.sqrt(disc) < L - 1e-4) out.push(p.id + (sx > 0 ? ':right' : ':left')); } }
+  return out; };
 window.__regionAt = regionAt; window.__animalEm = animalEm;
 window.__lmCover = () => { if (!toy || !toy.lms) return null; const b = new THREE.Box3(), v = new THREE.Vector3(); let a = 0; const out = []; for (const g of toy.lms.children) { if (!g.visible || g.scale.x < .05) continue; b.makeEmpty(); g.updateMatrixWorld(true); g.traverseVisible(o => { if (o.isMesh && !o.isInstancedMesh && o.geometry) { if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); b.union(new THREE.Box3().copy(o.geometry.boundingBox).applyMatrix4(o.matrixWorld)); } }); if (b.isEmpty()) continue; let x0 = 1, x1 = -1, y0 = 1, y1 = -1, front = 0; for (let i = 0; i < 8; i++) { v.set(i & 1 ? b.max.x : b.min.x, i & 2 ? b.max.y : b.min.y, i & 4 ? b.max.z : b.min.z).project(camera); if (v.z >= 1) front = -1e9; else front++; x0 = Math.min(x0, v.x); x1 = Math.max(x1, v.x); y0 = Math.min(y0, v.y); y1 = Math.max(y1, v.y); } if (front < 8) continue; const k = Math.max(0, Math.min(1, x1) - Math.max(-1, x0)) * Math.max(0, Math.min(1, y1) - Math.max(-1, y0)) / 4; if (k > .01) out.push([g.userData.lm && g.userData.lm.id, +k.toFixed(2), +b.getCenter(v).distanceTo(camera.position).toFixed(2), +b.getSize(v).length().toFixed(2)]); a += k; } return { a: +a.toFixed(2), out }; };
 window.__beacon = () => toy && toy.beacon ? { vis: toy.beacon.visible, op: +toy.beacon.userData.badge.material.opacity.toFixed(2), d: +toy.beacon.userData.badge.getWorldPosition(new THREE.Vector3()).distanceTo(camera.position).toFixed(2), near: toy.fly && toy.fly.near && toy.fly.near.id } : null;
